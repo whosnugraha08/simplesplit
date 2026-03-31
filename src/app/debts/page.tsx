@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Debt, Friend, Bill } from '@/lib/types';
+import { Debt, Friend, Bill, PaymentMethod } from '@/lib/types';
 import { formatRupiah, formatDate, getInitials, getAvatarColor } from '@/lib/formatters';
 import Link from 'next/link';
 
@@ -15,6 +15,10 @@ export default function DebtsPage() {
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const [payAllConfirm, setPayAllConfirm] = useState<NetSummaryItem | null>(null);
   const [payingAll, setPayingAll] = useState(false);
+  const [payAllPMs, setPayAllPMs] = useState<PaymentMethod[]>([]);
+  const [selectedPM, setSelectedPM] = useState<PaymentMethod | null>(null);
+  const [loadingPMs, setLoadingPMs] = useState(false);
+  const [showQris, setShowQris] = useState(false);
 
   useEffect(() => {
     loadDebts();
@@ -77,6 +81,53 @@ export default function DebtsPage() {
   }
 
   // --- BAYAR SEMUA: Mark all unpaid debts from debtor→creditor as paid ---
+  // Open "Bayar Semua" modal — load payment methods for creditor
+  async function openPayAll(summary: NetSummaryItem) {
+    setPayAllConfirm(summary);
+    setPayAllPMs([]);
+    setSelectedPM(null);
+    setLoadingPMs(true);
+    setShowQris(false);
+
+    try {
+      const { data: pms, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .eq('friend_id', summary.creditorId)
+        .order('created_at');
+
+      if (!error && pms && pms.length > 0) {
+        setPayAllPMs(pms);
+        setSelectedPM(pms[0]);
+      } else {
+        // Fallback: check old schema fields
+        const { data: friend } = await supabase
+          .from('friends')
+          .select('*')
+          .eq('id', summary.creditorId)
+          .single();
+        const f = friend as any;
+        if (f?.bank_name || f?.bank_account_number || f?.qris_image_url) {
+          const fallback: PaymentMethod = {
+            id: 'legacy',
+            friend_id: f.id,
+            label: f.bank_name || 'Rekening',
+            bank_name: f.bank_name || '',
+            account_number: f.bank_account_number || null,
+            qris_image_url: f.qris_image_url || null,
+            created_at: f.created_at,
+          };
+          setPayAllPMs([fallback]);
+          setSelectedPM(fallback);
+        }
+      }
+    } catch {
+      // Silently handle — modal will show without payment info
+    }
+
+    setLoadingPMs(false);
+  }
+
   async function markAllPaid(summary: NetSummaryItem) {
     setPayingAll(true);
 
@@ -197,7 +248,7 @@ export default function DebtsPage() {
                 </div>
                 {/* Bayar Semua button */}
                 <button
-                  onClick={() => setPayAllConfirm(s)}
+                  onClick={() => openPayAll(s)}
                   className="mt-2 w-full py-2 rounded-lg bg-success text-white text-xs font-semibold active:scale-[0.98] transition"
                 >
                   ✓ Bayar Semua ({formatRupiah(s.total)})
@@ -309,36 +360,113 @@ export default function DebtsPage() {
         </div>
       )}
 
-      {/* Bayar Semua Confirmation Modal */}
+      {/* Bayar Semua Modal with Payment Info */}
       {payAllConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !payingAll && setPayAllConfirm(null)}>
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">Bayar Semua?</h3>
-            <p className="text-sm text-text-secondary mb-1">
-              Tandai lunas <strong>semua hutang</strong> dari:
-            </p>
-            <div className="bg-page rounded-xl p-4 my-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                  style={{ backgroundColor: getAvatarColor(payAllConfirm.debtor) }}
-                >
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">Bayar Semua</h3>
+              <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-text-secondary text-xl p-1">✕</button>
+            </div>
+
+            {/* Amount + People */}
+            <div className="bg-primary rounded-xl p-4 mb-4 text-white text-center">
+              <p className="text-blue-100 text-xs mb-0.5">Total yang harus dibayar</p>
+              <p className="money text-2xl text-white">{formatRupiah(payAllConfirm.total)}</p>
+              <div className="mt-2 flex items-center justify-center gap-2 text-xs">
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border border-white/30"
+                  style={{ backgroundColor: getAvatarColor(payAllConfirm.debtor) }}>
                   {getInitials(payAllConfirm.debtor)}
                 </div>
-                <span className="text-text-secondary">→</span>
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                  style={{ backgroundColor: getAvatarColor(payAllConfirm.creditor) }}
-                >
+                <span className="text-blue-200">{payAllConfirm.debtor} → {payAllConfirm.creditor}</span>
+                <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold border border-white/30"
+                  style={{ backgroundColor: getAvatarColor(payAllConfirm.creditor) }}>
                   {getInitials(payAllConfirm.creditor)}
                 </div>
-                <div className="ml-1">
-                  <p className="text-sm font-semibold">{payAllConfirm.debtor} → {payAllConfirm.creditor}</p>
-                  <p className="text-[10px] text-text-muted">{payAllConfirm.count} transaksi</p>
-                </div>
               </div>
-              <p className="money text-lg text-danger">{formatRupiah(payAllConfirm.total)}</p>
+              <p className="text-blue-200 text-[10px] mt-1">{payAllConfirm.count} transaksi</p>
             </div>
+
+            {/* Payment Methods */}
+            {loadingPMs ? (
+              <div className="py-4 text-center text-sm text-text-secondary">Memuat metode pembayaran...</div>
+            ) : payAllPMs.length > 0 ? (
+              <div className="mb-4">
+                <p className="text-xs font-semibold text-text-secondary mb-2">Transfer ke</p>
+
+                {/* Method selector (if multiple) */}
+                {payAllPMs.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-2 mb-3 scrollbar-hide">
+                    {payAllPMs.map(pm => (
+                      <button
+                        key={pm.id}
+                        onClick={() => { setSelectedPM(pm); setShowQris(false); }}
+                        className={`shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                          selectedPM?.id === pm.id
+                            ? 'bg-primary text-white'
+                            : 'bg-page text-text-secondary border border-border'
+                        }`}
+                      >
+                        {pm.label || pm.bank_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {/* Selected method info */}
+                {selectedPM && (
+                  <div className="bg-page rounded-xl p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                        style={{ backgroundColor: getAvatarColor(payAllConfirm.creditor) }}>
+                        {getInitials(payAllConfirm.creditor)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold">{payAllConfirm.creditor}</p>
+                        <p className="text-[10px] text-text-muted">{selectedPM.label || selectedPM.bank_name}</p>
+                      </div>
+                    </div>
+
+                    {selectedPM.account_number && (
+                      <div className="bg-white rounded-lg p-3">
+                        <p className="text-[10px] text-text-muted mb-0.5">{selectedPM.bank_name}</p>
+                        <div className="flex items-center justify-between">
+                          <p className="money text-base">{selectedPM.account_number}</p>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(selectedPM.account_number || '');
+                              alert('Nomor rekening disalin!');
+                            }}
+                            className="px-2 py-1 rounded-md bg-primary-light text-primary text-[10px] font-semibold"
+                          >
+                            📋 Salin
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedPM.qris_image_url && (
+                      <button onClick={() => setShowQris(true)} className="w-full">
+                        <img
+                          src={selectedPM.qris_image_url}
+                          alt="QRIS"
+                          className="w-full max-h-40 object-contain rounded-lg border border-border bg-white"
+                        />
+                        <p className="text-[10px] text-primary font-medium mt-1">Tap untuk perbesar</p>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-page rounded-xl p-4 mb-4 text-center">
+                <p className="text-xs text-text-secondary">
+                  Belum ada metode pembayaran untuk {payAllConfirm.creditor}
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
             <div className="flex gap-3">
               <button
                 onClick={() => setPayAllConfirm(null)}
@@ -352,10 +480,19 @@ export default function DebtsPage() {
                 disabled={payingAll}
                 className="flex-1 py-3 rounded-xl bg-success text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition"
               >
-                {payingAll ? 'Memproses...' : `✓ Lunas Semua`}
+                {payingAll ? 'Memproses...' : '✓ Lunas Semua'}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* QRIS Fullscreen */}
+      {showQris && selectedPM?.qris_image_url && (
+        <div className="fixed inset-0 bg-black z-[60] flex items-center justify-center" onClick={() => setShowQris(false)}>
+          <button className="absolute top-4 right-4 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-lg z-10"
+            onClick={() => setShowQris(false)}>✕</button>
+          <img src={selectedPM.qris_image_url} alt="QRIS" className="max-w-[95vw] max-h-[90vh] object-contain" />
         </div>
       )}
     </div>
