@@ -27,7 +27,7 @@ export default function BillDetailPage() {
     const [billRes, itemsRes, debtsRes] = await Promise.all([
       supabase
         .from('bills')
-        .select('*, paid_by_friend:paid_by(id,name,bank_name,bank_account_number)')
+        .select('*, paid_by_friend:paid_by(id,name)')
         .eq('id', billId)
         .single(),
       supabase.from('bill_items').select('*').eq('bill_id', billId).order('created_at'),
@@ -203,8 +203,8 @@ export default function BillDetailPage() {
 
       {/* Delete Confirm */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 overlay z-50 flex items-end justify-center" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Bill?</h3>
             <p className="text-sm text-text-secondary mb-6">Bill "{bill.title}" dan semua data terkait akan dihapus.</p>
             <div className="flex gap-3">

@@ -170,8 +170,8 @@ export default function FriendsPage() {
 
       {/* Delete Confirmation */}
       {deleteConfirm && (
-        <div className="fixed inset-0 overlay z-50 flex items-end justify-center" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Teman?</h3>
             <p className="text-sm text-text-secondary mb-6">Semua data terkait teman ini akan ikut terhapus.</p>
             <div className="flex gap-3">
@@ -400,8 +400,8 @@ function FriendFormModal({
   const activePMs = paymentMethods.filter(pm => !pm._deleted);
 
   return (
-    <div className="fixed inset-0 overlay z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold">{friend ? 'Edit Teman' : 'Tambah Teman'}</h3>
           <button onClick={onClose} className="text-text-secondary text-xl p-1">✕</button>

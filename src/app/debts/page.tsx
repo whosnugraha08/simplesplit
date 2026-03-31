@@ -311,8 +311,8 @@ export default function DebtsPage() {
 
       {/* Bayar Semua Confirmation Modal */}
       {payAllConfirm && (
-        <div className="fixed inset-0 overlay z-50 flex items-end justify-center" onClick={() => !payingAll && setPayAllConfirm(null)}>
-          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !payingAll && setPayAllConfirm(null)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Bayar Semua?</h3>
             <p className="text-sm text-text-secondary mb-1">
               Tandai lunas <strong>semua hutang</strong> dari:
