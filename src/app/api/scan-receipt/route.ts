@@ -46,43 +46,69 @@ RESPOND HANYA dengan JSON valid (tanpa markdown, tanpa backtick, tanpa penjelasa
   "subtotal": 0
 }`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: prompt },
-                {
-                  inlineData: {
-                    mimeType: imgMimeType,
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 2048,
-          },
-        }),
-      }
-    );
+    // List of fallback models based on Free Tier availability
+    const FALLBACK_MODELS = [
+      'gemini-2.5-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3-flash',
+      'gemini-2.5-flash-lite'
+    ];
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('Gemini API error:', response.status, errText);
-      return NextResponse.json(
-        { error: `Gemini API error: ${response.status}` },
-        { status: 502 }
+    let lastErrorStatus = 502;
+    let lastErrorText = 'All fallback models failed';
+    let data = null;
+
+    for (const model of FALLBACK_MODELS) {
+      console.log(`Trying model: ${model}...`);
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: [
+                  { text: prompt },
+                  {
+                    inlineData: {
+                      mimeType: imgMimeType,
+                      data: base64Data,
+                    },
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.1,
+              maxOutputTokens: 2048,
+            },
+          }),
+        }
       );
+
+      if (response.ok) {
+        data = await response.json();
+        console.log(`Model ${model} succeeded!`);
+        break; // Success! Stop trying other models.
+      }
+
+      const errText = await response.text();
+      console.warn(`Model ${model} failed:`, response.status, errText);
+      lastErrorStatus = response.status;
+      lastErrorText = errText;
+      
+      // If it's not a rate limit (429), not found (404), or unavailable (503), it might be a payload 
+      // or API Key issue. But to be safe, we will just continue to the next fallback anyway.
     }
 
-    const data = await response.json();
+    if (!data) {
+      console.error('All Gemini API models failed. Last error:', lastErrorStatus, lastErrorText);
+      return NextResponse.json(
+        { error: `Gemini API fallback failed. Last error: ${lastErrorStatus}` },
+        { status: lastErrorStatus }
+      );
+    }
 
     // Extract text from Gemini response
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
