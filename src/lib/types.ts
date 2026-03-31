@@ -1,12 +1,21 @@
 export interface Friend {
   id: string;
   name: string;
-  bank_name: string | null;
-  bank_account_number: string | null;
-  qris_image_url: string | null;
   is_admin: boolean;
   created_at: string;
   updated_at: string;
+  // Joined
+  payment_methods?: PaymentMethod[];
+}
+
+export interface PaymentMethod {
+  id: string;
+  friend_id: string;
+  label: string;
+  bank_name: string;
+  account_number: string | null;
+  qris_image_url: string | null;
+  created_at: string;
 }
 
 export interface Bill {

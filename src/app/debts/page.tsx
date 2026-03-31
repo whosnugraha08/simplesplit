@@ -22,7 +22,7 @@ export default function DebtsPage() {
     setLoading(true);
     let query = supabase
       .from('debts')
-      .select('*, debtor:debtor_id(id,name,bank_name,bank_account_number,qris_image_url), creditor:creditor_id(id,name,bank_name,bank_account_number,qris_image_url), bill:bill_id(id,title,bill_date)')
+      .select('*, debtor:debtor_id(id,name), creditor:creditor_id(id,name), bill:bill_id(id,title,bill_date)')
       .order('created_at', { ascending: false });
     
     if (filter !== 'all') {

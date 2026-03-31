@@ -7,12 +7,22 @@
 CREATE TABLE IF NOT EXISTS friends (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
-  bank_name TEXT,
-  bank_account_number TEXT,
-  qris_image_url TEXT,
   is_admin BOOLEAN DEFAULT false,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- ============================================
+-- TABLE: payment_methods (1 friend → many payment methods)
+-- ============================================
+CREATE TABLE IF NOT EXISTS payment_methods (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  friend_id UUID NOT NULL REFERENCES friends(id) ON DELETE CASCADE,
+  label TEXT NOT NULL,
+  bank_name TEXT NOT NULL,
+  account_number TEXT,
+  qris_image_url TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- ============================================
@@ -83,6 +93,7 @@ CREATE INDEX IF NOT EXISTS idx_debts_bill ON debts(bill_id);
 CREATE INDEX IF NOT EXISTS idx_debts_debtor ON debts(debtor_id);
 CREATE INDEX IF NOT EXISTS idx_debts_creditor ON debts(creditor_id);
 CREATE INDEX IF NOT EXISTS idx_debts_status ON debts(status);
+CREATE INDEX IF NOT EXISTS idx_payment_methods_friend ON payment_methods(friend_id);
 
 -- ============================================
 -- UPDATED_AT TRIGGER
@@ -119,6 +130,7 @@ ALTER TABLE bills ENABLE ROW LEVEL SECURITY;
 ALTER TABLE bill_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE item_assignments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE debts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_methods ENABLE ROW LEVEL SECURITY;
 
 -- Allow all operations (single admin, no auth required for now)
 CREATE POLICY "Allow all on friends" ON friends FOR ALL USING (true) WITH CHECK (true);
@@ -126,3 +138,4 @@ CREATE POLICY "Allow all on bills" ON bills FOR ALL USING (true) WITH CHECK (tru
 CREATE POLICY "Allow all on bill_items" ON bill_items FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on item_assignments" ON item_assignments FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow all on debts" ON debts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all on payment_methods" ON payment_methods FOR ALL USING (true) WITH CHECK (true);
