@@ -80,6 +80,30 @@ export default function DebtsPage() {
     .filter(d => d.status === 'unpaid')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
+  // --- Net debt summary: group unpaid debts by debtor→creditor ---
+  const netSummary = (() => {
+    const unpaid = debts.filter(d => d.status === 'unpaid');
+    const map = new Map<string, { debtor: string; creditor: string; total: number; count: number }>();
+
+    for (const d of unpaid) {
+      const key = `${d.debtor?.name || '?'} → ${d.creditor?.name || '?'}`;
+      const existing = map.get(key);
+      if (existing) {
+        existing.total += Number(d.amount);
+        existing.count += 1;
+      } else {
+        map.set(key, {
+          debtor: d.debtor?.name || '?',
+          creditor: d.creditor?.name || '?',
+          total: Number(d.amount),
+          count: 1,
+        });
+      }
+    }
+
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  })();
+
   return (
     <div className="px-4 pt-6 pb-4">
       {/* Header */}
@@ -93,6 +117,43 @@ export default function DebtsPage() {
         <div className="bg-danger rounded-2xl p-4 mb-4 text-white">
           <p className="text-red-100 text-xs font-medium mb-0.5">Total Belum Lunas</p>
           <p className="money text-2xl text-white">{formatRupiah(totalUnpaid)}</p>
+        </div>
+      )}
+
+      {/* Net summary per person pair */}
+      {filter === 'unpaid' && netSummary.length > 0 && (
+        <div className="mb-4">
+          <p className="text-xs font-semibold text-text-secondary mb-2">Ringkasan per Orang</p>
+          <div className="space-y-2">
+            {netSummary.map((s, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-xl border border-border px-4 py-3 flex items-center justify-between animate-fade-in"
+                style={{ animationDelay: `${idx * 30}ms` }}
+              >
+                <div className="flex items-center gap-2 min-w-0">
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                    style={{ backgroundColor: getAvatarColor(s.debtor) }}
+                  >
+                    {getInitials(s.debtor)}
+                  </div>
+                  <span className="text-xs text-text-secondary">→</span>
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                    style={{ backgroundColor: getAvatarColor(s.creditor) }}
+                  >
+                    {getInitials(s.creditor)}
+                  </div>
+                  <div className="min-w-0 ml-1">
+                    <p className="text-xs font-semibold truncate">{s.debtor} → {s.creditor}</p>
+                    <p className="text-[10px] text-text-muted">{s.count} transaksi</p>
+                  </div>
+                </div>
+                <p className="money text-sm text-danger shrink-0 ml-2">{formatRupiah(s.total)}</p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
