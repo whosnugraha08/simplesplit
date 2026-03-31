@@ -19,6 +19,7 @@ export default function NewBillPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [scanProgress, setScanProgress] = useState(0);
   const [scanError, setScanError] = useState<string | null>(null);
+  const [scanSource, setScanSource] = useState<'gemini' | 'tesseract' | null>(null);
 
   // Parsed receipt data (editable)
   const [items, setItems] = useState<ParsedReceiptItem[]>([]);
@@ -51,6 +52,7 @@ export default function NewBillPage() {
     setStep('scanning');
     setScanProgress(0);
     setScanError(null);
+    setScanSource('gemini'); // Default attempt is Gemini
 
     // File to Base64 utility
     const fileToBase64 = (file: File): Promise<string> => {
@@ -103,6 +105,7 @@ export default function NewBillPage() {
         console.warn('Gemini API failed, falling back to local Tesseract OCR...', geminiErr);
         
         // 2. Fallback to Local Tesseract OCR
+        setScanSource('tesseract');
         const result = await scanReceipt(imageFile);
         
         clearInterval(progressInterval);
@@ -127,6 +130,7 @@ export default function NewBillPage() {
 
   // Skip OCR and input manually
   function handleManualInput() {
+    setScanSource(null);
     setItems([{ name: '', price: 0, quantity: 1 }]);
     setTax(0);
     setServiceCharge(0);
@@ -313,7 +317,9 @@ export default function NewBillPage() {
             <span className="absolute inset-0 flex items-center justify-center text-2xl">🔍</span>
           </div>
           <p className="text-lg font-semibold mb-2">Membaca Nota...</p>
-          <p className="text-sm text-text-secondary mb-4">Menggunakan Tesseract.js OCR</p>
+          <p className="text-sm pb-1 font-medium bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            {scanSource === 'gemini' ? '✨ Menggunakan AI Gemini' : 'Menggunakan Tesseract.js OCR'}
+          </p>
           <div className="w-48 h-2 bg-border rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-300"
@@ -327,6 +333,22 @@ export default function NewBillPage() {
       {/* Step: Edit Items */}
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
+          {/* Scan Source Badge */}
+          {scanSource && (
+            <div className="flex justify-between items-center bg-blue-50/50 border border-blue-100 rounded-xl p-3">
+              <span className="text-xs text-text-secondary font-medium">Metode Scan:</span>
+              {scanSource === 'gemini' ? (
+                <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center gap-1">
+                  ✨ Gemini AI (High Accuracy)
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full border border-border">
+                  📸 Tesseract.js (Offline)
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">Judul Bill</label>
