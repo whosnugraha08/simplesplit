@@ -34,15 +34,51 @@ export default function PayPage() {
 
     // Load payment methods for the creditor
     if (debtData?.creditor_id) {
-      const { data: pms } = await supabase
-        .from('payment_methods')
-        .select('*')
-        .eq('friend_id', debtData.creditor_id)
-        .order('created_at');
-      const methods = pms || [];
-      setPaymentMethods(methods);
-      // Auto-select first method
-      if (methods.length > 0) setSelectedPM(methods[0]);
+      // Try new payment_methods table first
+      try {
+        const { data: pms, error } = await supabase
+          .from('payment_methods')
+          .select('*')
+          .eq('friend_id', debtData.creditor_id)
+          .order('created_at');
+        
+        if (!error && pms && pms.length > 0) {
+          setPaymentMethods(pms);
+          setSelectedPM(pms[0]);
+        } else {
+          // Fallback: check old schema fields on creditor
+          const creditor = debtData.creditor;
+          if (creditor?.bank_name || creditor?.bank_account_number || creditor?.qris_image_url) {
+            const fallbackPM: PaymentMethod = {
+              id: 'legacy-' + creditor.id,
+              friend_id: creditor.id,
+              label: creditor.bank_name || 'Rekening',
+              bank_name: creditor.bank_name || '',
+              account_number: creditor.bank_account_number || null,
+              qris_image_url: creditor.qris_image_url || null,
+              created_at: creditor.created_at,
+            };
+            setPaymentMethods([fallbackPM]);
+            setSelectedPM(fallbackPM);
+          }
+        }
+      } catch {
+        // payment_methods table doesn't exist — try old schema
+        const creditor = debtData.creditor;
+        if (creditor?.bank_name || creditor?.bank_account_number || creditor?.qris_image_url) {
+          const fallbackPM: PaymentMethod = {
+            id: 'legacy-' + creditor.id,
+            friend_id: creditor.id,
+            label: creditor.bank_name || 'Rekening',
+            bank_name: creditor.bank_name || '',
+            account_number: creditor.bank_account_number || null,
+            qris_image_url: creditor.qris_image_url || null,
+            created_at: creditor.created_at,
+          };
+          setPaymentMethods([fallbackPM]);
+          setSelectedPM(fallbackPM);
+        }
+      }
     }
 
     setLoading(false);

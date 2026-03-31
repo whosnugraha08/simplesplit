@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Friend, PaymentMethod } from '@/lib/types';
 import { getInitials, getAvatarColor } from '@/lib/formatters';
 
+type FriendWithPMs = Friend & { payment_methods?: PaymentMethod[] };
+
 export default function FriendsPage() {
-  const [friends, setFriends] = useState<(Friend & { payment_methods?: PaymentMethod[] })[]>([]);
+  const [friends, setFriends] = useState<FriendWithPMs[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingFriend, setEditingFriend] = useState<(Friend & { payment_methods?: PaymentMethod[] }) | null>(null);
+  const [editingFriend, setEditingFriend] = useState<FriendWithPMs | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   useEffect(() => {
@@ -17,12 +19,42 @@ export default function FriendsPage() {
   }, []);
 
   async function loadFriends() {
-    const { data } = await supabase
+    // Step 1: Always fetch friends first (this works with both old and new schema)
+    const { data: friendsData, error: friendsError } = await supabase
       .from('friends')
-      .select('*, payment_methods(*)')
+      .select('*')
       .order('is_admin', { ascending: false })
       .order('name');
-    setFriends(data || []);
+
+    if (friendsError) {
+      console.error('Error loading friends:', friendsError);
+      setLoading(false);
+      return;
+    }
+
+    const friendsList = friendsData || [];
+
+    // Step 2: Try to fetch payment methods (may not exist if old schema)
+    let pmsData: PaymentMethod[] = [];
+    try {
+      const { data, error } = await supabase
+        .from('payment_methods')
+        .select('*')
+        .order('created_at');
+      if (!error && data) {
+        pmsData = data;
+      }
+    } catch {
+      // payment_methods table doesn't exist yet — that's fine
+    }
+
+    // Step 3: Merge payment methods into friends
+    const friendsWithPMs: FriendWithPMs[] = friendsList.map(f => ({
+      ...f,
+      payment_methods: pmsData.filter(pm => pm.friend_id === f.id),
+    }));
+
+    setFriends(friendsWithPMs);
     setLoading(false);
   }
 
@@ -68,6 +100,8 @@ export default function FriendsPage() {
         <div className="space-y-3">
           {friends.map((friend, idx) => {
             const pmCount = friend.payment_methods?.length || 0;
+            // Fallback: check old-schema fields
+            const hasOldBankData = (friend as any).bank_name || (friend as any).bank_account_number;
             return (
               <div key={friend.id} className="bg-white rounded-2xl border border-border p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
                 <div className="flex items-center gap-3">
@@ -89,6 +123,10 @@ export default function FriendsPage() {
                     {pmCount > 0 ? (
                       <p className="text-xs text-text-secondary mt-0.5">
                         💳 {pmCount} metode pembayaran
+                      </p>
+                    ) : hasOldBankData ? (
+                      <p className="text-xs text-text-secondary mt-0.5">
+                        🏦 {(friend as any).bank_name} • {(friend as any).bank_account_number || '-'}
                       </p>
                     ) : (
                       <p className="text-xs text-text-muted mt-0.5 italic">Belum ada rekening</p>
@@ -168,12 +206,12 @@ export default function FriendsPage() {
 
 // ---- Payment Method types for local state ----
 interface LocalPM {
-  id?: string; // undefined = new
+  id?: string;
   label: string;
   bank_name: string;
   account_number: string;
   qris_image_url: string | null;
-  qris_file: File | null; // for new upload
+  qris_file: File | null;
   _deleted?: boolean;
 }
 
@@ -182,15 +220,16 @@ function FriendFormModal({
   onClose,
   onSaved,
 }: {
-  friend: (Friend & { payment_methods?: PaymentMethod[] }) | null;
+  friend: FriendWithPMs | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const [name, setName] = useState(friend?.name || '');
   const [isAdmin, setIsAdmin] = useState(friend?.is_admin || false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Payment methods state
+  // Payment methods state — also check old-schema fields for backwards compat
   const [paymentMethods, setPaymentMethods] = useState<LocalPM[]>(() => {
     if (friend?.payment_methods && friend.payment_methods.length > 0) {
       return friend.payment_methods.map(pm => ({
@@ -201,6 +240,17 @@ function FriendFormModal({
         qris_image_url: pm.qris_image_url,
         qris_file: null,
       }));
+    }
+    // Backwards compat: if old schema had bank data on friend directly
+    const oldFriend = friend as any;
+    if (oldFriend?.bank_name) {
+      return [{
+        label: oldFriend.bank_name,
+        bank_name: oldFriend.bank_name,
+        account_number: oldFriend.bank_account_number || '',
+        qris_image_url: oldFriend.qris_image_url || null,
+        qris_file: null,
+      }];
     }
     return [];
   });
@@ -224,7 +274,6 @@ function FriendFormModal({
   function removePM(index: number) {
     const updated = [...paymentMethods];
     if (updated[index].id) {
-      // Mark for deletion (existing record)
       updated[index]._deleted = true;
     } else {
       updated.splice(index, 1);
@@ -243,66 +292,106 @@ function FriendFormModal({
     e.preventDefault();
     if (!name.trim()) return;
     setSaving(true);
+    setError(null);
 
     try {
       let friendId = friend?.id;
 
       // Save friend record
-      const friendData = { name: name.trim(), is_admin: isAdmin };
+      const friendData: any = { name: name.trim(), is_admin: isAdmin };
 
       if (friend) {
-        await supabase.from('friends').update(friendData).eq('id', friend.id);
+        const { error: updateErr } = await supabase.from('friends').update(friendData).eq('id', friend.id);
+        if (updateErr) throw updateErr;
       } else {
-        const { data } = await supabase.from('friends').insert(friendData).select().single();
+        const { data, error: insertErr } = await supabase.from('friends').insert(friendData).select().single();
+        if (insertErr) throw insertErr;
         friendId = data?.id;
       }
 
       if (!friendId) throw new Error('Friend ID missing');
 
-      // Handle payment methods
-      for (const pm of paymentMethods) {
-        // Delete removed ones
-        if (pm._deleted && pm.id) {
-          await supabase.from('payment_methods').delete().eq('id', pm.id);
-          continue;
-        }
+      // Try to save payment methods to the new table
+      const activePMs = paymentMethods.filter(pm => !pm._deleted && pm.bank_name.trim());
+      
+      // Check if payment_methods table exists by trying a query
+      const { error: pmTableCheck } = await supabase
+        .from('payment_methods')
+        .select('id')
+        .limit(1);
 
-        if (pm._deleted) continue;
-        if (!pm.bank_name.trim()) continue; // skip empty rows
+      if (!pmTableCheck) {
+        // Table exists — save payment methods normally
+        for (const pm of paymentMethods) {
+          if (pm._deleted && pm.id) {
+            await supabase.from('payment_methods').delete().eq('id', pm.id);
+            continue;
+          }
+          if (pm._deleted || !pm.bank_name.trim()) continue;
 
-        // Upload QRIS if new file
-        let qrisUrl = pm.qris_image_url;
-        if (pm.qris_file) {
-          const fileExt = pm.qris_file.name.split('.').pop();
-          const fileName = `qris_${friendId}_${Date.now()}.${fileExt}`;
-          const { error: uploadErr } = await supabase.storage
-            .from('qris')
-            .upload(fileName, pm.qris_file, { upsert: true });
-          if (!uploadErr) {
-            const { data: urlData } = supabase.storage.from('qris').getPublicUrl(fileName);
-            qrisUrl = urlData.publicUrl;
+          let qrisUrl = pm.qris_image_url;
+          if (pm.qris_file) {
+            const fileExt = pm.qris_file.name.split('.').pop();
+            const fileName = `qris_${friendId}_${Date.now()}.${fileExt}`;
+            const { error: uploadErr } = await supabase.storage
+              .from('qris')
+              .upload(fileName, pm.qris_file, { upsert: true });
+            if (!uploadErr) {
+              const { data: urlData } = supabase.storage.from('qris').getPublicUrl(fileName);
+              qrisUrl = urlData.publicUrl;
+            }
+          }
+
+          // Remove blob URLs before saving
+          if (qrisUrl && qrisUrl.startsWith('blob:')) {
+            qrisUrl = null;
+          }
+
+          const pmData = {
+            friend_id: friendId,
+            label: pm.label.trim() || pm.bank_name.trim(),
+            bank_name: pm.bank_name.trim(),
+            account_number: pm.account_number.trim() || null,
+            qris_image_url: qrisUrl,
+          };
+
+          if (pm.id) {
+            await supabase.from('payment_methods').update(pmData).eq('id', pm.id);
+          } else {
+            await supabase.from('payment_methods').insert(pmData);
           }
         }
+      } else {
+        // Table doesn't exist — fallback: save to old friend fields
+        console.warn('payment_methods table not found, saving to friend record');
+        if (activePMs.length > 0) {
+          const firstPM = activePMs[0];
+          let qrisUrl = firstPM.qris_image_url;
+          if (firstPM.qris_file) {
+            const fileExt = firstPM.qris_file.name.split('.').pop();
+            const fileName = `qris_${friendId}_${Date.now()}.${fileExt}`;
+            const { error: uploadErr } = await supabase.storage
+              .from('qris')
+              .upload(fileName, firstPM.qris_file, { upsert: true });
+            if (!uploadErr) {
+              const { data: urlData } = supabase.storage.from('qris').getPublicUrl(fileName);
+              qrisUrl = urlData.publicUrl;
+            }
+          }
+          if (qrisUrl && qrisUrl.startsWith('blob:')) qrisUrl = null;
 
-        const pmData = {
-          friend_id: friendId,
-          label: pm.label.trim() || pm.bank_name.trim(),
-          bank_name: pm.bank_name.trim(),
-          account_number: pm.account_number.trim() || null,
-          qris_image_url: qrisUrl,
-        };
-
-        if (pm.id) {
-          await supabase.from('payment_methods').update(pmData).eq('id', pm.id);
-        } else {
-          await supabase.from('payment_methods').insert(pmData);
+          await supabase.from('friends').update({
+            bank_name: firstPM.bank_name.trim(),
+            bank_account_number: firstPM.account_number.trim() || null,
+            qris_image_url: qrisUrl,
+          }).eq('id', friendId);
         }
       }
 
       onSaved();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving friend:', err);
-      alert('Gagal menyimpan. Coba lagi.');
+      setError(err?.message || 'Gagal menyimpan. Coba lagi.');
     } finally {
       setSaving(false);
     }
@@ -317,6 +406,12 @@ function FriendFormModal({
           <h3 className="text-lg font-bold">{friend ? 'Edit Teman' : 'Tambah Teman'}</h3>
           <button onClick={onClose} className="text-text-secondary text-xl p-1">✕</button>
         </div>
+
+        {error && (
+          <div className="bg-danger-light text-danger rounded-xl p-3 text-sm mb-4">
+            ⚠️ {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Name */}
@@ -334,11 +429,7 @@ function FriendFormModal({
 
           {/* Admin Checkbox */}
           <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={isAdmin}
-              onChange={e => setIsAdmin(e.target.checked)}
-            />
+            <input type="checkbox" checked={isAdmin} onChange={e => setIsAdmin(e.target.checked)} />
             <span className="text-sm font-medium">Tandai sebagai Admin (saya sendiri)</span>
           </label>
 
@@ -365,7 +456,6 @@ function FriendFormModal({
                   if (pm._deleted) return null;
                   return (
                     <div key={idx} className="bg-page rounded-xl p-3 space-y-2 relative animate-fade-in">
-                      {/* Remove button */}
                       <button
                         type="button"
                         onClick={() => removePM(idx)}
@@ -374,7 +464,6 @@ function FriendFormModal({
                         ✕
                       </button>
 
-                      {/* Label */}
                       <input
                         type="text"
                         value={pm.label}
@@ -384,7 +473,6 @@ function FriendFormModal({
                       />
 
                       <div className="grid grid-cols-2 gap-2">
-                        {/* Bank name */}
                         <input
                           type="text"
                           value={pm.bank_name}
@@ -392,8 +480,6 @@ function FriendFormModal({
                           placeholder="Bank/E-Wallet *"
                           className="w-full px-3 py-2 rounded-lg bg-white border border-border text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
-
-                        {/* Account number */}
                         <input
                           type="text"
                           value={pm.account_number}
@@ -403,7 +489,6 @@ function FriendFormModal({
                         />
                       </div>
 
-                      {/* QRIS Upload */}
                       <div>
                         <input
                           type="file"
@@ -417,11 +502,7 @@ function FriendFormModal({
                         />
                         {pm.qris_image_url ? (
                           <div className="relative">
-                            <img
-                              src={pm.qris_image_url}
-                              alt="QRIS"
-                              className="w-full max-h-32 object-contain rounded-lg border border-border bg-white"
-                            />
+                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-border bg-white" />
                             <button
                               type="button"
                               onClick={() => {
