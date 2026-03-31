@@ -29,7 +29,7 @@ Dari foto nota ini, extract SEMUA item makanan/minuman beserta harganya.
 
 ATURAN:
 1. Hanya extract ITEM yang dibeli (makanan, minuman, barang)
-2. ABAIKAN baris yang bukan item: Total, Subtotal, Grand Total, Pembulatan, Rounding, Kembalian, Change, Tunai, Cash, QRIS, Debit, Kredit, Tax, Pajak, PPN, PB1, Service Charge, Discount, Diskon
+2. ABAIKAN baris yang bukan item: Total, Subtotal, Grand Total, Rounding, Kembalian, Change, Tunai, Cash, QRIS, Debit, Kredit, Tax, Pajak, PPN, PB1, Service Charge, Discount, Diskon
 3. Untuk quantity: jika tertulis "2x" atau "x2", quantity = 2. Jika tidak ada, quantity = 1
 4. Untuk price: gunakan harga SATUAN (per item), bukan total
 5. Bersihkan nama item dari karakter aneh, nomor urut, atau simbol
