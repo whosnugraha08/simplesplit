@@ -45,33 +45,79 @@ export default function NewBillPage() {
     setImagePreview(URL.createObjectURL(file));
   }
 
-  // Run OCR scan
+  // Run OCR scan (Primary: Gemini API, Fallback: Tesseract)
   async function handleScan() {
     if (!imageFile) return;
     setStep('scanning');
     setScanProgress(0);
     setScanError(null);
 
+    // File to Base64 utility
+    const fileToBase64 = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+      });
+    };
+
     try {
-      // Simulate progress (Tesseract.js progress is not reliable)
+      // Simulate progress while waiting for API
       const progressInterval = setInterval(() => {
-        setScanProgress(prev => Math.min(prev + Math.random() * 15, 90));
+        setScanProgress(prev => Math.min(prev + Math.random() * 10, 85));
       }, 500);
 
-      const result = await scanReceipt(imageFile);
-      
-      clearInterval(progressInterval);
-      setScanProgress(100);
+      try {
+        // 1. Try Gemini API first (Smart OCR)
+        const base64Image = await fileToBase64(imageFile);
+        const response = await fetch('/api/scan-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: base64Image,
+            mimeType: imageFile.type,
+          }),
+        });
 
-      setItems(result.items);
-      setTax(result.tax || 0);
-      setServiceCharge(result.service_charge || 0);
-      
-      // Auto-generate title from date
-      const today = new Date();
-      setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+        if (!response.ok) {
+          throw new Error('Gemini API failed');
+        }
 
-      setTimeout(() => setStep('edit'), 300);
+        const result = await response.json();
+        
+        clearInterval(progressInterval);
+        setScanProgress(100);
+
+        setItems(result.items || []);
+        setTax(Number(result.tax) || 0);
+        setServiceCharge(Number(result.serviceCharge) || 0);
+        
+        // Auto-generate title from date
+        const today = new Date();
+        setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+
+        setTimeout(() => setStep('edit'), 300);
+
+      } catch (geminiErr) {
+        console.warn('Gemini API failed, falling back to local Tesseract OCR...', geminiErr);
+        
+        // 2. Fallback to Local Tesseract OCR
+        const result = await scanReceipt(imageFile);
+        
+        clearInterval(progressInterval);
+        setScanProgress(100);
+
+        setItems(result.items || []);
+        setTax(Number(result.tax) || 0);
+        setServiceCharge(Number(result.service_charge) || 0);
+        
+        // Auto-generate title from date
+        const today = new Date();
+        setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+
+        setTimeout(() => setStep('edit'), 300);
+      }
     } catch (err) {
       console.error('OCR Error:', err);
       setScanError('Gagal membaca nota. Coba lagi atau input manual.');
