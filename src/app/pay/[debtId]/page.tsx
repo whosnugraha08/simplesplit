@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { Debt, Friend, Bill, PaymentMethod } from '@/lib/types';
 import { formatRupiah, getInitials, getAvatarColor } from '@/lib/formatters';
+import { generateDynamicQRIS } from '@/lib/qris';
 
 export default function PayPage() {
   const params = useParams();
@@ -18,9 +19,40 @@ export default function PayPage() {
   const [markingPaid, setMarkingPaid] = useState(false);
   const [showQris, setShowQris] = useState(false);
 
+  // Dynamic QRIS states
+  const [dynamicQris, setDynamicQris] = useState<string | null>(null);
+  const [generatingQris, setGeneratingQris] = useState(false);
+  const [qrisMode, setQrisMode] = useState<'dynamic' | 'static'>('dynamic');
+
   useEffect(() => {
     loadDebt();
   }, [debtId]);
+
+  // Generate dynamic QRIS when selectedPM or debt changes
+  useEffect(() => {
+    if (selectedPM?.qris_image_url && debt?.amount) {
+      generateDynamic(selectedPM.qris_image_url, Number(debt.amount));
+    } else {
+      setDynamicQris(null);
+    }
+  }, [selectedPM?.id, debt?.amount]);
+
+  async function generateDynamic(qrisUrl: string, amount: number) {
+    setGeneratingQris(true);
+    setDynamicQris(null);
+    try {
+      const result = await generateDynamicQRIS(qrisUrl, Math.round(amount));
+      if (result) {
+        setDynamicQris(result.dataUrl);
+        setQrisMode('dynamic');
+      } else {
+        setQrisMode('static');
+      }
+    } catch {
+      setQrisMode('static');
+    }
+    setGeneratingQris(false);
+  }
 
   async function loadDebt() {
     const { data } = await supabase
@@ -32,9 +64,7 @@ export default function PayPage() {
     const debtData = data as any;
     setDebt(debtData);
 
-    // Load payment methods for the creditor
     if (debtData?.creditor_id) {
-      // Try new payment_methods table first
       try {
         const { data: pms, error } = await supabase
           .from('payment_methods')
@@ -46,7 +76,6 @@ export default function PayPage() {
           setPaymentMethods(pms);
           setSelectedPM(pms[0]);
         } else {
-          // Fallback: check old schema fields on creditor
           const creditor = debtData.creditor;
           if (creditor?.bank_name || creditor?.bank_account_number || creditor?.qris_image_url) {
             const fallbackPM: PaymentMethod = {
@@ -63,7 +92,6 @@ export default function PayPage() {
           }
         }
       } catch {
-        // payment_methods table doesn't exist — try old schema
         const creditor = debtData.creditor;
         if (creditor?.bank_name || creditor?.bank_account_number || creditor?.qris_image_url) {
           const fallbackPM: PaymentMethod = {
@@ -126,6 +154,9 @@ export default function PayPage() {
 
   const creditor = debt.creditor;
   const debtor = debt.debtor;
+
+  // Which QRIS image to show
+  const qrisImageToShow = qrisMode === 'dynamic' && dynamicQris ? dynamicQris : selectedPM?.qris_image_url;
 
   return (
     <div className="px-4 pt-6 pb-4 min-h-screen">
@@ -230,18 +261,65 @@ export default function PayPage() {
             )}
           </div>
 
-          {/* QRIS */}
+          {/* QRIS Section */}
           {selectedPM.qris_image_url && (
             <div className="bg-white rounded-2xl border border-border p-5 mb-6">
-              <h2 className="text-sm font-semibold text-text-secondary mb-3">Scan QRIS</h2>
-              <button onClick={() => setShowQris(true)} className="w-full">
-                <img
-                  src={selectedPM.qris_image_url}
-                  alt={`QRIS ${selectedPM.label}`}
-                  className="w-full max-h-64 object-contain rounded-xl border border-border"
-                />
-                <p className="text-xs text-primary font-medium mt-2">Tap untuk perbesar</p>
-              </button>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-text-secondary">Scan QRIS</h2>
+                {/* Mode toggle */}
+                {dynamicQris && (
+                  <div className="flex gap-1 bg-page rounded-lg p-0.5">
+                    <button
+                      onClick={() => setQrisMode('dynamic')}
+                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${
+                        qrisMode === 'dynamic' ? 'bg-primary text-white' : 'text-text-secondary'
+                      }`}
+                    >
+                      ⚡ Dynamic
+                    </button>
+                    <button
+                      onClick={() => setQrisMode('static')}
+                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${
+                        qrisMode === 'static' ? 'bg-white text-text-primary shadow-sm' : 'text-text-secondary'
+                      }`}
+                    >
+                      📷 Asli
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Dynamic QRIS info badge */}
+              {qrisMode === 'dynamic' && dynamicQris && (
+                <div className="bg-success-light rounded-lg px-3 py-1.5 mb-3 flex items-center gap-2">
+                  <span className="text-success text-xs">⚡</span>
+                  <p className="text-[10px] text-success font-medium">
+                    QRIS Dynamic — nominal {formatRupiah(Number(debt.amount))} sudah terisi otomatis
+                  </p>
+                </div>
+              )}
+
+              {generatingQris ? (
+                <div className="py-8 text-center">
+                  <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
+                  <p className="text-xs text-text-secondary">Generating Dynamic QRIS...</p>
+                </div>
+              ) : (
+                <button onClick={() => setShowQris(true)} className="w-full">
+                  <img
+                    src={qrisImageToShow || selectedPM.qris_image_url}
+                    alt={`QRIS ${selectedPM.label}`}
+                    className="w-full max-h-64 object-contain rounded-xl border border-border"
+                  />
+                  <p className="text-xs text-primary font-medium mt-2">Tap untuk perbesar</p>
+                </button>
+              )}
+
+              {!dynamicQris && !generatingQris && selectedPM.qris_image_url && (
+                <p className="text-[10px] text-text-muted text-center mt-2 italic">
+                  💡 QRIS asli ditampilkan — masukkan nominal manual saat scan
+                </p>
+              )}
             </div>
           )}
         </>
@@ -267,9 +345,9 @@ export default function PayPage() {
       </button>
 
       {/* QRIS Fullscreen Modal */}
-      {showQris && selectedPM?.qris_image_url && (
+      {showQris && qrisImageToShow && (
         <div
-          className="fixed inset-0 bg-black z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center"
           onClick={() => setShowQris(false)}
         >
           <button
@@ -278,11 +356,42 @@ export default function PayPage() {
           >
             ✕
           </button>
+
+          {qrisMode === 'dynamic' && dynamicQris && (
+            <div className="bg-success/90 rounded-full px-4 py-1.5 mb-4">
+              <p className="text-white text-xs font-semibold">
+                ⚡ Dynamic — {formatRupiah(Number(debt.amount))}
+              </p>
+            </div>
+          )}
+
           <img
-            src={selectedPM.qris_image_url}
-            alt={`QRIS ${selectedPM.label}`}
-            className="max-w-[95vw] max-h-[90vh] object-contain"
+            src={qrisImageToShow}
+            alt={`QRIS ${selectedPM?.label}`}
+            className="max-w-[95vw] max-h-[80vh] object-contain bg-white rounded-2xl p-4"
           />
+
+          {/* Toggle in fullscreen */}
+          {dynamicQris && (
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={(e) => { e.stopPropagation(); setQrisMode('dynamic'); }}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                  qrisMode === 'dynamic' ? 'bg-primary text-white' : 'bg-white/20 text-white'
+                }`}
+              >
+                ⚡ Dynamic
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setQrisMode('static'); }}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                  qrisMode === 'static' ? 'bg-white text-gray-900' : 'bg-white/20 text-white'
+                }`}
+              >
+                📷 QRIS Asli
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

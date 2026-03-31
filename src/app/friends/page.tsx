@@ -333,16 +333,50 @@ function FriendFormModal({
           if (pm.qris_file) {
             const fileExt = pm.qris_file.name.split('.').pop();
             const fileName = `qris_${friendId}_${Date.now()}.${fileExt}`;
+            
+            // Try uploading to 'qris' bucket first
+            let uploaded = false;
             const { error: uploadErr } = await supabase.storage
               .from('qris')
               .upload(fileName, pm.qris_file, { upsert: true });
+            
             if (!uploadErr) {
               const { data: urlData } = supabase.storage.from('qris').getPublicUrl(fileName);
               qrisUrl = urlData.publicUrl;
+              uploaded = true;
+            } else {
+              console.error('QRIS upload to "qris" bucket failed:', uploadErr.message);
+              
+              // Fallback: try 'receipts' bucket
+              const { error: uploadErr2 } = await supabase.storage
+                .from('receipts')
+                .upload(`qris/${fileName}`, pm.qris_file, { upsert: true });
+              
+              if (!uploadErr2) {
+                const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(`qris/${fileName}`);
+                qrisUrl = urlData.publicUrl;
+                uploaded = true;
+              } else {
+                console.error('QRIS upload to "receipts" bucket also failed:', uploadErr2.message);
+              }
+            }
+
+            if (!uploaded) {
+              // Convert to base64 as last resort so image is not lost
+              try {
+                const reader = new FileReader();
+                const base64 = await new Promise<string>((resolve) => {
+                  reader.onload = () => resolve(reader.result as string);
+                  reader.readAsDataURL(pm.qris_file!);
+                });
+                qrisUrl = base64;
+              } catch {
+                console.error('Base64 conversion also failed');
+              }
             }
           }
 
-          // Remove blob URLs before saving
+          // Remove blob URLs before saving (but keep base64 data URLs)
           if (qrisUrl && qrisUrl.startsWith('blob:')) {
             qrisUrl = null;
           }
