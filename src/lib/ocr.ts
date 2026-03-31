@@ -92,7 +92,18 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
   const skipPatterns = /^(---|===|\*\*\*|#{2,}|tanggal|date|kasir|cashier|no\.|receipt|invoice|struk|nota|thank|terima|member|telp|phone|alamat|address|table|meja|mode|info|dine|take\s*away|delivery|instagram|@\w|www\.|http|\d+\s*item)/i;
 
   // Non-item financial lines to skip
-  const nonItemPatterns = /^(pembulatan|rounding|kembalian|change|tunai|cash|debit|kredit|credit|qris|qr\s*is|ovo|gopay|dana|shopeepay|linkaja|card|kartu|visa|master|bca|mandiri|bni|bri|cimb|grand\s*total)\s*:?\s*/i;
+  const nonItemPatterns = /^\s*(pembulatan|rounding|kembalian|change|tunai|cash|debit|kredit|credit|qris|qr\s*is|oris|ovo|gopay|dana|shopeepay|linkaja|card|kartu|visa|master|bca|mandiri|bni|bri|cimb|grand\s*total|5\s*item|\d+\s*item)\s*:?\s*/i;
+
+  // Helper: check if text looks like a non-item (for filtering extracted names)
+  function isNonItem(text: string): boolean {
+    const t = text.trim().toLowerCase();
+    const blacklist = ['pembulatan', 'rounding', 'kembalian', 'change', 'tunai', 'cash',
+      'debit', 'kredit', 'credit', 'qris', 'qr is', 'oris', 'ovo', 'gopay', 'dana',
+      'shopeepay', 'linkaja', 'card', 'kartu', 'grand total', 'subtotal', 'sub total',
+      'total', 'tax', 'pajak', 'ppn', 'pb1', 'pbr', 'pbi', 'vat', 'service', 'servis',
+      'service charge', 'discount', 'diskon', 'potongan'];
+    return blacklist.some(b => t.startsWith(b)) || /^\d+\s*item/.test(t);
+  }
 
   // Discount (skip)
   const discountPatterns = /^(?:discount|diskon|disc|potongan)\s*:?\s*/i;
@@ -177,9 +188,8 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
 
         let itemName = cleanItemName(line);
 
-        if (itemName.length > 1 && price > 0 && price < 100000000) {
+        if (itemName.length > 1 && price > 0 && price < 100000000 && !isNonItem(itemName)) {
           items.push({ name: itemName, price, quantity: 1 });
-          // Mark qty line as consumed (price already represents total for this item)
         }
 
         consumed.add(i + 1);
@@ -209,7 +219,7 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
 
       itemName = cleanItemName(itemName);
 
-      if (itemName.length > 1) {
+      if (itemName.length > 1 && !isNonItem(itemName)) {
         items.push({ name: itemName, price, quantity });
       }
     }

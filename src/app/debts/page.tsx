@@ -13,6 +13,8 @@ export default function DebtsPage() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'unpaid' | 'paid'>('unpaid');
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
+  const [payAllConfirm, setPayAllConfirm] = useState<NetSummaryItem | null>(null);
+  const [payingAll, setPayingAll] = useState(false);
 
   useEffect(() => {
     loadDebts();
@@ -41,7 +43,6 @@ export default function DebtsPage() {
       .update({ status: 'paid', paid_at: new Date().toISOString() })
       .eq('id', debtId);
     
-    // Check if all debts for this bill are paid, then settle the bill
     const debt = debts.find(d => d.id === debtId);
     if (debt) {
       const { data: remaining } = await supabase
@@ -50,7 +51,6 @@ export default function DebtsPage() {
         .eq('bill_id', debt.bill_id)
         .eq('status', 'unpaid');
       
-      // Only the current debt was unpaid, now all are paid
       if (!remaining || remaining.length <= 1) {
         await supabase.from('bills').update({ status: 'settled' }).eq('id', debt.bill_id);
       }
@@ -76,23 +76,65 @@ export default function DebtsPage() {
     loadDebts();
   }
 
+  // --- BAYAR SEMUA: Mark all unpaid debts from debtor→creditor as paid ---
+  async function markAllPaid(summary: NetSummaryItem) {
+    setPayingAll(true);
+
+    // Find all matching unpaid debts
+    const matchingDebts = debts.filter(
+      d => d.status === 'unpaid' &&
+        d.debtor?.id === summary.debtorId &&
+        d.creditor?.id === summary.creditorId
+    );
+
+    const now = new Date().toISOString();
+
+    // Mark all as paid
+    for (const debt of matchingDebts) {
+      await supabase
+        .from('debts')
+        .update({ status: 'paid', paid_at: now })
+        .eq('id', debt.id);
+    }
+
+    // Check and settle bills where all debts are now paid
+    const billIds = Array.from(new Set(matchingDebts.map(d => d.bill_id)));
+    for (const billId of billIds) {
+      const { data: remaining } = await supabase
+        .from('debts')
+        .select('id')
+        .eq('bill_id', billId)
+        .eq('status', 'unpaid');
+
+      if (!remaining || remaining.length === 0) {
+        await supabase.from('bills').update({ status: 'settled' }).eq('id', billId);
+      }
+    }
+
+    setPayingAll(false);
+    setPayAllConfirm(null);
+    loadDebts();
+  }
+
   const totalUnpaid = debts
     .filter(d => d.status === 'unpaid')
     .reduce((sum, d) => sum + Number(d.amount), 0);
 
   // --- Net debt summary: group unpaid debts by debtor→creditor ---
-  const netSummary = (() => {
+  const netSummary: NetSummaryItem[] = (() => {
     const unpaid = debts.filter(d => d.status === 'unpaid');
-    const map = new Map<string, { debtor: string; creditor: string; total: number; count: number }>();
+    const map = new Map<string, NetSummaryItem>();
 
     for (const d of unpaid) {
-      const key = `${d.debtor?.name || '?'} → ${d.creditor?.name || '?'}`;
+      const key = `${d.debtor?.id}→${d.creditor?.id}`;
       const existing = map.get(key);
       if (existing) {
         existing.total += Number(d.amount);
         existing.count += 1;
       } else {
         map.set(key, {
+          debtorId: d.debtor?.id || '',
+          creditorId: d.creditor?.id || '',
           debtor: d.debtor?.name || '?',
           creditor: d.creditor?.name || '?',
           total: Number(d.amount),
@@ -128,29 +170,38 @@ export default function DebtsPage() {
             {netSummary.map((s, idx) => (
               <div
                 key={idx}
-                className="bg-white rounded-xl border border-border px-4 py-3 flex items-center justify-between animate-fade-in"
+                className="bg-white rounded-xl border border-border px-4 py-3 animate-fade-in"
                 style={{ animationDelay: `${idx * 30}ms` }}
               >
-                <div className="flex items-center gap-2 min-w-0">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                    style={{ backgroundColor: getAvatarColor(s.debtor) }}
-                  >
-                    {getInitials(s.debtor)}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                      style={{ backgroundColor: getAvatarColor(s.debtor) }}
+                    >
+                      {getInitials(s.debtor)}
+                    </div>
+                    <span className="text-xs text-text-secondary">→</span>
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                      style={{ backgroundColor: getAvatarColor(s.creditor) }}
+                    >
+                      {getInitials(s.creditor)}
+                    </div>
+                    <div className="min-w-0 ml-1">
+                      <p className="text-xs font-semibold truncate">{s.debtor} → {s.creditor}</p>
+                      <p className="text-[10px] text-text-muted">{s.count} transaksi</p>
+                    </div>
                   </div>
-                  <span className="text-xs text-text-secondary">→</span>
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
-                    style={{ backgroundColor: getAvatarColor(s.creditor) }}
-                  >
-                    {getInitials(s.creditor)}
-                  </div>
-                  <div className="min-w-0 ml-1">
-                    <p className="text-xs font-semibold truncate">{s.debtor} → {s.creditor}</p>
-                    <p className="text-[10px] text-text-muted">{s.count} transaksi</p>
-                  </div>
+                  <p className="money text-sm text-danger shrink-0 ml-2">{formatRupiah(s.total)}</p>
                 </div>
-                <p className="money text-sm text-danger shrink-0 ml-2">{formatRupiah(s.total)}</p>
+                {/* Bayar Semua button */}
+                <button
+                  onClick={() => setPayAllConfirm(s)}
+                  className="mt-2 w-full py-2 rounded-lg bg-success text-white text-xs font-semibold active:scale-[0.98] transition"
+                >
+                  ✓ Bayar Semua ({formatRupiah(s.total)})
+                </button>
               </div>
             ))}
           </div>
@@ -195,7 +246,6 @@ export default function DebtsPage() {
               style={{ animationDelay: `${idx * 40}ms` }}
             >
               <div className="flex items-start gap-3">
-                {/* Debtor avatar */}
                 <div
                   className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
                   style={{ backgroundColor: getAvatarColor(debt.debtor?.name || '') }}
@@ -258,6 +308,65 @@ export default function DebtsPage() {
           ))}
         </div>
       )}
+
+      {/* Bayar Semua Confirmation Modal */}
+      {payAllConfirm && (
+        <div className="fixed inset-0 overlay z-50 flex items-end justify-center" onClick={() => !payingAll && setPayAllConfirm(null)}>
+          <div className="bg-white w-full max-w-lg rounded-t-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold mb-2">Bayar Semua?</h3>
+            <p className="text-sm text-text-secondary mb-1">
+              Tandai lunas <strong>semua hutang</strong> dari:
+            </p>
+            <div className="bg-page rounded-xl p-4 my-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                  style={{ backgroundColor: getAvatarColor(payAllConfirm.debtor) }}
+                >
+                  {getInitials(payAllConfirm.debtor)}
+                </div>
+                <span className="text-text-secondary">→</span>
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                  style={{ backgroundColor: getAvatarColor(payAllConfirm.creditor) }}
+                >
+                  {getInitials(payAllConfirm.creditor)}
+                </div>
+                <div className="ml-1">
+                  <p className="text-sm font-semibold">{payAllConfirm.debtor} → {payAllConfirm.creditor}</p>
+                  <p className="text-[10px] text-text-muted">{payAllConfirm.count} transaksi</p>
+                </div>
+              </div>
+              <p className="money text-lg text-danger">{formatRupiah(payAllConfirm.total)}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setPayAllConfirm(null)}
+                disabled={payingAll}
+                className="flex-1 py-3 rounded-xl border border-border font-semibold text-sm disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => markAllPaid(payAllConfirm)}
+                disabled={payingAll}
+                className="flex-1 py-3 rounded-xl bg-success text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition"
+              >
+                {payingAll ? 'Memproses...' : `✓ Lunas Semua`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+interface NetSummaryItem {
+  debtorId: string;
+  creditorId: string;
+  debtor: string;
+  creditor: string;
+  total: number;
+  count: number;
 }
