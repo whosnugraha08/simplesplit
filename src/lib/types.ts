@@ -4,6 +4,7 @@ export interface Friend {
   is_admin: boolean;
   created_at: string;
   updated_at: string;
+  whatsapp_number?: string | null;
   // Joined
   payment_methods?: PaymentMethod[];
 }

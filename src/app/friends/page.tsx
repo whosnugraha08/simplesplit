@@ -226,6 +226,7 @@ function FriendFormModal({
 }) {
   const [name, setName] = useState(friend?.name || '');
   const [isAdmin, setIsAdmin] = useState(friend?.is_admin || false);
+  const [whatsappNumber, setWhatsappNumber] = useState(friend?.whatsapp_number || '');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -298,7 +299,11 @@ function FriendFormModal({
       let friendId = friend?.id;
 
       // Save friend record
-      const friendData: any = { name: name.trim(), is_admin: isAdmin };
+      const friendData: any = { 
+        name: name.trim(), 
+        is_admin: isAdmin,
+        whatsapp_number: whatsappNumber.trim() || null
+      };
 
       if (friend) {
         const { error: updateErr } = await supabase.from('friends').update(friendData).eq('id', friend.id);
@@ -458,6 +463,17 @@ function FriendFormModal({
               placeholder="Contoh: Faiz"
               className="w-full px-4 py-3 rounded-xl border border-border bg-page text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
               required
+            />
+          </div>
+          {/* WhatsApp Number */}
+          <div>
+            <label className="block text-sm font-medium text-text-secondary mb-1.5">No. WhatsApp <span className="text-xs font-normal opacity-70">(Cth: 0812...)</span></label>
+            <input
+              type="tel"
+              value={whatsappNumber}
+              onChange={e => setWhatsappNumber(e.target.value)}
+              placeholder="081234567890"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-page text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition"
             />
           </div>
 

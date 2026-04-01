@@ -17,6 +17,7 @@ export default function BillDetailPage() {
   const [debts, setDebts] = useState<(Debt & { debtor?: Friend })[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [sendingWA, setSendingWA] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,29 @@ export default function BillDetailPage() {
     setDeleting(true);
     await supabase.from('bills').delete().eq('id', billId);
     router.push('/bills');
+  }
+
+  async function handleSendWA() {
+    if (!bill || debts.length === 0) return;
+    setSendingWA(true);
+    try {
+      const res = await fetch('/api/webhook-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bill, items, debts }),
+      });
+      
+      if (!res.ok) {
+        throw new Error('Gagal mengirim webhook');
+      }
+      
+      alert('✅ Permintaan kirim pesan berhasil masuk ke antrean Bot!');
+    } catch (err) {
+      console.error(err);
+      alert('❌ Gagal menghubungi server Bot WA.');
+    } finally {
+      setSendingWA(false);
+    }
   }
 
   if (loading) {
@@ -192,6 +216,17 @@ export default function BillDetailPage() {
           >
             Bagi Item ke Teman →
           </Link>
+        )}
+        
+        {bill.status !== 'draft' && debts.length > 0 && (
+          <button
+            onClick={handleSendWA}
+            disabled={sendingWA}
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-green-500 hover:bg-green-600 text-white font-semibold text-sm transition-colors active:scale-[0.98] disabled:opacity-50"
+          >
+            <span>📱</span>
+            {sendingWA ? 'Menghubungi Bot...' : 'Kirim Tagihan via WA'}
+          </button>
         )}
         <button
           onClick={() => setShowDeleteConfirm(true)}

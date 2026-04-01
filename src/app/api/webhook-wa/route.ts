@@ -1,0 +1,40 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(req: NextRequest) {
+  try {
+    const payload = await req.json();
+
+    // In a real production app, you might want to authenticate this request
+    // using a session token to ensure only the bill owner can trigger it.
+    
+    // Forward the payload to the VPS Bot
+    const botUrl = process.env.VPS_BOT_URL || 'http://202.155.143.184:3001/webhook';
+    const webhookSecret = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
+
+    const response = await fetch(botUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': webhookSecret,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('Bot VPS replied with error:', response.status, errText);
+      return NextResponse.json(
+        { error: 'Gagal menembak webhook ke VPS', details: errText },
+        { status: 502 }
+      );
+    }
+
+    return NextResponse.json({ success: true, message: 'Webhook terkirim ke VPS' });
+  } catch (error: any) {
+    console.error('Webhook error:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}
