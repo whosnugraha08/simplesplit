@@ -56,7 +56,7 @@ export default function DebtsPage() {
     setLoading(true);
     let query = supabase
       .from('debts')
-      .select('*, debtor:debtor_id(id,name), creditor:creditor_id(id,name), bill:bill_id(id,title,bill_date)')
+      .select('*, debtor:debtor_id(id,name,whatsapp_number), creditor:creditor_id(id,name,whatsapp_number), bill:bill_id(id,title,bill_date)')
       .order('created_at', { ascending: false });
     
     if (filter !== 'all') {
@@ -86,6 +86,20 @@ export default function DebtsPage() {
       if (!remaining || remaining.length <= 1) {
         await supabase.from('bills').update({ status: 'settled' }).eq('id', debt.bill_id);
       }
+
+      // Trigger Webhook back to the Payer
+      const syntheticBill = {
+        id: debt.bill_id,
+        title: debt.bill?.title || 'Tagihan',
+        paid_by: debt.creditor_id,
+        paid_by_friend: debt.creditor
+      };
+
+      fetch('/api/webhook-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bill: syntheticBill, items: [], debts: [debt], type: 'paid' }),
+      }).catch(console.error);
     }
 
     setMarkingPaid(null);
@@ -188,6 +202,23 @@ export default function DebtsPage() {
       if (!remaining || remaining.length === 0) {
         await supabase.from('bills').update({ status: 'settled' }).eq('id', billId);
       }
+    }
+
+    // Trigger collective webhook back to the payer
+    if (matchingDebts.length > 0) {
+      const firstDebt = matchingDebts[0];
+      const syntheticBill = {
+        id: firstDebt.bill_id, // Placeholder, as this represents multiple bills
+        title: 'Pembayaran Kolektif',
+        paid_by: summary.creditorId,
+        paid_by_friend: firstDebt.creditor
+      };
+
+      fetch('/api/webhook-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bill: syntheticBill, items: [], debts: matchingDebts, type: 'paid_all' }),
+      }).catch(console.error);
     }
 
     setPayingAll(false);
