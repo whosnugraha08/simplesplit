@@ -35,7 +35,7 @@ export default function BillDetailPage() {
       supabase.from('bill_items').select('*').eq('bill_id', billId).order('created_at'),
       supabase
         .from('debts')
-        .select('*, debtor:debtor_id(id,name)')
+        .select('*, debtor:debtor_id(id,name,whatsapp_number)')
         .eq('bill_id', billId)
         .order('amount', { ascending: false }),
     ]);
