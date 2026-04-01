@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     // using a session token to ensure only the bill owner can trigger it.
     
     // Forward the payload to the VPS Bot
-    const botUrl = process.env.VPS_BOT_URL || 'http://202.155.143.184:3001/webhook';
+    const botUrl = process.env.VPS_BOT_URL || 'http://202.155.143.184:8803/webhook';
     const webhookSecret = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
 
     const response = await fetch(botUrl, {

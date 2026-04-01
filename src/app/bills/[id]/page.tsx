@@ -18,6 +18,7 @@ export default function BillDetailPage() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [sendingWA, setSendingWA] = useState(false);
+  const [sendingRemind, setSendingRemind] = useState<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -71,6 +72,24 @@ export default function BillDetailPage() {
       alert('❌ Gagal menghubungi server Bot WA.');
     } finally {
       setSendingWA(false);
+    }
+  }
+
+  async function handleRemind(debt: Debt & { debtor?: Friend }) {
+    if (!bill) return;
+    setSendingRemind(debt.id);
+    try {
+      const res = await fetch('/api/webhook-wa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bill, items, debts: [debt], type: 'remind' }),
+      });
+      if (!res.ok) throw new Error('Gagal');
+      alert(`✅ Pengingat langsung dikirim ke ${debt.debtor?.name}!`);
+    } catch (err) {
+      alert(`❌ Gagal mengirim pengingat ke ${debt.debtor?.name}`);
+    } finally {
+      setSendingRemind(null);
     }
   }
 
@@ -193,13 +212,25 @@ export default function BillDetailPage() {
                 <div className="flex-1">
                   <p className="text-sm font-medium">{debt.debtor?.name}</p>
                 </div>
-                <div className="text-right">
+                <div className="text-right flex flex-col items-end gap-1">
                   <p className={`money text-sm ${debt.status === 'paid' ? 'text-success' : 'text-danger'}`}>
                     {formatRupiah(Number(debt.amount))}
                   </p>
-                  <p className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-warning'}`}>
-                    {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM LUNAS'}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {debt.status !== 'paid' && bill.status !== 'draft' && (
+                      <button
+                        onClick={() => handleRemind(debt)}
+                        disabled={sendingRemind === debt.id}
+                        className="p-1 rounded-md bg-warning-light hover:bg-yellow-200 text-yellow-700 transition active:scale-95 disabled:opacity-50"
+                        title="Kirim Ping Pengingat (P!)"
+                      >
+                        {sendingRemind === debt.id ? '⏳' : '🔔'}
+                      </button>
+                    )}
+                    <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-warning'}`}>
+                      {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM LUNAS'}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
