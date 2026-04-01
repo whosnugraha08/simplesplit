@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { supabase } from '@/lib/supabase';
 
 export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
+
+    // Check if the payer has QRIS
+    if (payload.bill && payload.bill.paid_by) {
+      const { data: pmData } = await supabase
+        .from('payment_methods')
+        .select('type')
+        .eq('friend_id', payload.bill.paid_by);
+      
+      const hasQris = pmData?.some(pm => pm.type === 'qris') || false;
+      payload.payerHasQris = hasQris;
+    }
 
     // In a real production app, you might want to authenticate this request
     // using a session token to ensure only the bill owner can trigger it.
