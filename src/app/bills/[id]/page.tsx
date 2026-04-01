@@ -93,35 +93,6 @@ export default function BillDetailPage() {
     }
   }
 
-  async function handleMarkAsPaid(debt: Debt & { debtor?: Friend }) {
-    if (!bill || !bill.paid_by_friend) return;
-    
-    // Optimistic UI updates could be used, but we'll await DB for safety.
-    try {
-      const { error } = await supabase
-        .from('debts')
-        .update({ status: 'paid' })
-        .eq('id', debt.id);
-      
-      if (error) throw error;
-
-      // Update local state
-      setDebts(debts.map(d => d.id === debt.id ? { ...d, status: 'paid' } : d));
-
-      // Trigger webhook back to the payer (Fire and forget)
-      fetch('/api/webhook-wa', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bill, items, debts: [debt], type: 'paid' }),
-      }).catch(console.error);
-
-      alert(`✅ Tagihan ${debt.debtor?.name} telah ditandai lunas!`);
-    } catch (err) {
-      console.error(err);
-      alert('❌ Gagal mengubah status pembayaran.');
-    }
-  }
-
   if (loading) {
     return (
       <div className="px-4 pt-6">
@@ -247,23 +218,14 @@ export default function BillDetailPage() {
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     {debt.status !== 'paid' && bill.status !== 'draft' && (
-                      <>
-                        <button
-                          onClick={() => handleRemind(debt)}
-                          disabled={sendingRemind === debt.id}
-                          className="p-1 rounded-md bg-warning-light hover:bg-yellow-200 text-yellow-700 transition active:scale-95 disabled:opacity-50"
-                          title="Kirim Ping Pengingat (P!)"
-                        >
-                          {sendingRemind === debt.id ? '⏳' : '🔔'}
-                        </button>
-                        <button
-                          onClick={() => handleMarkAsPaid(debt)}
-                          className="p-1 rounded-md bg-green-100 hover:bg-green-200 text-green-700 transition active:scale-95"
-                          title="Tandai Bayar Lunas"
-                        >
-                          ✅
-                        </button>
-                      </>
+                      <button
+                        onClick={() => handleRemind(debt)}
+                        disabled={sendingRemind === debt.id}
+                        className="p-1 rounded-md bg-warning-light hover:bg-yellow-200 text-yellow-700 transition active:scale-95 disabled:opacity-50"
+                        title="Kirim Ping Pengingat (P!)"
+                      >
+                        {sendingRemind === debt.id ? '⏳' : '🔔'}
+                      </button>
                     )}
                     <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-warning'}`}>
                       {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM LUNAS'}

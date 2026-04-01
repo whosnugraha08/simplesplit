@@ -129,6 +129,22 @@ export default function PayPage() {
       if (!remaining || remaining.length <= 1) {
         await supabase.from('bills').update({ status: 'settled' }).eq('id', debt.bill_id);
       }
+      
+      // Trigger Webhook back to the Payer
+      if (debt.bill) {
+        const syntheticBill = {
+          id: debt.bill.id,
+          title: debt.bill.title,
+          paid_by: debt.creditor_id,
+          paid_by_friend: debt.creditor
+        };
+
+        fetch('/api/webhook-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bill: syntheticBill, items: [], debts: [debt], type: 'paid' }),
+        }).catch(console.error);
+      }
     }
 
     router.push('/debts');
