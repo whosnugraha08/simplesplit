@@ -126,9 +126,8 @@ export default function NewBillPage() {
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.serviceCharge) || 0);
         
-        // Auto-generate title from date
-        const today = new Date();
-        setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+        // Auto-generate title is removed to allow free focus text typing
+        setTitle('');
 
         setTimeout(() => setStep('edit'), 300);
 
@@ -146,9 +145,8 @@ export default function NewBillPage() {
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.service_charge) || 0);
         
-        // Auto-generate title from date
-        const today = new Date();
-        setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+        // Auto-generate title is removed
+        setTitle('');
 
         setTimeout(() => setStep('edit'), 300);
       }
@@ -165,8 +163,7 @@ export default function NewBillPage() {
     setItems([{ name: '', price: 0, quantity: 1 }]);
     setTax(0);
     setServiceCharge(0);
-    const today = new Date();
-    setTitle(`Bill ${today.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}`);
+    setTitle('');
     setStep('edit');
   }
 

@@ -5,15 +5,16 @@ export async function POST(req: NextRequest) {
   try {
     const payload = await req.json();
 
-    // Check if the payer has QRIS
+    // Fetch the payer's payment methods
     if (payload.bill && payload.bill.paid_by) {
       const { data: pmData } = await supabase
         .from('payment_methods')
-        .select('type')
+        .select('*')
         .eq('friend_id', payload.bill.paid_by);
       
       const hasQris = pmData?.some(pm => pm.type === 'qris') || false;
       payload.payerHasQris = hasQris;
+      payload.paymentMethods = pmData || [];
     }
 
     // In a real production app, you might want to authenticate this request
