@@ -2,16 +2,20 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Friend, ParsedReceipt, ParsedReceiptItem } from '@/lib/types';
-import { scanReceipt, parseReceiptText } from '@/lib/ocr';
-import { formatRupiah, parsePrice } from '@/lib/formatters';
+import { useAuth } from '@/lib/auth';
+import { Friend, ParsedReceiptItem } from '@/lib/types';
+import { scanReceipt } from '@/lib/ocr';
+import { formatRupiah } from '@/lib/formatters';
 import { getInitials, getAvatarColor } from '@/lib/formatters';
+import { useToast } from '@/components/Toast';
 import { useRouter } from 'next/navigation';
 
 type Step = 'upload' | 'scanning' | 'edit' | 'payer';
 
 export default function NewBillPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState<Step>('upload');
@@ -21,13 +25,11 @@ export default function NewBillPage() {
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanSource, setScanSource] = useState<'gemini' | 'tesseract' | null>(null);
 
-  // Parsed receipt data (editable)
   const [items, setItems] = useState<ParsedReceiptItem[]>([]);
   const [tax, setTax] = useState<number>(0);
   const [serviceCharge, setServiceCharge] = useState<number>(0);
   const [title, setTitle] = useState('');
 
-  // Payer selection
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedPayer, setSelectedPayer] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -35,10 +37,14 @@ export default function NewBillPage() {
   useEffect(() => {
     supabase.from('friends').select('*').order('is_admin', { ascending: false }).order('name').then(({ data }) => {
       setFriends(data || []);
+      // Auto-select user's friend record as payer
+      if (user?.friend_id && data) {
+        const myFriend = data.find(f => f.id === user.friend_id);
+        if (myFriend) setSelectedPayer(myFriend.id);
+      }
     });
-  }, []);
+  }, [user]);
 
-  // Handle file selection
   function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -46,15 +52,13 @@ export default function NewBillPage() {
     setImagePreview(URL.createObjectURL(file));
   }
 
-  // Run OCR scan (Primary: Gemini API, Fallback: Tesseract)
   async function handleScan() {
     if (!imageFile) return;
     setStep('scanning');
     setScanProgress(0);
     setScanError(null);
-    setScanSource('gemini'); // Default attempt is Gemini
+    setScanSource('gemini');
 
-    // Compress image to ensure it's under the server payload limit
     const compressImageToBase64 = (file: File): Promise<string> => {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -68,25 +72,12 @@ export default function NewBillPage() {
             const MAX_HEIGHT = 1600;
             let width = img.width;
             let height = img.height;
-
-            if (width > height) {
-              if (width > MAX_WIDTH) {
-                height *= MAX_WIDTH / width;
-                width = MAX_WIDTH;
-              }
-            } else {
-              if (height > MAX_HEIGHT) {
-                width *= MAX_HEIGHT / height;
-                height = MAX_HEIGHT;
-              }
-            }
-
+            if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } }
+            else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             if (ctx) ctx.drawImage(img, 0, 0, width, height);
-            
-            // Output as compressed JPEG (0.7 quality) to severely reduce base64 size
             resolve(canvas.toDataURL('image/jpeg', 0.7));
           };
           img.onerror = (err) => reject(err);
@@ -96,58 +87,36 @@ export default function NewBillPage() {
     };
 
     try {
-      // Simulate progress while waiting for API
       const progressInterval = setInterval(() => {
         setScanProgress(prev => Math.min(prev + Math.random() * 10, 85));
       }, 500);
 
       try {
-        // 1. Try Gemini API first (Smart OCR)
         const base64Image = await compressImageToBase64(imageFile);
         const response = await fetch('/api/scan-receipt', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            image: base64Image,
-            mimeType: 'image/jpeg', // Canvas always exports jpeg here
-          }),
+          body: JSON.stringify({ image: base64Image, mimeType: 'image/jpeg' }),
         });
-
-        if (!response.ok) {
-          throw new Error('Gemini API failed');
-        }
-
+        if (!response.ok) throw new Error('Gemini API failed');
         const result = await response.json();
-        
         clearInterval(progressInterval);
         setScanProgress(100);
-
         setItems(result.items || []);
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.serviceCharge) || 0);
-        
-        // Auto-generate title is removed to allow free focus text typing
         setTitle('');
-
         setTimeout(() => setStep('edit'), 300);
-
       } catch (geminiErr) {
-        console.warn('Gemini API failed, falling back to local Tesseract OCR...', geminiErr);
-        
-        // 2. Fallback to Local Tesseract OCR
+        console.warn('Gemini failed, fallback to Tesseract...', geminiErr);
         setScanSource('tesseract');
         const result = await scanReceipt(imageFile);
-        
         clearInterval(progressInterval);
         setScanProgress(100);
-
         setItems(result.items || []);
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.service_charge) || 0);
-        
-        // Auto-generate title is removed
         setTitle('');
-
         setTimeout(() => setStep('edit'), 300);
       }
     } catch (err) {
@@ -157,7 +126,6 @@ export default function NewBillPage() {
     }
   }
 
-  // Skip OCR and input manually
   function handleManualInput() {
     setScanSource(null);
     setItems([{ name: '', price: 0, quantity: 1 }]);
@@ -167,38 +135,25 @@ export default function NewBillPage() {
     setStep('edit');
   }
 
-  // Edit items
   function updateItem(index: number, field: keyof ParsedReceiptItem, value: string | number) {
     const updated = [...items];
-    if (field === 'name') {
-      updated[index].name = value as string;
-    } else if (field === 'price') {
-      updated[index].price = typeof value === 'string' ? parseFloat(value) || 0 : value;
-    } else if (field === 'quantity') {
-      updated[index].quantity = typeof value === 'string' ? parseInt(value) || 1 : value;
-    }
+    if (field === 'name') updated[index].name = value as string;
+    else if (field === 'price') updated[index].price = typeof value === 'string' ? parseFloat(value) || 0 : value;
+    else if (field === 'quantity') updated[index].quantity = typeof value === 'string' ? parseInt(value) || 1 : value;
     setItems(updated);
   }
 
-  function addItem() {
-    setItems([...items, { name: '', price: 0, quantity: 1 }]);
-  }
+  function addItem() { setItems([...items, { name: '', price: 0, quantity: 1 }]); }
+  function removeItem(index: number) { setItems(items.filter((_, i) => i !== index)); }
 
-  function removeItem(index: number) {
-    setItems(items.filter((_, i) => i !== index));
-  }
-
-  // Calculate totals
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const grandTotal = subtotal + tax + serviceCharge;
 
-  // Save bill and proceed to assignment
   async function handleSave() {
     if (!selectedPayer || items.length === 0 || !title.trim()) return;
     setSaving(true);
 
     try {
-      // Upload receipt image
       let receiptUrl: string | null = null;
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
@@ -208,12 +163,12 @@ export default function NewBillPage() {
         receiptUrl = urlData.publicUrl;
       }
 
-      // Insert bill
       const { data: billData, error: billError } = await supabase
         .from('bills')
         .insert({
           title: title.trim(),
           paid_by: selectedPayer,
+          created_by: user?.id || null,
           receipt_image_url: receiptUrl,
           subtotal,
           tax_amount: tax,
@@ -222,43 +177,37 @@ export default function NewBillPage() {
           status: 'draft',
           bill_date: new Date().toISOString(),
         })
-        .select()
-        .single();
+        .select().single();
 
       if (billError) throw billError;
 
-      // Insert bill items
-      const itemsToInsert = items
-        .filter(item => item.name.trim() && item.price > 0)
-        .map(item => ({
-          bill_id: billData.id,
-          item_name: item.name.trim(),
-          item_price: item.price,
-          quantity: item.quantity,
-        }));
+      const itemsToInsert = items.filter(item => item.name.trim() && item.price > 0).map(item => ({
+        bill_id: billData.id,
+        item_name: item.name.trim(),
+        item_price: item.price,
+        quantity: item.quantity,
+      }));
 
       if (itemsToInsert.length > 0) {
         const { error: itemsError } = await supabase.from('bill_items').insert(itemsToInsert);
         if (itemsError) throw itemsError;
       }
 
-      // Navigate to assignment page
+      showToast('Bill berhasil disimpan!', 'success');
       router.push(`/bills/${billData.id}/assign`);
     } catch (err) {
       console.error('Error saving bill:', err);
-      alert('Gagal menyimpan bill. Coba lagi.');
+      showToast('Gagal menyimpan bill', 'error');
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <div className="px-4 pt-6 pb-4 min-h-screen">
+    <div className="content-padding pt-6 pb-4 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-xl text-text-secondary p-1">
-          ←
-        </button>
+        <button onClick={() => router.back()} className="text-xl text-text-secondary p-1">←</button>
         <div>
           <h1 className="text-xl font-bold">Bill Baru</h1>
           <p className="text-xs text-text-secondary">
@@ -273,19 +222,10 @@ export default function NewBillPage() {
       {/* Step: Upload */}
       {step === 'upload' && (
         <div className="animate-fade-in">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           {!imagePreview ? (
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-white"
-            >
+            <button onClick={() => fileInputRef.current?.click()}
+              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-white">
               <span className="text-5xl">📸</span>
               <span className="text-sm font-semibold text-text-primary">Ambil Foto Nota</span>
               <span className="text-xs text-text-secondary">atau pilih dari galeri</span>
@@ -294,38 +234,21 @@ export default function NewBillPage() {
             <div className="space-y-4">
               <div className="relative rounded-2xl overflow-hidden border border-border bg-white">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
-                <button
-                  onClick={() => { setImageFile(null); setImagePreview(null); }}
-                  className="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm"
-                >
-                  ✕
-                </button>
+                <button onClick={() => { setImageFile(null); setImagePreview(null); }}
+                  className="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
               </div>
-              <button
-                onClick={handleScan}
-                className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-sm active:scale-[0.98] transition-transform"
-              >
+              <button onClick={handleScan}
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-blue-500/20">
                 🔍 Scan & Baca Nota
               </button>
             </div>
           )}
-
-          {scanError && (
-            <div className="mt-4 bg-danger-light text-danger rounded-xl p-3 text-sm">
-              {scanError}
-            </div>
-          )}
-
+          {scanError && <div className="mt-4 bg-red-50 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-xs text-text-secondary">atau</span>
-            <div className="flex-1 h-px bg-border" />
+            <div className="flex-1 h-px bg-border" /><span className="text-xs text-text-secondary">atau</span><div className="flex-1 h-px bg-border" />
           </div>
-
-          <button
-            onClick={handleManualInput}
-            className="w-full mt-4 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm text-text-primary active:scale-[0.98] transition-transform"
-          >
+          <button onClick={handleManualInput}
+            className="w-full mt-4 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm text-text-primary active:scale-[0.98] transition-transform">
             ✍️ Input Manual
           </button>
         </div>
@@ -334,175 +257,91 @@ export default function NewBillPage() {
       {/* Step: Scanning */}
       {step === 'scanning' && (
         <div className="animate-fade-in flex flex-col items-center justify-center py-16">
-          <div className="w-20 h-20 mb-6 relative">
-            <div className="absolute inset-0 rounded-full border-4 border-border" />
-            <div
-              className="absolute inset-0 rounded-full border-4 border-primary transition-all duration-300"
-              style={{
-                clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.sin(scanProgress / 100 * 2 * Math.PI)}% ${50 - 50 * Math.cos(scanProgress / 100 * 2 * Math.PI)}%${scanProgress > 25 ? ', 100% 0%, 100% 100%, 0% 100%, 0% 0%' : ''})`
-              }}
-            />
-            <span className="absolute inset-0 flex items-center justify-center text-2xl">🔍</span>
-          </div>
+          <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin mb-6" />
           <p className="text-lg font-semibold mb-2">Membaca Nota...</p>
-          <p className="text-sm pb-1 font-medium bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-            {scanSource === 'gemini' ? '✨ Menggunakan AI Gemini' : 'Menggunakan Tesseract.js OCR'}
+          <p className="text-sm pb-1 font-medium gradient-text">
+            {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
           </p>
-          <div className="w-48 h-2 bg-border rounded-full overflow-hidden">
-            <div
-              className="h-full bg-primary rounded-full transition-all duration-300"
-              style={{ width: `${scanProgress}%` }}
-            />
+          <div className="w-48 h-2 bg-border rounded-full overflow-hidden mt-2">
+            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
           </div>
           <p className="text-xs text-text-secondary mt-2">{Math.round(scanProgress)}%</p>
         </div>
       )}
 
-      {/* Step: Edit Items */}
+      {/* Step: Edit */}
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
-          {/* Scan Source Badge */}
           {scanSource && (
             <div className="flex justify-between items-center bg-blue-50/50 border border-blue-100 rounded-xl p-3">
-              <span className="text-xs text-text-secondary font-medium">Metode Scan:</span>
-              {scanSource === 'gemini' ? (
-                <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 flex items-center gap-1">
-                  ✨ Gemini AI (High Accuracy)
-                </span>
-              ) : (
-                <span className="text-xs font-semibold text-text-secondary bg-white px-2 py-0.5 rounded-full border border-border">
-                  📸 Tesseract.js (Offline)
-                </span>
-              )}
+              <span className="text-xs text-text-secondary font-medium">Scan:</span>
+              <span className="text-xs font-bold gradient-text">
+                {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
+              </span>
             </div>
           )}
-
-          {/* Title */}
           <div>
             <label className="block text-sm font-medium text-text-secondary mb-1.5">Judul Bill</label>
-            <input
-              type="text"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder="Contoh: Makan di Warung Pak Joko"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
+              className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
-
-          {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-text-secondary">Daftar Item</label>
               <button onClick={addItem} className="text-sm text-primary font-semibold">+ Tambah</button>
             </div>
-
             <div className="space-y-2">
               {items.map((item, idx) => (
                 <div key={idx} className="bg-white rounded-xl border border-border p-3 animate-fade-in">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
-                      <input
-                        type="text"
-                        value={item.name}
-                        onChange={e => updateItem(idx, 'name', e.target.value)}
-                        placeholder="Nama item"
-                        className="w-full px-3 py-2 rounded-lg bg-page text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                      />
+                      <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
+                        className="w-full px-3 py-2 rounded-lg bg-page text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
                       <div className="flex gap-2">
                         <div className="flex-1">
-                          <input
-                            type="number"
-                            value={item.price || ''}
-                            onChange={e => updateItem(idx, 'price', e.target.value)}
-                            placeholder="Harga"
-                            className="w-full px-3 py-2 rounded-lg bg-page text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
+                          <input type="number" value={item.price || ''} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="Harga"
+                            className="w-full px-3 py-2 rounded-lg bg-page text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
                         </div>
                         <div className="w-16">
-                          <input
-                            type="number"
-                            value={item.quantity}
-                            onChange={e => updateItem(idx, 'quantity', e.target.value)}
-                            min="1"
-                            className="w-full px-3 py-2 rounded-lg bg-page text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary"
-                          />
+                          <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} min="1"
+                            className="w-full px-3 py-2 rounded-lg bg-page text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary" />
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => removeItem(idx)}
-                      className="p-2 text-text-secondary hover:text-danger transition-colors shrink-0"
-                    >
-                      🗑️
-                    </button>
+                    <button onClick={() => removeItem(idx)} className="p-2 text-text-secondary hover:text-danger transition-colors shrink-0">🗑️</button>
                   </div>
                   {item.price > 0 && item.quantity > 1 && (
-                    <p className="text-xs text-text-secondary mt-1.5 text-right">
-                      = {formatRupiah(item.price * item.quantity)}
-                    </p>
+                    <p className="text-xs text-text-secondary mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
                   )}
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Tax & Service */}
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1">Pajak (Tax)</label>
-              <input
-                type="number"
-                value={tax || ''}
-                onChange={e => setTax(parseFloat(e.target.value) || 0)}
-                placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <input type="number" value={tax || ''} onChange={e => setTax(parseFloat(e.target.value) || 0)} placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
             <div>
               <label className="block text-xs font-medium text-text-secondary mb-1">Service Charge</label>
-              <input
-                type="number"
-                value={serviceCharge || ''}
-                onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)}
-                placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary"
-              />
+              <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
           </div>
-
-          {/* Summary */}
           <div className="bg-white rounded-2xl border border-border p-4">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-text-secondary">Subtotal ({items.length} item)</span>
-                <span className="money">{formatRupiah(subtotal)}</span>
-              </div>
-              {tax > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Pajak</span>
-                  <span className="money">{formatRupiah(tax)}</span>
-                </div>
-              )}
-              {serviceCharge > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">Service Charge</span>
-                  <span className="money">{formatRupiah(serviceCharge)}</span>
-                </div>
-              )}
+              <div className="flex justify-between"><span className="text-text-secondary">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
+              {tax > 0 && <div className="flex justify-between"><span className="text-text-secondary">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
+              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-text-secondary">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
               <div className="border-t border-border pt-2 flex justify-between">
-                <span className="font-semibold">Total</span>
-                <span className="money text-lg">{formatRupiah(grandTotal)}</span>
+                <span className="font-semibold">Total</span><span className="money text-lg">{formatRupiah(grandTotal)}</span>
               </div>
             </div>
           </div>
-
-          {/* Next Button */}
-          <button
-            onClick={() => setStep('payer')}
-            disabled={items.length === 0 || subtotal <= 0}
-            className="w-full py-3.5 rounded-xl bg-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition"
-          >
-            Lanjut — Pilih yang Menalangi →
+          <button onClick={() => setStep('payer')} disabled={items.length === 0 || subtotal <= 0}
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-blue-500/20">
+            Lanjut — Pilih Payer →
           </button>
         </div>
       )}
@@ -511,7 +350,6 @@ export default function NewBillPage() {
       {step === 'payer' && (
         <div className="animate-fade-in">
           <p className="text-sm text-text-secondary mb-4">Siapa yang menalangi (membayar) bill ini?</p>
-
           <div className="space-y-2 mb-6">
             {friends.map(friend => (
               <button
@@ -519,52 +357,36 @@ export default function NewBillPage() {
                 onClick={() => setSelectedPayer(friend.id)}
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
-                    ? 'border-primary bg-primary-light ring-2 ring-primary'
+                    ? 'border-primary bg-blue-50 ring-2 ring-primary'
                     : 'border-border bg-white hover:border-primary/50'
                 }`}
               >
-                <div
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                  style={{ backgroundColor: getAvatarColor(friend.name) }}
-                >
+                <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                  style={{ backgroundColor: getAvatarColor(friend.name) }}>
                   {getInitials(friend.name)}
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{friend.name}</p>
-                  {friend.is_admin && <p className="text-[10px] text-primary font-bold">ADMIN</p>}
+                  {friend.id === user?.friend_id && <p className="text-[10px] text-primary font-bold">KAMU</p>}
                 </div>
-                {selectedPayer === friend.id && (
-                  <span className="text-primary text-lg">✓</span>
-                )}
+                {selectedPayer === friend.id && <span className="text-primary text-lg">✓</span>}
               </button>
             ))}
           </div>
-
           {friends.length === 0 && (
             <div className="text-center py-8 text-sm text-text-secondary">
               Belum ada teman. <a href="/friends" className="text-primary font-semibold">Tambah dulu →</a>
             </div>
           )}
-
-          {/* Summary Bar */}
           <div className="bg-white rounded-2xl border border-border p-4 mb-4">
             <p className="text-xs text-text-secondary mb-1">{title}</p>
             <p className="money text-xl">{formatRupiah(grandTotal)}</p>
             <p className="text-xs text-text-secondary mt-1">{items.length} item</p>
           </div>
-
           <div className="flex gap-3">
-            <button
-              onClick={() => setStep('edit')}
-              className="flex-1 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm"
-            >
-              ← Kembali
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={!selectedPayer || saving}
-              className="flex-1 py-3.5 rounded-xl bg-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition"
-            >
+            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm">← Kembali</button>
+            <button onClick={handleSave} disabled={!selectedPayer || saving}
+              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-blue-500/20">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}
             </button>
           </div>

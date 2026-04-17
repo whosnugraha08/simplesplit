@@ -10,9 +10,7 @@ export default function BillsPage() {
   const [bills, setBills] = useState<(Bill & { paid_by_friend?: Friend })[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadBills();
-  }, []);
+  useEffect(() => { loadBills(); }, []);
 
   async function loadBills() {
     const { data } = await supabase
@@ -24,13 +22,13 @@ export default function BillsPage() {
   }
 
   const statusLabel: Record<string, { text: string; color: string }> = {
-    draft: { text: 'Draft', color: 'bg-warning-light text-yellow-700' },
-    assigned: { text: 'Dibagi', color: 'bg-primary-light text-primary' },
-    settled: { text: 'Selesai', color: 'bg-success-light text-success' },
+    draft: { text: 'Draft', color: 'bg-amber-50 text-amber-700' },
+    assigned: { text: 'Dibagi', color: 'bg-blue-50 text-blue-700' },
+    settled: { text: 'Selesai', color: 'bg-emerald-50 text-emerald-700' },
   };
 
   return (
-    <div className="px-4 pt-6 pb-4">
+    <div className="content-padding pt-6 pb-4">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Bills</h1>
@@ -38,7 +36,7 @@ export default function BillsPage() {
         </div>
         <Link
           href="/bills/new"
-          className="bg-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors active:scale-95"
+          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 hover:shadow-xl active:scale-95 transition-all"
         >
           + Baru
         </Link>
@@ -52,10 +50,7 @@ export default function BillsPage() {
         <div className="bg-white rounded-2xl border border-border p-10 text-center">
           <p className="text-4xl mb-3">🧾</p>
           <p className="text-text-secondary mb-4">Belum ada bill. Yuk scan nota pertama!</p>
-          <Link
-            href="/bills/new"
-            className="inline-block bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold"
-          >
+          <Link href="/bills/new" className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20">
             📸 Scan Nota
           </Link>
         </div>

@@ -1,7 +1,18 @@
+export interface User {
+  id: string;
+  username: string;
+  pin_hash: string;
+  display_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Friend {
   id: string;
   name: string;
   is_admin: boolean;
+  user_id?: string | null;
+  email?: string | null;
   created_at: string;
   updated_at: string;
   whatsapp_number?: string | null;
@@ -24,6 +35,7 @@ export interface Bill {
   title: string;
   description: string | null;
   paid_by: string;
+  created_by?: string | null;
   receipt_image_url: string | null;
   subtotal: number;
   tax_amount: number;
@@ -51,6 +63,7 @@ export interface ItemAssignment {
   bill_item_id: string;
   friend_id: string;
   share_amount: number;
+  assigned_qty: number;
   // Joined
   friend?: Friend;
   bill_item?: BillItem;
@@ -64,6 +77,7 @@ export interface Debt {
   amount: number;
   status: 'unpaid' | 'paid';
   paid_at: string | null;
+  notes: string | null;
   created_at: string;
   // Joined
   debtor?: Friend;
@@ -87,9 +101,16 @@ export interface ParsedReceipt {
   raw_text: string;
 }
 
-// Assignment UI types
+// Assignment UI types — now with per-person qty
+export interface AssignmentEntry {
+  friendId: string;
+  qty: number;
+}
+
 export interface ItemWithAssignees extends BillItem {
   assignee_ids: string[];
+  // v2: per-person qty assignments
+  assignments: AssignmentEntry[];
 }
 
 export interface PersonBreakdown {
@@ -98,4 +119,6 @@ export interface PersonBreakdown {
   tax_share: number;
   service_share: number;
   total: number;
+  // v2: per-item detail
+  item_details: { itemName: string; qty: number; amount: number }[];
 }
