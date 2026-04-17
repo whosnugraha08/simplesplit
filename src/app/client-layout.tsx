@@ -79,6 +79,7 @@ function DesktopSidebar() {
     { href: '/bills', icon: '🧾', label: 'Bills' },
     { href: '/debts', icon: '💰', label: 'Hutang' },
     { href: '/friends', icon: '👥', label: 'Teman' },
+    ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
   ];
 
   return (
@@ -141,6 +142,7 @@ function DesktopSidebar() {
 }
 
 function MobileBottomNav() {
+  const { user } = useAuth();
   const pathname = usePathname();
 
   const navItems = [
@@ -148,6 +150,7 @@ function MobileBottomNav() {
     { href: '/bills', icon: '🧾', label: 'Bills' },
     { href: '/debts', icon: '💰', label: 'Hutang' },
     { href: '/friends', icon: '👥', label: 'Teman' },
+    ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
   ];
 
   return (

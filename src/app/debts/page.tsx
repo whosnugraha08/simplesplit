@@ -18,7 +18,7 @@ export default function DebtsPage() {
 
   const [debts, setDebts] = useState<DebtWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'my-debts' | 'owed-to-me' | 'all'>('my-debts');
+  const [tab, setTab] = useState<'my-debts' | 'owed-to-me'>('my-debts');
   const [statusFilter, setStatusFilter] = useState<'unpaid' | 'paid' | 'all'>('unpaid');
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const [expandedDebt, setExpandedDebt] = useState<string | null>(null);
@@ -54,13 +54,19 @@ export default function DebtsPage() {
   async function loadDebts() {
     if (!friendId) { setLoading(false); return; }
     setLoading(true);
+
     let query = supabase
       .from('debts')
       .select('*, debtor:debtor_id(id,name,whatsapp_number), creditor:creditor_id(id,name,whatsapp_number), bill:bill_id(id,title,bill_date)')
       .order('created_at', { ascending: false });
 
-    if (tab === 'my-debts') query = query.eq('debtor_id', friendId);
-    else if (tab === 'owed-to-me') query = query.eq('creditor_id', friendId);
+    // ALWAYS filter by the logged-in user's friendId
+    // "my-debts" = I owe someone, "owed-to-me" = someone owes me
+    if (tab === 'my-debts') {
+      query = query.eq('debtor_id', friendId);
+    } else {
+      query = query.eq('creditor_id', friendId);
+    }
 
     if (statusFilter !== 'all') query = query.eq('status', statusFilter);
 
@@ -144,6 +150,18 @@ export default function DebtsPage() {
 
   const totalUnpaid = debts.filter(d => d.status === 'unpaid').reduce((sum, d) => sum + Number(d.amount), 0);
 
+  // Parse notes into structured items
+  function parseNotes(notes: string | null): { itemName: string; detail: string }[] {
+    if (!notes) return [];
+    return notes.split('\n').filter(l => l.trim()).map(line => {
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        return { itemName: parts[0].trim(), detail: parts[1].trim() };
+      }
+      return { itemName: line.trim(), detail: '' };
+    });
+  }
+
   return (
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
@@ -152,39 +170,41 @@ export default function DebtsPage() {
         <p className="text-sm text-text-secondary">Kelola hutang & piutang kamu</p>
       </div>
 
-      {/* Tab: My Debts vs Owed to Me */}
+      {/* Tab: My Debts vs Owed to Me — only personal, no "all" */}
       <div className="flex gap-1 bg-white rounded-2xl p-1 border border-border mb-4">
-        {([
-          { key: 'my-debts', label: '💸 Aku Hutang' },
-          { key: 'owed-to-me', label: '💰 Piutangku' },
-          { key: 'all', label: 'Semua' },
-        ] as const).map(t => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-              tab === t.key ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
+        <button
+          onClick={() => setTab('my-debts')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            tab === 'my-debts' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          💸 Aku Hutang
+        </button>
+        <button
+          onClick={() => setTab('owed-to-me')}
+          className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            tab === 'owed-to-me' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary hover:text-text-primary'
+          }`}
+        >
+          💰 Piutangku
+        </button>
       </div>
 
       {/* Summary */}
       {statusFilter === 'unpaid' && debts.length > 0 && (
-        <div className={`rounded-2xl p-4 mb-4 text-white ${tab === 'my-debts' ? 'bg-gradient-to-r from-red-500 to-rose-600' : tab === 'owed-to-me' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}`}>
+        <div className={`rounded-2xl p-4 mb-4 text-white ${tab === 'my-debts' ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-teal-600'}`}>
           <p className="text-white/70 text-xs font-medium mb-0.5">
-            {tab === 'my-debts' ? 'Total Hutangku' : tab === 'owed-to-me' ? 'Total Piutangku' : 'Total Belum Lunas'}
+            {tab === 'my-debts' ? 'Total yang aku hutang' : 'Total yang orang hutang ke aku'}
           </p>
           <p className="money text-2xl text-white">{formatRupiah(totalUnpaid)}</p>
+          <p className="text-white/50 text-[10px] mt-1">{debts.filter(d => d.status === 'unpaid').length} transaksi belum lunas</p>
         </div>
       )}
 
       {/* Net summary — Pay All buttons (only for my-debts tab) */}
       {tab === 'my-debts' && statusFilter === 'unpaid' && netSummary.length > 0 && (
         <div className="mb-4">
-          <p className="text-xs font-semibold text-text-secondary mb-2">Ringkasan</p>
+          <p className="text-xs font-semibold text-text-secondary mb-2">Ringkasan per orang</p>
           <div className="space-y-2">
             {netSummary.map((s, idx) => (
               <div key={idx} className="bg-white rounded-xl border border-border px-4 py-3 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
@@ -195,7 +215,7 @@ export default function DebtsPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold truncate">ke {s.creditor}</p>
-                      <p className="text-[10px] text-text-muted">{s.count} transaksi</p>
+                      <p className="text-[10px] text-text-muted">{s.count} tagihan</p>
                     </div>
                   </div>
                   <p className="money text-sm text-danger shrink-0 ml-2">{formatRupiah(s.total)}</p>
@@ -222,7 +242,7 @@ export default function DebtsPage() {
               statusFilter === f ? 'bg-primary text-white' : 'bg-white text-text-secondary border border-border'
             }`}
           >
-            {f === 'unpaid' ? 'Belum Lunas' : f === 'paid' ? 'Lunas' : 'Semua'}
+            {f === 'unpaid' ? 'Belum Lunas' : f === 'paid' ? 'Lunas' : 'Semua Status'}
           </button>
         ))}
       </div>
@@ -234,15 +254,18 @@ export default function DebtsPage() {
         <div className="bg-white rounded-2xl border border-border p-10 text-center">
           <p className="text-4xl mb-3">{statusFilter === 'unpaid' ? '🎉' : '📭'}</p>
           <p className="text-text-secondary text-sm">
-            {statusFilter === 'unpaid' ? 'Tidak ada hutang! Semua lunas.' : 'Belum ada data.'}
+            {statusFilter === 'unpaid'
+              ? (tab === 'my-debts' ? 'Kamu tidak punya hutang! Bebas! 🎉' : 'Tidak ada yang hutang ke kamu saat ini.')
+              : 'Belum ada data.'}
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {debts.map((debt, idx) => {
-            const isMyDebt = debt.debtor?.id === friendId;
+            const isMyDebt = tab === 'my-debts';
             const otherPerson = isMyDebt ? debt.creditor : debt.debtor;
             const isExpanded = expandedDebt === debt.id;
+            const noteItems = parseNotes(debt.notes);
 
             return (
               <div
@@ -251,6 +274,7 @@ export default function DebtsPage() {
                 style={{ animationDelay: `${idx * 40}ms` }}
               >
                 <div className="p-4">
+                  {/* Header row */}
                   <div className="flex items-start gap-3">
                     <div
                       className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -261,42 +285,64 @@ export default function DebtsPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold">
                         {isMyDebt ? (
-                          <>ke <span className="text-danger">{otherPerson?.name}</span></>
+                          <>Hutang ke <span className="text-danger">{otherPerson?.name}</span></>
                         ) : (
-                          <>dari <span className="text-success">{otherPerson?.name}</span></>
+                          <><span className="text-success">{otherPerson?.name}</span> hutang ke kamu</>
                         )}
                       </p>
                       <p className="text-xs text-text-secondary mt-0.5">
-                        {debt.bill?.title} • {formatDate(debt.bill?.bill_date || debt.created_at)}
+                        📋 {debt.bill?.title || 'Bill'} • {formatDate(debt.bill?.bill_date || debt.created_at)}
                       </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <p className={`money text-lg ${debt.status === 'paid' ? 'text-success line-through' : isMyDebt ? 'text-danger' : 'text-success'}`}>
-                          {isMyDebt ? '' : '+'}{formatRupiah(Number(debt.amount))}
-                        </p>
-                        {debt.status === 'paid' && (
-                          <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full">✓ LUNAS</span>
-                        )}
-                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className={`money text-lg ${debt.status === 'paid' ? 'text-success line-through opacity-60' : isMyDebt ? 'text-danger' : 'text-success'}`}>
+                        {isMyDebt ? '-' : '+'}{formatRupiah(Number(debt.amount))}
+                      </p>
+                      {debt.status === 'paid' && (
+                        <span className="bg-emerald-50 text-emerald-600 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          ✓ LUNAS {debt.paid_at ? formatDate(debt.paid_at) : ''}
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {/* Expand/collapse for notes/details */}
-                  {debt.notes && (
-                    <button
-                      onClick={() => setExpandedDebt(isExpanded ? null : debt.id)}
-                      className="mt-2 text-xs text-primary font-medium"
-                    >
-                      {isExpanded ? '▲ Sembunyikan detail' : '▼ Lihat detail item'}
-                    </button>
+                  {/* Always show a brief summary of items if notes exist */}
+                  {noteItems.length > 0 && (
+                    <div className="mt-3">
+                      {/* Show first 2 items preview always */}
+                      <div className="bg-page rounded-xl p-3 space-y-1">
+                        <p className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1">Detail Item:</p>
+                        {noteItems.slice(0, isExpanded ? undefined : 2).map((item, i) => (
+                          <div key={i} className="flex justify-between text-xs">
+                            <span className="text-text-secondary">{item.itemName}</span>
+                            {item.detail && <span className="money text-text-primary font-semibold">{item.detail}</span>}
+                          </div>
+                        ))}
+                        {!isExpanded && noteItems.length > 2 && (
+                          <button
+                            onClick={() => setExpandedDebt(debt.id)}
+                            className="text-[11px] text-primary font-medium mt-1 w-full text-left"
+                          >
+                            ... dan {noteItems.length - 2} item lainnya ▼
+                          </button>
+                        )}
+                        {isExpanded && noteItems.length > 2 && (
+                          <button
+                            onClick={() => setExpandedDebt(null)}
+                            className="text-[11px] text-primary font-medium mt-1 w-full text-left"
+                          >
+                            Sembunyikan ▲
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   )}
 
-                  {isExpanded && debt.notes && (
-                    <div className="mt-2 bg-page rounded-xl p-3 animate-fade-in">
-                      <p className="text-[10px] font-semibold text-text-secondary mb-1">Detail Item:</p>
-                      {debt.notes.split('\n').map((line, i) => (
-                        <p key={i} className="text-xs text-text-secondary">{line}</p>
-                      ))}
-                    </div>
+                  {/* No notes — show bill link */}
+                  {noteItems.length === 0 && (
+                    <Link href={`/bills/${debt.bill_id}`} className="mt-2 inline-block text-xs text-primary font-medium">
+                      📋 Lihat detail bill →
+                    </Link>
                   )}
 
                   {/* Actions */}

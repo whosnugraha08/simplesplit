@@ -9,6 +9,7 @@ export interface AppUser {
   display_name: string;
   created_at: string;
   friend_id?: string; // linked friend record
+  is_admin?: boolean;
 }
 
 interface AuthContextType {
@@ -80,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Find linked friend record
     const { data: friend } = await supabase
       .from('friends')
-      .select('id')
+      .select('id, is_admin')
       .eq('user_id', data.id)
       .single();
 
@@ -90,6 +91,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       display_name: data.display_name,
       created_at: data.created_at,
       friend_id: friend?.id || undefined,
+      is_admin: friend?.is_admin || false,
     };
   }
 
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Find linked friend
       const { data: friend } = await supabase
         .from('friends')
-        .select('id')
+        .select('id, is_admin')
         .eq('user_id', data.id)
         .single();
 
@@ -121,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         display_name: data.display_name,
         created_at: data.created_at,
         friend_id: friend?.id || undefined,
+        is_admin: friend?.is_admin || false,
       };
 
       setUser(appUser);
@@ -178,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         display_name: newUser.display_name,
         created_at: newUser.created_at,
         friend_id: newFriend?.id || undefined,
+        is_admin: false,
       };
 
       setUser(appUser);
