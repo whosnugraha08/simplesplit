@@ -134,16 +134,17 @@ export default function DebtsPage() {
     loadDebts();
   }
 
-  // Group unpaid debts for "pay all" summary
+  // Group unpaid debts for "pay all" summary — now includes bill details
   const netSummary = (() => {
     if (tab !== 'my-debts') return [];
     const unpaid = debts.filter(d => d.status === 'unpaid');
-    const map = new Map<string, { creditorId: string; creditor: string; total: number; count: number }>();
+    const map = new Map<string, { creditorId: string; creditor: string; total: number; count: number; bills: { title: string; amount: number; billId: string }[] }>();
     for (const d of unpaid) {
       const key = d.creditor?.id || '';
+      const billEntry = { title: d.bill?.title || 'Bill', amount: Number(d.amount), billId: d.bill_id };
       const existing = map.get(key);
-      if (existing) { existing.total += Number(d.amount); existing.count++; }
-      else map.set(key, { creditorId: key, creditor: d.creditor?.name || '?', total: Number(d.amount), count: 1 });
+      if (existing) { existing.total += Number(d.amount); existing.count++; existing.bills.push(billEntry); }
+      else map.set(key, { creditorId: key, creditor: d.creditor?.name || '?', total: Number(d.amount), count: 1, bills: [billEntry] });
     }
     return Array.from(map.values()).sort((a, b) => b.total - a.total);
   })();
@@ -215,11 +216,29 @@ export default function DebtsPage() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-semibold truncate">ke {s.creditor}</p>
-                      <p className="text-[10px] text-text-muted">{s.count} tagihan</p>
+                      {/* Show bill title(s) */}
+                      {s.count === 1 ? (
+                        <p className="text-[10px] text-text-muted truncate">📋 {s.bills[0].title}</p>
+                      ) : (
+                        <p className="text-[10px] text-text-muted">{s.count} tagihan</p>
+                      )}
                     </div>
                   </div>
                   <p className="money text-sm text-danger shrink-0 ml-2">{formatRupiah(s.total)}</p>
                 </div>
+
+                {/* Bill breakdown for multiple bills */}
+                {s.count > 1 && (
+                  <div className="mt-2 bg-page rounded-lg p-2.5 space-y-1.5">
+                    {s.bills.map((b, i) => (
+                      <div key={i} className="flex items-center justify-between text-[11px]">
+                        <span className="text-text-secondary truncate mr-2">📋 {b.title}</span>
+                        <span className="money text-text-primary font-semibold shrink-0">{formatRupiah(b.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <button
                   onClick={() => openPayAll(s.creditorId, s.creditor)}
                   className="mt-2 w-full py-2 rounded-lg bg-emerald-500 text-white text-xs font-semibold active:scale-[0.98] transition"
