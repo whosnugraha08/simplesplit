@@ -67,30 +67,39 @@ export function calculateSplit(
     }
   });
 
-  // Calculate total subtotal across all people
-  const grandSubtotal = Object.values(subtotalMap).reduce((sum, val) => sum + val, 0);
+  // Count how many people have items (for equal tax/service split)
+  const peopleWithItems = friends.filter(f => (subtotalMap[f.id] || 0) > 0);
+  const numPeople = peopleWithItems.length;
+
+  // Equal split of tax and service charge
+  const taxPerPerson = numPeople > 0 ? Math.floor(taxAmount / numPeople) : 0;
+  const servicePerPerson = numPeople > 0 ? Math.floor(serviceChargeAmount / numPeople) : 0;
+
+  // Remainder from rounding (e.g. 10000 / 3 = 3333 * 3 = 9999, remainder = 1)
+  const taxRemainder = taxAmount - (taxPerPerson * numPeople);
+  const serviceRemainder = serviceChargeAmount - (servicePerPerson * numPeople);
 
   // Build the breakdown for each person who has items
   const breakdowns: PersonBreakdown[] = [];
+  let personIndex = 0;
 
-  friends.forEach(friend => {
+  peopleWithItems.forEach(friend => {
     const itemsSubtotal = subtotalMap[friend.id] || 0;
-    
-    if (itemsSubtotal <= 0) return;
 
-    // Proportional share of tax and service charge
-    const proportion = grandSubtotal > 0 ? itemsSubtotal / grandSubtotal : 0;
-    const taxShare = taxAmount * proportion;
-    const serviceShare = serviceChargeAmount * proportion;
+    // First person absorbs the rounding remainder
+    const taxShare = taxPerPerson + (personIndex === 0 ? taxRemainder : 0);
+    const serviceShare = servicePerPerson + (personIndex === 0 ? serviceRemainder : 0);
 
     breakdowns.push({
       friend,
       items_subtotal: Math.round(itemsSubtotal),
-      tax_share: Math.round(taxShare),
-      service_share: Math.round(serviceShare),
-      total: Math.round(itemsSubtotal + taxShare + serviceShare),
+      tax_share: taxShare,
+      service_share: serviceShare,
+      total: Math.round(itemsSubtotal) + taxShare + serviceShare,
       item_details: itemDetailsMap[friend.id] || [],
     });
+
+    personIndex++;
   });
 
   // Sort by total descending

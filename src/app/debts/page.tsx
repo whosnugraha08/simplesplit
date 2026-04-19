@@ -129,6 +129,18 @@ export default function DebtsPage() {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', billId).eq('status', 'unpaid');
       if (!remaining || remaining.length === 0) await supabase.from('bills').update({ status: 'settled' }).eq('id', billId);
     }
+    // Send collective notification via WhatsApp
+    const creditor = matching[0]?.creditor;
+    fetch('/api/webhook-wa', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bill: { id: matching[0]?.bill_id, title: 'Pelunasan Kolektif', paid_by: payAllConfirm.creditorId, paid_by_friend: creditor },
+        items: [],
+        debts: matching,
+        type: 'paid_all',
+      }),
+    }).catch(console.error);
+
     setPayingAll(false); setPayAllConfirm(null);
     showToast(`Semua hutang ke ${payAllConfirm.creditor} dilunasi!`, 'success');
     loadDebts();

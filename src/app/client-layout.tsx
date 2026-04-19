@@ -149,7 +149,10 @@ function MobileBottomNav() {
     { href: '/', icon: '🏠', label: 'Beranda' },
     { href: '/bills', icon: '🧾', label: 'Bills' },
     { href: '/debts', icon: '💰', label: 'Hutang' },
-    { href: '/friends', icon: '👥', label: 'Teman' },
+    // Admin sees full Teman management, regular users see Profile
+    ...(user?.is_admin
+      ? [{ href: '/friends', icon: '👥', label: 'Teman' }]
+      : [{ href: '/profile', icon: '👤', label: 'Profil' }]),
     ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
   ];
 
