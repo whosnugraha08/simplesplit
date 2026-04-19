@@ -283,7 +283,8 @@ app.post('/webhook', async (req, res) => {
       const creditorPhone = bill.paid_by_friend?.whatsapp_number;
       if (creditorPhone) {
         const msg = buildPaidAllMessage(bill, debts);
-        const result = await sendWhatsApp(creditorPhone, msg);
+        const proofUrl = debts[0]?.proof_image_url || null;
+        const result = await sendWhatsApp(creditorPhone, msg, proofUrl);
         results.push({ to: creditorPhone, ...result });
       } else {
         console.log('⚠️  Creditor tidak punya nomor WA');
