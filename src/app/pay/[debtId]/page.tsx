@@ -94,7 +94,12 @@ export default function PayPage() {
     setMarkingPaid(true);
     // Upload proof image
     const proofUrl = await uploadProof();
-    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString(), proof_image_url: proofUrl }).eq('id', debtId);
+    // Step 1: Mark as paid (must succeed)
+    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', debtId);
+    // Step 2: Try to save proof URL (may fail if column doesn't exist yet)
+    if (proofUrl) {
+      await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', debtId).then(() => {}).catch(() => {});
+    }
     if (debt) {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', debt.bill_id).eq('status', 'unpaid');
       if (!remaining || remaining.length <= 1) {

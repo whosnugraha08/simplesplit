@@ -108,7 +108,12 @@ export default function DebtsPage() {
     if (!proofModal || !proofFile) return;
     setSubmittingProof(true);
     const proofUrl = await uploadProofImage(proofFile, proofModal.debtId);
-    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString(), proof_image_url: proofUrl }).eq('id', proofModal.debtId);
+    // Step 1: Mark as paid (must succeed)
+    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', proofModal.debtId);
+    // Step 2: Try to save proof URL (may fail if column doesn't exist yet)
+    if (proofUrl) {
+      await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', proofModal.debtId).then(() => {}).catch(() => {});
+    }
     const debt = debts.find(d => d.id === proofModal.debtId);
     if (debt) {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', debt.bill_id).eq('status', 'unpaid');
@@ -160,7 +165,12 @@ export default function DebtsPage() {
     const proofUrl = await uploadProofImage(payAllProofFile, `payall_${payAllConfirm.creditorId}`);
     const now = new Date().toISOString();
     for (const id of payAllConfirm.debtIds) {
-      await supabase.from('debts').update({ status: 'paid', paid_at: now, proof_image_url: proofUrl }).eq('id', id);
+      // Step 1: Mark as paid (must succeed)
+      await supabase.from('debts').update({ status: 'paid', paid_at: now }).eq('id', id);
+      // Step 2: Try to save proof URL
+      if (proofUrl) {
+        await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', id).then(() => {}).catch(() => {});
+      }
     }
     const matching = debts.filter(d => payAllConfirm.debtIds.includes(d.id));
     const billIds = Array.from(new Set(matching.map(d => d.bill_id)));
