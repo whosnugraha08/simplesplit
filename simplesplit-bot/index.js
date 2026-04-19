@@ -10,7 +10,7 @@ const qrcode = require('qrcode-terminal');
 // ── Configuration ───────────────────────────────────────────
 const PORT = process.env.PORT || 8803;
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
-const APP_URL = process.env.APP_URL || 'https://simplesplit.vercel.app';
+const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
 
 // ── WhatsApp Client Setup ───────────────────────────────────
 let isReady = false;
