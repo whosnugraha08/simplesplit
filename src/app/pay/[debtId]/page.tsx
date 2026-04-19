@@ -98,7 +98,7 @@ export default function PayPage() {
     await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', debtId);
     // Step 2: Try to save proof URL (may fail if column doesn't exist yet)
     if (proofUrl) {
-      await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', debtId).then(() => {}).catch(() => {});
+      try { await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', debtId); } catch {}
     }
     if (debt) {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', debt.bill_id).eq('status', 'unpaid');

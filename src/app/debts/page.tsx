@@ -112,7 +112,7 @@ export default function DebtsPage() {
     await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', proofModal.debtId);
     // Step 2: Try to save proof URL (may fail if column doesn't exist yet)
     if (proofUrl) {
-      await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', proofModal.debtId).then(() => {}).catch(() => {});
+      try { await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', proofModal.debtId); } catch {}
     }
     const debt = debts.find(d => d.id === proofModal.debtId);
     if (debt) {
@@ -169,7 +169,7 @@ export default function DebtsPage() {
       await supabase.from('debts').update({ status: 'paid', paid_at: now }).eq('id', id);
       // Step 2: Try to save proof URL
       if (proofUrl) {
-        await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', id).then(() => {}).catch(() => {});
+        try { await supabase.from('debts').update({ proof_image_url: proofUrl }).eq('id', id); } catch {}
       }
     }
     const matching = debts.filter(d => payAllConfirm.debtIds.includes(d.id));
