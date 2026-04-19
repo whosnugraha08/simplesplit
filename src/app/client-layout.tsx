@@ -78,7 +78,8 @@ function DesktopSidebar() {
     { href: '/', icon: '🏠', label: 'Beranda' },
     { href: '/bills', icon: '🧾', label: 'Bills' },
     { href: '/debts', icon: '💰', label: 'Hutang' },
-    { href: '/friends', icon: '👥', label: 'Teman' },
+    { href: '/profile', icon: '👤', label: 'Profil' },
+    ...(user?.is_admin ? [{ href: '/friends', icon: '👥', label: 'Teman' }] : []),
     ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
   ];
 
