@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { PaymentMethod } from '@/lib/types';
 import { getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
+import Link from 'next/link';
 
 interface LocalPM {
   id?: string;
@@ -305,9 +306,18 @@ export default function ProfilePage() {
         </div>
       )}
 
+      {/* Admin: link to Teman */}
+      {user?.is_admin && (
+        <Link href="/friends"
+          className="flex items-center justify-between w-full py-3.5 px-4 rounded-xl bg-white border border-border text-sm font-semibold hover:bg-page transition mb-3">
+          <span>👥 Kelola Teman</span>
+          <span className="text-text-secondary">→</span>
+        </Link>
+      )}
+
       {/* Logout */}
       <button onClick={() => setShowLogoutConfirm(true)}
-        className="w-full py-3.5 rounded-xl border border-red-200 text-danger font-semibold text-sm hover:bg-red-50 transition mt-2">
+        className="w-full py-3.5 rounded-xl border border-red-200 text-danger font-semibold text-sm hover:bg-red-50 transition">
         ← Keluar dari Akun
       </button>
 
