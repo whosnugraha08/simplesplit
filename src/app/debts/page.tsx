@@ -36,6 +36,8 @@ export default function DebtsPage() {
   const [payAllPMs, setPayAllPMs] = useState<PaymentMethod[]>([]);
   const [selectedPM, setSelectedPM] = useState<PaymentMethod | null>(null);
   const [loadingPMs, setLoadingPMs] = useState(false);
+  const [payAllProofFile, setPayAllProofFile] = useState<File | null>(null);
+  const [payAllProofPreview, setPayAllProofPreview] = useState<string | null>(null);
   const [showQris, setShowQris] = useState(false);
   const [dynamicQris, setDynamicQris] = useState<string | null>(null);
   const [generatingQris, setGeneratingQris] = useState(false);
@@ -139,6 +141,7 @@ export default function DebtsPage() {
     const total = matching.reduce((sum, d) => sum + Number(d.amount), 0);
     setPayAllConfirm({ creditorId, creditor: creditorName, total, count: matching.length, debtIds: matching.map(d => d.id) });
     setPayAllPMs([]); setSelectedPM(null); setLoadingPMs(true); setShowQris(false);
+    setPayAllProofFile(null); setPayAllProofPreview(null);
     try {
       const { data: pms } = await supabase.from('payment_methods').select('*').eq('friend_id', creditorId).order('created_at');
       if (pms && pms.length > 0) { setPayAllPMs(pms); setSelectedPM(pms[0]); }
@@ -148,10 +151,16 @@ export default function DebtsPage() {
 
   async function doPayAll() {
     if (!payAllConfirm) return;
+    if (!payAllProofFile) {
+      showToast('Upload bukti pembayaran dulu ya!', 'error');
+      return;
+    }
     setPayingAll(true);
+    // Upload proof
+    const proofUrl = await uploadProofImage(payAllProofFile, `payall_${payAllConfirm.creditorId}`);
     const now = new Date().toISOString();
     for (const id of payAllConfirm.debtIds) {
-      await supabase.from('debts').update({ status: 'paid', paid_at: now }).eq('id', id);
+      await supabase.from('debts').update({ status: 'paid', paid_at: now, proof_image_url: proofUrl }).eq('id', id);
     }
     const matching = debts.filter(d => payAllConfirm.debtIds.includes(d.id));
     const billIds = Array.from(new Set(matching.map(d => d.bill_id)));
@@ -166,7 +175,7 @@ export default function DebtsPage() {
       body: JSON.stringify({
         bill: { id: matching[0]?.bill_id, title: 'Pelunasan Kolektif', paid_by: payAllConfirm.creditorId, paid_by_friend: creditor },
         items: [],
-        debts: matching,
+        debts: matching.map(d => ({ ...d, proof_image_url: proofUrl })),
         type: 'paid_all',
       }),
     }).catch(console.error);
@@ -510,12 +519,33 @@ export default function DebtsPage() {
               </div>
             )}
 
+            {/* Proof Upload for Pay All */}
+            <div className="bg-white rounded-2xl border border-border p-4 mb-4">
+              <h3 className="text-sm font-semibold text-text-secondary mb-1">📸 Bukti Pembayaran</h3>
+              <p className="text-[10px] text-text-muted mb-3">Upload screenshot bukti transfer. Akan dikirim otomatis ke penagih via WhatsApp.</p>
+              <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) { setPayAllProofFile(f); setPayAllProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-payall-upload" />
+              {payAllProofPreview ? (
+                <div className="relative">
+                  <img src={payAllProofPreview} alt="Bukti" className="w-full max-h-40 object-contain rounded-xl border border-border bg-page" />
+                  <button onClick={() => { setPayAllProofFile(null); setPayAllProofPreview(null); }}
+                    className="absolute top-2 right-2 bg-white/90 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+                  <p className="text-[10px] text-emerald-600 font-medium mt-1 text-center">✓ Bukti siap dikirim</p>
+                </div>
+              ) : (
+                <label htmlFor="proof-payall-upload"
+                  className="block w-full py-6 rounded-xl border-2 border-dashed border-blue-200 hover:border-primary bg-blue-50/50 transition-colors cursor-pointer text-center">
+                  <span className="text-2xl block mb-1">📷</span>
+                  <span className="text-xs text-primary font-semibold">Upload Bukti Transfer</span>
+                </label>
+              )}
+            </div>
+
             <div className="flex gap-3">
               <button onClick={() => setPayAllConfirm(null)} disabled={payingAll}
                 className="flex-1 py-3 rounded-xl border border-border font-semibold text-sm disabled:opacity-50">Batal</button>
-              <button onClick={doPayAll} disabled={payingAll}
-                className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition">
-                {payingAll ? 'Memproses...' : '✓ Lunas Semua'}
+              <button onClick={doPayAll} disabled={payingAll || !payAllProofFile}
+                className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${payAllProofFile ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                {payingAll ? 'Memproses...' : payAllProofFile ? '✓ Lunas Semua' : '📷 Upload bukti dulu'}
               </button>
             </div>
           </div>
