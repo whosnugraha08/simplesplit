@@ -23,6 +23,13 @@ export default function DebtsPage() {
   const [markingPaid, setMarkingPaid] = useState<string | null>(null);
   const [expandedDebt, setExpandedDebt] = useState<string | null>(null);
 
+  // Proof upload modal
+  const [proofModal, setProofModal] = useState<{ debtId: string; mode: 'single' | 'all' } | null>(null);
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [submittingProof, setSubmittingProof] = useState(false);
+  const [showProofView, setShowProofView] = useState<string | null>(null);
+
   // Pay all modal
   const [payAllConfirm, setPayAllConfirm] = useState<{ creditorId: string; creditor: string; total: number; count: number; debtIds: string[] } | null>(null);
   const [payingAll, setPayingAll] = useState(false);
@@ -75,10 +82,32 @@ export default function DebtsPage() {
     setLoading(false);
   }
 
-  async function markAsPaid(debtId: string) {
-    setMarkingPaid(debtId);
-    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', debtId);
-    const debt = debts.find(d => d.id === debtId);
+  function openProofModal(debtId: string) {
+    setProofModal({ debtId, mode: 'single' });
+    setProofFile(null);
+    setProofPreview(null);
+  }
+
+  async function uploadProofImage(file: File, debtId: string): Promise<string | null> {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `proof_${debtId}_${Date.now()}.${fileExt}`;
+    const { error } = await supabase.storage.from('receipts').upload(`proofs/${fileName}`, file, { upsert: true });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(`proofs/${fileName}`);
+      return urlData.publicUrl;
+    }
+    try {
+      const reader = new FileReader();
+      return await new Promise<string>((resolve) => { reader.onload = () => resolve(reader.result as string); reader.readAsDataURL(file); });
+    } catch { return null; }
+  }
+
+  async function submitProofAndMarkPaid() {
+    if (!proofModal || !proofFile) return;
+    setSubmittingProof(true);
+    const proofUrl = await uploadProofImage(proofFile, proofModal.debtId);
+    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString(), proof_image_url: proofUrl }).eq('id', proofModal.debtId);
+    const debt = debts.find(d => d.id === proofModal.debtId);
     if (debt) {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', debt.bill_id).eq('status', 'unpaid');
       if (!remaining || remaining.length <= 1) {
@@ -86,10 +115,11 @@ export default function DebtsPage() {
       }
       fetch('/api/webhook-wa', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bill: { id: debt.bill_id, title: debt.bill?.title || 'Tagihan', paid_by: debt.creditor_id, paid_by_friend: debt.creditor }, items: [], debts: [debt], type: 'paid' }),
+        body: JSON.stringify({ bill: { id: debt.bill_id, title: debt.bill?.title || 'Tagihan', paid_by: debt.creditor_id, paid_by_friend: debt.creditor }, items: [], debts: [{ ...debt, proof_image_url: proofUrl }], type: 'paid' }),
       }).catch(console.error);
     }
-    setMarkingPaid(null);
+    setSubmittingProof(false);
+    setProofModal(null);
     showToast('Hutang ditandai lunas!', 'success');
     loadDebts();
   }
@@ -389,11 +419,11 @@ export default function DebtsPage() {
                           </Link>
                         )}
                         <button
-                          onClick={() => markAsPaid(debt.id)}
+                          onClick={() => openProofModal(debt.id)}
                           disabled={markingPaid === debt.id}
                           className="flex-1 py-2.5 rounded-xl bg-emerald-500 text-white text-xs font-semibold disabled:opacity-50 active:scale-[0.98] transition"
                         >
-                          {markingPaid === debt.id ? '...' : '✓ Tandai Lunas'}
+                          {markingPaid === debt.id ? '...' : '📸 Tandai Lunas'}
                         </button>
                       </>
                     ) : (
@@ -499,6 +529,58 @@ export default function DebtsPage() {
             onClick={() => setShowQris(false)}>✕</button>
           <img src={qrisMode === 'dynamic' && dynamicQris ? dynamicQris : selectedPM.qris_image_url} alt="QRIS"
             className="max-w-[95vw] max-h-[80vh] object-contain bg-white rounded-2xl p-4" />
+        </div>
+      )}
+      {/* Proof Upload Modal */}
+      {proofModal && (
+        <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !submittingProof && setProofModal(null)}>
+          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-bold">📸 Bukti Pembayaran</h3>
+              <button onClick={() => !submittingProof && setProofModal(null)} className="text-text-secondary text-xl p-1">✕</button>
+            </div>
+
+            <div className="bg-amber-50 rounded-xl p-3 mb-4">
+              <p className="text-xs text-amber-700">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
+            </div>
+
+            <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
+            
+            {proofPreview ? (
+              <div className="relative mb-4">
+                <img src={proofPreview} alt="Bukti" className="w-full max-h-52 object-contain rounded-xl border border-border bg-page" />
+                <button onClick={() => { setProofFile(null); setProofPreview(null); }}
+                  className="absolute top-2 right-2 bg-white/90 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+                <p className="text-[10px] text-emerald-600 font-medium mt-1.5 text-center">✓ Bukti pembayaran siap dikirim</p>
+              </div>
+            ) : (
+              <label htmlFor="proof-debt-upload"
+                className="block w-full py-8 rounded-xl border-2 border-dashed border-blue-200 hover:border-primary bg-blue-50/50 transition-colors cursor-pointer text-center mb-4">
+                <span className="text-3xl block mb-2">📷</span>
+                <span className="text-sm text-primary font-semibold">Upload Bukti Transfer</span>
+                <span className="block text-[11px] text-text-muted mt-1">Tap untuk foto atau pilih dari galeri</span>
+              </label>
+            )}
+
+            <div className="flex gap-3">
+              <button onClick={() => setProofModal(null)} disabled={submittingProof}
+                className="flex-1 py-3 rounded-xl border border-border font-semibold text-sm disabled:opacity-50">Batal</button>
+              <button onClick={submitProofAndMarkPaid} disabled={submittingProof || !proofFile}
+                className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${proofFile ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                {submittingProof ? 'Mengunggah...' : proofFile ? '✓ Kirim & Tandai Lunas' : '📷 Upload dulu'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Proof Image Viewer */}
+      {showProofView && (
+        <div className="fixed inset-0 bg-black z-[60] flex flex-col items-center justify-center" onClick={() => setShowProofView(null)}>
+          <button className="absolute top-4 right-4 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-lg z-10"
+            onClick={() => setShowProofView(null)}>✕</button>
+          <p className="text-white/70 text-xs mb-3">📸 Bukti Pembayaran</p>
+          <img src={showProofView} alt="Bukti" className="max-w-[95vw] max-h-[80vh] object-contain bg-white rounded-2xl p-2" />
         </div>
       )}
     </div>

@@ -78,6 +78,7 @@ export interface Debt {
   status: 'unpaid' | 'paid';
   paid_at: string | null;
   notes: string | null;
+  proof_image_url: string | null;
   created_at: string;
   // Joined
   debtor?: Friend;

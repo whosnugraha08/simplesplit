@@ -22,6 +22,11 @@ export default function PayPage() {
   const [showQris, setShowQris] = useState(false);
   const [expandNotes, setExpandNotes] = useState(false);
 
+  // Payment proof
+  const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreview, setProofPreview] = useState<string | null>(null);
+  const [showProofFull, setShowProofFull] = useState(false);
+
   const [dynamicQris, setDynamicQris] = useState<string | null>(null);
   const [generatingQris, setGeneratingQris] = useState(false);
   const [qrisMode, setQrisMode] = useState<'dynamic' | 'static'>('dynamic');
@@ -59,9 +64,37 @@ export default function PayPage() {
     setLoading(false);
   }
 
+  function handleProofFile(file: File) {
+    setProofFile(file);
+    setProofPreview(URL.createObjectURL(file));
+  }
+
+  async function uploadProof(): Promise<string | null> {
+    if (!proofFile) return null;
+    const fileExt = proofFile.name.split('.').pop();
+    const fileName = `proof_${debtId}_${Date.now()}.${fileExt}`;
+    // Try 'receipts' bucket (most likely exists)
+    const { error } = await supabase.storage.from('receipts').upload(`proofs/${fileName}`, proofFile, { upsert: true });
+    if (!error) {
+      const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(`proofs/${fileName}`);
+      return urlData.publicUrl;
+    }
+    // Fallback: base64 data URL
+    try {
+      const reader = new FileReader();
+      return await new Promise<string>((resolve) => { reader.onload = () => resolve(reader.result as string); reader.readAsDataURL(proofFile); });
+    } catch { return null; }
+  }
+
   async function handleMarkPaid() {
+    if (!proofFile) {
+      showToast('Upload bukti pembayaran dulu ya!', 'error');
+      return;
+    }
     setMarkingPaid(true);
-    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', debtId);
+    // Upload proof image
+    const proofUrl = await uploadProof();
+    await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString(), proof_image_url: proofUrl }).eq('id', debtId);
     if (debt) {
       const { data: remaining } = await supabase.from('debts').select('id').eq('bill_id', debt.bill_id).eq('status', 'unpaid');
       if (!remaining || remaining.length <= 1) {
@@ -70,7 +103,7 @@ export default function PayPage() {
       if (debt.bill) {
         fetch('/api/webhook-wa', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ bill: { id: debt.bill.id, title: debt.bill.title, paid_by: debt.creditor_id, paid_by_friend: debt.creditor }, items: [], debts: [debt], type: 'paid' }),
+          body: JSON.stringify({ bill: { id: debt.bill.id, title: debt.bill.title, paid_by: debt.creditor_id, paid_by_friend: debt.creditor }, items: [], debts: [{ ...debt, proof_image_url: proofUrl }], type: 'paid' }),
         }).catch(console.error);
       }
     }
@@ -226,10 +259,38 @@ export default function PayPage() {
         </div>
       ) : null}
 
+      {/* Proof Upload */}
+      <div className="bg-white rounded-2xl border border-border p-5 mb-4">
+        <h2 className="text-sm font-semibold text-text-secondary mb-1">📸 Bukti Pembayaran</h2>
+        <p className="text-[11px] text-text-muted mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan dikirim otomatis ke penagih via WhatsApp.</p>
+        <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
+        {proofPreview ? (
+          <div className="relative">
+            <button onClick={() => setShowProofFull(true)} className="w-full">
+              <img src={proofPreview} alt="Bukti" className="w-full max-h-48 object-contain rounded-xl border border-border bg-page" />
+            </button>
+            <button onClick={() => { setProofFile(null); setProofPreview(null); }}
+              className="absolute top-2 right-2 bg-white/90 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+            <p className="text-[10px] text-emerald-600 font-medium mt-1.5 text-center">✓ Bukti pembayaran siap dikirim</p>
+          </div>
+        ) : (
+          <label htmlFor="proof-upload"
+            className="block w-full py-8 rounded-xl border-2 border-dashed border-blue-200 hover:border-primary bg-blue-50/50 transition-colors cursor-pointer text-center">
+            <span className="text-3xl block mb-2">📷</span>
+            <span className="text-sm text-primary font-semibold">Upload Bukti Transfer</span>
+            <span className="block text-[11px] text-text-muted mt-1">Tap untuk foto atau pilih dari galeri</span>
+          </label>
+        )}
+      </div>
+
       {/* Action */}
-      <button onClick={handleMarkPaid} disabled={markingPaid}
-        className="w-full py-3.5 rounded-xl bg-emerald-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-emerald-500/20">
-        {markingPaid ? 'Memproses...' : '✓ Sudah Bayar — Tandai Lunas'}
+      <button onClick={handleMarkPaid} disabled={markingPaid || !proofFile}
+        className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition shadow-lg ${
+          proofFile
+            ? 'bg-emerald-500 text-white shadow-emerald-500/20'
+            : 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none'
+        } disabled:opacity-50`}>
+        {markingPaid ? 'Mengunggah & Memproses...' : proofFile ? '✓ Kirim Bukti & Tandai Lunas' : '📷 Upload bukti dulu'}
       </button>
 
       {/* QRIS Fullscreen */}

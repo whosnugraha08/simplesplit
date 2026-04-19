@@ -4,7 +4,7 @@
 // ============================================================
 
 const express = require('express');
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 // ── Configuration ───────────────────────────────────────────
@@ -154,6 +154,9 @@ function buildPaidMessage(bill, debt) {
   msg += `*${debtorName}* baru saja melunasi tagihannya:\n\n`;
   msg += `🏷️ *${bill.title || 'Bill'}*\n`;
   msg += `💰 *${formatRupiah(debt.amount)}*\n`;
+  if (debt.proof_image_url) {
+    msg += `\n📸 *Bukti transfer terlampir di atas* ☝️\n`;
+  }
   msg += `\nSilakan cek mutasi rekening kamu ya! 🎉\n`;
   msg += `\n_(Pesan otomatis dari SimpleSplit)_`;
 
@@ -186,7 +189,7 @@ function buildPaidAllMessage(bill, debts) {
 
 // ── Send Message Helper ─────────────────────────────────────
 
-async function sendWhatsApp(phoneNumber, message) {
+async function sendWhatsApp(phoneNumber, message, imageUrl) {
   if (!isReady) {
     throw new Error('WhatsApp client belum ready. Scan QR dulu!');
   }
@@ -206,6 +209,23 @@ async function sendWhatsApp(phoneNumber, message) {
     if (!isRegistered) {
       console.log(`⚠️  Nomor ${phoneNumber} tidak terdaftar di WhatsApp, skip.`);
       return { success: false, reason: 'not_registered' };
+    }
+
+    // Send image first if provided
+    if (imageUrl && imageUrl.startsWith('http')) {
+      try {
+        console.log(`📷 Mengirim bukti pembayaran ke ${phoneNumber}...`);
+        const media = await MessageMedia.fromUrl(imageUrl, { unsafeMime: true });
+        await client.sendMessage(chatId, media, { caption: message });
+        console.log(`✅ Pesan + foto terkirim ke ${phoneNumber}`);
+        return { success: true };
+      } catch (imgErr) {
+        console.log(`⚠️  Gagal kirim gambar, kirim teks saja:`, imgErr.message);
+        // Fallback: send text only
+        await client.sendMessage(chatId, message);
+        console.log(`✅ Pesan (teks saja) terkirim ke ${phoneNumber}`);
+        return { success: true };
+      }
     }
 
     await client.sendMessage(chatId, message);
@@ -276,7 +296,8 @@ app.post('/webhook', async (req, res) => {
       const creditorPhone = bill.paid_by_friend?.whatsapp_number;
       if (creditorPhone) {
         const msg = buildPaidMessage(bill, debts[0]);
-        const result = await sendWhatsApp(creditorPhone, msg);
+        const proofUrl = debts[0]?.proof_image_url || null;
+        const result = await sendWhatsApp(creditorPhone, msg, proofUrl);
         results.push({ to: creditorPhone, ...result });
       } else {
         console.log('⚠️  Creditor tidak punya nomor WA');
