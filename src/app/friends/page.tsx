@@ -83,8 +83,8 @@ export default function FriendsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold truncate">{friend.name}</p>
-                      {isMe && <span className="bg-blue-500/100/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
-                      {friend.is_admin && <span className="bg-amber-500/100/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+                      {isMe && <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
+                      {friend.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                     </div>
                     {pmCount > 0 ? (
                       <p className="text-xs text-white/50 mt-0.5">💳 {pmCount} metode pembayaran</p>
@@ -97,7 +97,7 @@ export default function FriendsPage() {
                       className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/50" title="Edit">✏️</button>
                     {!isMe && (
                       <button onClick={() => setDeleteConfirm(friend.id)}
-                        className="p-2 rounded-lg hover:bg-red-500/100/100/100/10 transition-colors text-white/50" title="Hapus">🗑️</button>
+                        className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-white/50" title="Hapus">🗑️</button>
                     )}
                   </div>
                 </div>
@@ -117,7 +117,7 @@ export default function FriendsPage() {
       {/* Delete Confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-white/5 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Teman?</h3>
             <p className="text-sm text-white/50 mb-6">Semua data terkait teman ini akan ikut terhapus.</p>
             <div className="flex gap-3">
@@ -266,13 +266,13 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
 
   return (
     <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white/5 w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold">{friend ? 'Edit Teman' : 'Tambah Teman'}</h3>
           <button onClick={onClose} className="text-white/50 text-xl p-1">✕</button>
         </div>
 
-        {error && <div className="bg-red-500/100/10 text-danger rounded-xl p-3 text-sm mb-4">⚠️ {error}</div>}
+        {error && <div className="bg-red-500/10 text-danger rounded-xl p-3 text-sm mb-4">⚠️ {error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

@@ -92,7 +92,7 @@ export default function BillDetailPage() {
   const statusLabel: Record<string, { text: string; color: string }> = {
     draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
     assigned: { text: 'Dibagi', color: 'bg-blue-500/10 text-blue-400' },
-    settled: { text: 'Selesai', color: 'bg-emerald-500/10 text-emerald-400' },
+    settled: { text: 'Selesai', color: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
   };
   const status = statusLabel[bill.status] || statusLabel.draft;
 
@@ -221,12 +221,12 @@ export default function BillDetailPage() {
         )}
         {bill.status !== 'draft' && debts.length > 0 && (
           <button onClick={handleSendWA} disabled={sendingWA}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-500/100 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors active:scale-[0.98] disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors active:scale-[0.98] disabled:opacity-50">
             <span>📱</span>{sendingWA ? 'Menghubungi Bot...' : 'Kirim Tagihan via WA'}
           </button>
         )}
         <button onClick={() => setShowDeleteConfirm(true)}
-          className="w-full py-3 rounded-xl border border-red-500/20 text-danger font-semibold text-sm hover:bg-red-500/100/10 transition">
+          className="w-full py-3 rounded-xl border border-red-500/20 text-danger font-semibold text-sm hover:bg-red-500/10 transition">
           🗑️ Hapus Bill
         </button>
       </div>
@@ -234,7 +234,7 @@ export default function BillDetailPage() {
       {/* Delete Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-white/5 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Bill?</h3>
             <p className="text-sm text-white/50 mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
             <div className="flex gap-3">

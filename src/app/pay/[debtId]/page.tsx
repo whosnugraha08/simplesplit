@@ -212,7 +212,7 @@ export default function PayPage() {
                 <div className="flex items-center justify-between">
                   <p className="money text-xl">{selectedPM.account_number}</p>
                   <button onClick={() => { navigator.clipboard.writeText(selectedPM.account_number || ''); showToast('Nomor rekening disalin!', 'success'); }}
-                    className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-amber-400 text-xs font-semibold">📋 Salin</button>
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">📋 Salin</button>
                 </div>
                 <p className="text-sm text-white/50 mt-1">{selectedPM.bank_name}</p>
               </div>
@@ -292,7 +292,7 @@ export default function PayPage() {
       <button onClick={handleMarkPaid} disabled={markingPaid || !proofFile}
         className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition shadow-lg ${
           proofFile
-            ? 'bg-emerald-500/100 text-white shadow-emerald-500/20'
+            ? 'bg-emerald-600 text-white shadow-emerald-500/20'
             : 'bg-white/10 text-white/40 cursor-not-allowed shadow-none'
         } disabled:opacity-50`}>
         {markingPaid ? 'Mengunggah & Memproses...' : proofFile ? '✓ Kirim Bukti & Tandai Lunas' : '📷 Upload bukti dulu'}
@@ -304,7 +304,7 @@ export default function PayPage() {
           <button className="absolute top-4 right-4 text-white bg-white/20 rounded-full w-10 h-10 flex items-center justify-center text-lg z-10"
             onClick={() => setShowQris(false)}>✕</button>
           {qrisMode === 'dynamic' && dynamicQris && (
-            <div className="bg-emerald-500/100/90 rounded-full px-4 py-1.5 mb-4">
+            <div className="bg-emerald-600/90 rounded-full px-4 py-1.5 mb-4">
               <p className="text-white text-xs font-semibold">⚡ Dynamic — {formatRupiah(Number(debt.amount))}</p>
             </div>
           )}

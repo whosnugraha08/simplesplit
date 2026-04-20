@@ -243,7 +243,7 @@ export default function NewBillPage() {
               </button>
             </div>
           )}
-          {scanError && <div className="mt-4 bg-red-500/100/10 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
+          {scanError && <div className="mt-4 bg-red-500/10 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
             <div className="flex-1 h-px bg-border" /><span className="text-xs text-white/50">atau</span><div className="flex-1 h-px bg-border" />
           </div>
@@ -273,7 +273,7 @@ export default function NewBillPage() {
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
           {scanSource && (
-            <div className="flex justify-between items-center bg-blue-500/100/10/50 border border-blue-100 rounded-xl p-3">
+            <div className="flex justify-between items-center bg-blue-500/10/50 border border-blue-100 rounded-xl p-3">
               <span className="text-xs text-white/50 font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
@@ -357,7 +357,7 @@ export default function NewBillPage() {
                 onClick={() => setSelectedPayer(friend.id)}
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
-                    ? 'border-primary bg-blue-500/100/10 ring-2 ring-primary'
+                    ? 'border-primary bg-blue-500/10 ring-2 ring-primary'
                     : 'border-white/8 bg-white/5 hover:border-amber-500/30/50'
                 }`}
               >

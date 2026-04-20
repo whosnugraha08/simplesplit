@@ -277,7 +277,7 @@ export default function ProfilePage() {
                     </>
                   ) : (
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-blue-500/100/10 flex items-center justify-center text-lg shrink-0">🏦</div>
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-lg shrink-0">🏦</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{pm.label || pm.bank_name}</p>
                         {pm.account_number && <p className="text-xs text-white/50">{pm.bank_name} • {pm.account_number}</p>}
@@ -317,14 +317,14 @@ export default function ProfilePage() {
 
       {/* Logout */}
       <button onClick={() => setShowLogoutConfirm(true)}
-        className="w-full py-3.5 rounded-xl border border-red-500/20 text-danger font-semibold text-sm hover:bg-red-500/100/100/100/10 transition">
+        className="w-full py-3.5 rounded-xl border border-red-500/20 text-danger font-semibold text-sm hover:bg-red-600/10 transition">
         ← Keluar dari Akun
       </button>
 
       {/* Logout Confirm */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowLogoutConfirm(false)}>
-          <div className="bg-white/5 w-full max-w-sm rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-sm rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Keluar?</h3>
             <p className="text-sm text-white/50 mb-6">Kamu akan keluar dari akun SimpleSplit ini.</p>
             <div className="flex gap-3">

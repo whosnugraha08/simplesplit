@@ -127,7 +127,7 @@ export default function AdminPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-amber-500/100/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>
+          <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>
           <h1 className="text-2xl font-bold">Admin Panel</h1>
         </div>
         <p className="text-sm text-white/50">Kelola semua data SimpleSplit</p>
@@ -217,14 +217,14 @@ export default function AdminPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold truncate">{u.display_name}</p>
-                      {friend?.is_admin && <span className="bg-amber-500/100/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+                      {friend?.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                     </div>
                     <p className="text-xs text-white/50">@{u.username}</p>
                     <p className="text-[10px] text-white/30">Bergabung {formatDate(u.created_at)}</p>
                   </div>
                   <button
                     onClick={() => resetPin(u.id, u.username)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/100/10 text-amber-400 text-[10px] font-semibold hover:bg-amber-100 transition shrink-0"
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-semibold hover:bg-amber-100 transition shrink-0"
                   >
                     🔑 Reset PIN
                   </button>
@@ -283,12 +283,12 @@ export default function AdminPage() {
               <div className="flex gap-2 mt-3 justify-end">
                 <button onClick={() => toggleDebtStatus(debt)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold transition ${
-                    debt.status === 'paid' ? 'bg-amber-500/100/10 text-amber-400' : 'bg-emerald-500/100/10 text-emerald-400'
+                    debt.status === 'paid' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   }`}>
                   {debt.status === 'paid' ? '↩ Batalkan' : '✓ Lunaskan'}
                 </button>
                 <button onClick={() => deleteDebt(debt.id)}
-                  className="px-3 py-1.5 rounded-lg bg-red-500/100/10 text-danger text-[10px] font-semibold hover:bg-red-100 transition">
+                  className="px-3 py-1.5 rounded-lg bg-red-500/10 text-danger text-[10px] font-semibold hover:bg-red-100 transition">
                   🗑️ Hapus
                 </button>
               </div>
@@ -303,9 +303,9 @@ export default function AdminPage() {
           <p className="text-xs text-white/50 mb-2">{allBills.length} total bills</p>
           {allBills.map((bill, idx) => {
             const statusLabel: Record<string, { text: string; color: string }> = {
-              draft: { text: 'Draft', color: 'bg-amber-500/100/10 text-amber-400' },
-              assigned: { text: 'Dibagi', color: 'bg-blue-500/100/10 text-blue-400' },
-              settled: { text: 'Selesai', color: 'bg-emerald-500/100/10 text-emerald-400' },
+              draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
+              assigned: { text: 'Dibagi', color: 'bg-blue-500/10 text-blue-400' },
+              settled: { text: 'Selesai', color: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
             };
             const status = statusLabel[bill.status] || statusLabel.draft;
 

@@ -228,7 +228,7 @@ export default function AssignPage() {
 
       {/* Quick Actions */}
       <div className="flex gap-2 mb-4">
-        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-amber-400 text-xs font-semibold">
+        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">
           Semua bagi rata
         </button>
         <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-white/5 text-white/50 text-xs font-semibold border border-white/8">
