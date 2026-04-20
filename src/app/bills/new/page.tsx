@@ -28,7 +28,10 @@ export default function NewBillPage() {
   const [items, setItems] = useState<ParsedReceiptItem[]>([]);
   const [tax, setTax] = useState<number>(0);
   const [serviceCharge, setServiceCharge] = useState<number>(0);
+  const [rounding, setRounding] = useState<number>(0);
   const [title, setTitle] = useState('');
+  const [billDate, setBillDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [totalOnReceipt, setTotalOnReceipt] = useState<number>(0);
 
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedPayer, setSelectedPayer] = useState<string | null>(null);
@@ -105,7 +108,10 @@ export default function NewBillPage() {
         setItems(result.items || []);
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.serviceCharge) || 0);
-        setTitle('');
+        setRounding(Number(result.rounding) || 0);
+        setTotalOnReceipt(Number(result.totalOnReceipt) || 0);
+        setTitle(result.storeName || '');
+        if (result.date) setBillDate(result.date);
         setTimeout(() => setStep('edit'), 300);
       } catch (geminiErr) {
         console.warn('Gemini failed, fallback to Tesseract...', geminiErr);
@@ -116,6 +122,8 @@ export default function NewBillPage() {
         setItems(result.items || []);
         setTax(Number(result.tax) || 0);
         setServiceCharge(Number(result.service_charge) || 0);
+        setRounding(0);
+        setTotalOnReceipt(0);
         setTitle('');
         setTimeout(() => setStep('edit'), 300);
       }
@@ -131,7 +139,10 @@ export default function NewBillPage() {
     setItems([{ name: '', price: 0, quantity: 1 }]);
     setTax(0);
     setServiceCharge(0);
+    setRounding(0);
+    setTotalOnReceipt(0);
     setTitle('');
+    setBillDate(new Date().toISOString().split('T')[0]);
     setStep('edit');
   }
 
@@ -147,7 +158,8 @@ export default function NewBillPage() {
   function removeItem(index: number) { setItems(items.filter((_, i) => i !== index)); }
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const grandTotal = subtotal + tax + serviceCharge;
+  const grandTotal = subtotal + tax + serviceCharge + rounding;
+  const totalMismatch = totalOnReceipt > 0 && Math.abs(grandTotal - totalOnReceipt) > 1;
 
   async function handleSave() {
     if (!selectedPayer || items.length === 0 || !title.trim()) return;
@@ -175,7 +187,7 @@ export default function NewBillPage() {
           service_charge_amount: serviceCharge,
           total_amount: grandTotal,
           status: 'draft',
-          bill_date: new Date().toISOString(),
+          bill_date: billDate ? new Date(billDate).toISOString() : new Date().toISOString(),
         })
         .select().single();
 
@@ -280,10 +292,17 @@ export default function NewBillPage() {
               </span>
             </div>
           )}
-          <div>
-            <label className="block text-sm font-medium text-white/50 mb-1.5">Judul Bill</label>
-            <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
-              className="w-full px-4 py-3 rounded-xl border border-white/8 bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-white/50 mb-1.5">Judul Bill</label>
+              <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-white/50 mb-1.5">Tanggal</label>
+              <input type="date" value={billDate} onChange={e => setBillDate(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+            </div>
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -317,16 +336,21 @@ export default function NewBillPage() {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-medium text-white/50 mb-1">Pajak (Tax)</label>
               <input type="number" value={tax || ''} onChange={e => setTax(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-white/8 bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Service Charge</label>
+              <label className="block text-xs font-medium text-white/50 mb-1">Service</label>
               <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-white/8 bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-white/50 mb-1">Pembulatan</label>
+              <input type="number" value={rounding || ''} onChange={e => setRounding(parseFloat(e.target.value) || 0)} placeholder="0"
+                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
             </div>
           </div>
           <div className="glass-card p-4">
@@ -334,9 +358,19 @@ export default function NewBillPage() {
               <div className="flex justify-between"><span className="text-white/50">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
               {tax > 0 && <div className="flex justify-between"><span className="text-white/50">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
               {serviceCharge > 0 && <div className="flex justify-between"><span className="text-white/50">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
+              {rounding !== 0 && <div className="flex justify-between"><span className="text-white/50">Pembulatan</span><span className="money">{formatRupiah(rounding)}</span></div>}
               <div className="border-t border-white/8 pt-2 flex justify-between">
                 <span className="font-semibold">Total</span><span className="money text-lg">{formatRupiah(grandTotal)}</span>
               </div>
+              {totalOnReceipt > 0 && (
+                <div className={`flex justify-between items-center pt-1 ${totalMismatch ? 'text-red-400' : 'text-emerald-400'}`}>
+                  <span className="text-xs">Total di nota</span>
+                  <div className="flex items-center gap-2">
+                    <span className="money text-xs">{formatRupiah(totalOnReceipt)}</span>
+                    <span className="text-[10px] font-bold">{totalMismatch ? '⚠️ BEDA' : '✓ COCOK'}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <button onClick={() => setStep('payer')} disabled={items.length === 0 || subtotal <= 0}
