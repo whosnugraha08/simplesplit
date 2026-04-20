@@ -38,10 +38,10 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
   // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-page">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="w-12 h-12 border-3 border-primary/20 border-t-primary rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-sm text-text-secondary">Memuat...</p>
+          <div className="w-12 h-12 border-2 border-white/10 border-t-primary rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-sm text-white/40">Memuat...</p>
         </div>
       </div>
     );
@@ -58,7 +58,7 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
       <DesktopSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 pb-20 md:pb-4">
+      <main className="flex-1 md:ml-72 pb-20 md:pb-4">
         <div className="mx-auto max-w-4xl">
           {children}
         </div>
@@ -84,16 +84,16 @@ function DesktopSidebar() {
   ];
 
   return (
-    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-64 bg-white border-r border-border flex-col z-40">
+    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-72 glass flex-col z-40">
       {/* Logo Area */}
-      <div className="p-6 border-b border-border">
+      <div className="p-6 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
             <span className="text-lg">💰</span>
           </div>
           <div>
-            <h1 className="text-lg font-extrabold text-text-primary tracking-tight">SimpleSplit</h1>
-            <p className="text-[10px] text-text-muted">v2 • Personal</p>
+            <h1 className="text-lg font-extrabold text-white tracking-tight">SimpleSplit</h1>
+            <p className="text-[10px] text-white/30">v2 • Personal</p>
           </div>
         </div>
       </div>
@@ -109,8 +109,8 @@ function DesktopSidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                 isActive
-                  ? 'bg-primary text-white shadow-sm shadow-primary/20'
-                  : 'text-text-secondary hover:bg-page hover:text-text-primary'
+                  ? 'bg-gradient-to-r from-amber-500/20 to-orange-500/10 text-amber-400 border border-amber-500/20'
+                  : 'text-white/50 hover:bg-white/5 hover:text-white/80'
               }`}
             >
               <span className="text-lg">{item.icon}</span>
@@ -121,19 +121,19 @@ function DesktopSidebar() {
       </nav>
 
       {/* User Profile */}
-      <div className="p-4 border-t border-border">
+      <div className="p-4 border-t border-white/5">
         <div className="flex items-center gap-3 px-3 py-2">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-amber-500/20">
             {user?.display_name?.slice(0, 2).toUpperCase() || '??'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold truncate">{user?.display_name}</p>
-            <p className="text-[10px] text-text-muted">@{user?.username}</p>
+            <p className="text-sm font-semibold text-white truncate">{user?.display_name}</p>
+            <p className="text-[10px] text-white/30">@{user?.username}</p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="w-full mt-2 px-4 py-2 rounded-xl text-xs font-medium text-text-secondary hover:bg-danger-light hover:text-danger transition-colors"
+          className="w-full mt-2 px-4 py-2 rounded-xl text-xs font-medium text-white/40 hover:bg-red-500/10 hover:text-red-400 transition-colors"
         >
           ← Keluar
         </button>
@@ -155,7 +155,8 @@ function MobileBottomNav() {
   ];
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-t border-border safe-bottom">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-bottom"
+      style={{ background: 'rgba(10, 10, 18, 0.85)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
       <div className="flex items-center justify-around h-16">
         {navItems.map(item => {
           const isActive = pathname === item.href || 
@@ -166,12 +167,13 @@ function MobileBottomNav() {
               href={item.href}
               className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl min-w-[64px] transition-colors ${
                 isActive
-                  ? 'text-primary'
-                  : 'text-text-secondary hover:text-primary'
+                  ? 'text-amber-400'
+                  : 'text-white/35 hover:text-white/60'
               }`}
             >
               <span className="text-xl leading-none">{item.icon}</span>
               <span className={`text-[11px] ${isActive ? 'font-bold' : 'font-medium'}`}>{item.label}</span>
+              {isActive && <div className="w-1 h-1 rounded-full bg-amber-400 mt-0.5" />}
             </Link>
           );
         })}

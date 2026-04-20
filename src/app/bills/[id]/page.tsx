@@ -84,15 +84,15 @@ export default function BillDetailPage() {
     return (
       <div className="content-padding pt-6 text-center py-16">
         <p className="text-3xl mb-3">🤷</p>
-        <p className="text-text-secondary">Bill tidak ditemukan</p>
+        <p className="text-white/50">Bill tidak ditemukan</p>
       </div>
     );
   }
 
   const statusLabel: Record<string, { text: string; color: string }> = {
-    draft: { text: 'Draft', color: 'bg-amber-50 text-amber-700' },
-    assigned: { text: 'Dibagi', color: 'bg-blue-50 text-blue-700' },
-    settled: { text: 'Selesai', color: 'bg-emerald-50 text-emerald-700' },
+    draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
+    assigned: { text: 'Dibagi', color: 'bg-blue-500/10 text-blue-400' },
+    settled: { text: 'Selesai', color: 'bg-emerald-500/10 text-emerald-400' },
   };
   const status = statusLabel[bill.status] || statusLabel.draft;
 
@@ -100,32 +100,32 @@ export default function BillDetailPage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push('/bills')} className="text-xl text-text-secondary p-1">←</button>
+        <button onClick={() => router.push('/bills')} className="text-xl text-white/50 p-1">←</button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold truncate">{bill.title}</h1>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${status.color}`}>{status.text}</span>
           </div>
-          <p className="text-xs text-text-secondary">{formatDate(bill.bill_date)}</p>
+          <p className="text-xs text-white/50">{formatDate(bill.bill_date)}</p>
         </div>
       </div>
 
       {/* Payer Info */}
-      <div className="bg-white rounded-2xl border border-border p-4 mb-4">
+      <div className="glass-card p-4 mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
             style={{ backgroundColor: getAvatarColor(bill.paid_by_friend?.name || '') }}>
             {getInitials(bill.paid_by_friend?.name || '?')}
           </div>
           <div>
-            <p className="text-xs text-text-secondary">Ditalangi oleh</p>
+            <p className="text-xs text-white/50">Ditalangi oleh</p>
             <p className="font-semibold">{bill.paid_by_friend?.name}</p>
           </div>
         </div>
       </div>
 
       {/* Amount Summary */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 mb-4 text-white">
+      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 mb-4 text-white">
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between"><span className="text-blue-100">Subtotal</span><span className="money">{formatRupiah(Number(bill.subtotal))}</span></div>
           {Number(bill.tax_amount) > 0 && <div className="flex justify-between"><span className="text-blue-100">Pajak</span><span className="money">{formatRupiah(Number(bill.tax_amount))}</span></div>}
@@ -139,13 +139,13 @@ export default function BillDetailPage() {
 
       {/* Items */}
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-text-secondary mb-2">Item ({items.length})</h2>
-        <div className="bg-white rounded-2xl border border-border divide-y divide-border">
+        <h2 className="text-sm font-semibold text-white/50 mb-2">Item ({items.length})</h2>
+        <div className="glass-card divide-y divide-border">
           {items.map(item => (
             <div key={item.id} className="px-4 py-3 flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium">{item.item_name}</p>
-                {item.quantity > 1 && <p className="text-xs text-text-secondary">{item.quantity}x @ {formatRupiah(Number(item.item_price))}</p>}
+                {item.quantity > 1 && <p className="text-xs text-white/50">{item.quantity}x @ {formatRupiah(Number(item.item_price))}</p>}
               </div>
               <p className="money text-sm">{formatRupiah(Number(item.item_price) * item.quantity)}</p>
             </div>
@@ -156,12 +156,12 @@ export default function BillDetailPage() {
       {/* Debts with detail */}
       {debts.length > 0 && (
         <div className="mb-4">
-          <h2 className="text-sm font-semibold text-text-secondary mb-2">Pembagian</h2>
+          <h2 className="text-sm font-semibold text-white/50 mb-2">Pembagian</h2>
           <div className="space-y-2">
             {debts.map(debt => {
               const isExpanded = expandedDebt === debt.id;
               return (
-                <div key={debt.id} className="bg-white rounded-2xl border border-border p-4">
+                <div key={debt.id} className="glass-card p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
                       style={{ backgroundColor: getAvatarColor(debt.debtor?.name || '') }}>
@@ -177,12 +177,12 @@ export default function BillDetailPage() {
                       <div className="flex items-center gap-2">
                         {debt.status !== 'paid' && bill.status !== 'draft' && (
                           <button onClick={() => handleRemind(debt)} disabled={sendingRemind === debt.id}
-                            className="p-1 rounded-md bg-amber-50 hover:bg-amber-100 text-amber-700 transition active:scale-95 disabled:opacity-50"
+                            className="p-1 rounded-md bg-amber-500/10 hover:bg-amber-100 text-amber-400 transition active:scale-95 disabled:opacity-50"
                             title="Kirim Pengingat">
                             {sendingRemind === debt.id ? '⏳' : '🔔'}
                           </button>
                         )}
-                        <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-amber-600'}`}>
+                        <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-amber-400'}`}>
                           {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM LUNAS'}
                         </span>
                       </div>
@@ -193,13 +193,13 @@ export default function BillDetailPage() {
                   {debt.notes && (
                     <>
                       <button onClick={() => setExpandedDebt(isExpanded ? null : debt.id)}
-                        className="mt-2 text-[10px] text-primary font-medium">
+                        className="mt-2 text-[10px] text-amber-400 font-medium">
                         {isExpanded ? '▲ Sembunyikan' : '▼ Lihat detail'}
                       </button>
                       {isExpanded && (
-                        <div className="mt-2 bg-page rounded-lg p-2.5 animate-fade-in">
+                        <div className="mt-2 bg-white/5 rounded-lg p-2.5 animate-fade-in">
                           {debt.notes.split('\n').map((line, i) => (
-                            <p key={i} className="text-[11px] text-text-secondary">{line}</p>
+                            <p key={i} className="text-[11px] text-white/50">{line}</p>
                           ))}
                         </div>
                       )}
@@ -215,18 +215,18 @@ export default function BillDetailPage() {
       {/* Actions */}
       <div className="space-y-2">
         {bill.status === 'draft' && (
-          <Link href={`/bills/${billId}/assign`} className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm text-center shadow-lg shadow-blue-500/20">
+          <Link href={`/bills/${billId}/assign`} className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm text-center shadow-lg shadow-amber-500/20">
             Bagi Item ke Teman →
           </Link>
         )}
         {bill.status !== 'draft' && debts.length > 0 && (
           <button onClick={handleSendWA} disabled={sendingWA}
-            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors active:scale-[0.98] disabled:opacity-50">
+            className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl bg-emerald-500/100 hover:bg-emerald-600 text-white font-semibold text-sm transition-colors active:scale-[0.98] disabled:opacity-50">
             <span>📱</span>{sendingWA ? 'Menghubungi Bot...' : 'Kirim Tagihan via WA'}
           </button>
         )}
         <button onClick={() => setShowDeleteConfirm(true)}
-          className="w-full py-3 rounded-xl border border-red-200 text-danger font-semibold text-sm hover:bg-red-50 transition">
+          className="w-full py-3 rounded-xl border border-red-500/20 text-danger font-semibold text-sm hover:bg-red-500/100/10 transition">
           🗑️ Hapus Bill
         </button>
       </div>
@@ -234,11 +234,11 @@ export default function BillDetailPage() {
       {/* Delete Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-white w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-white/5 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Bill?</h3>
-            <p className="text-sm text-text-secondary mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
+            <p className="text-sm text-white/50 mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl border border-border font-semibold text-sm">Batal</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl border border-white/8 font-semibold text-sm">Batal</button>
               <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm disabled:opacity-50">
                 {deleting ? 'Menghapus...' : 'Ya, Hapus'}
               </button>

@@ -26,14 +26,12 @@ export default function HomePage() {
       const friendId = user!.friend_id;
 
       const [myDebtsRes, owedRes, friendsRes] = await Promise.all([
-        // My debts (I owe someone)
         supabase
           .from('debts')
           .select('*, debtor:debtor_id(id,name), creditor:creditor_id(id,name), bill:bill_id(id,title)')
           .eq('debtor_id', friendId)
           .eq('status', 'unpaid')
           .order('created_at', { ascending: false }),
-        // Owed to me (someone owes me)
         supabase
           .from('debts')
           .select('*, debtor:debtor_id(id,name), creditor:creditor_id(id,name), bill:bill_id(id,title)')
@@ -68,21 +66,23 @@ export default function HomePage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
       <div className="mb-6 animate-fade-in">
-        <p className="text-sm text-text-secondary">Selamat {greeting} 👋</p>
-        <h1 className="text-2xl font-extrabold text-text-primary">{user?.display_name || 'User'}</h1>
+        <p className="text-sm text-white/40">Selamat {greeting} 👋</p>
+        <h1 className="text-2xl font-extrabold text-white">{user?.display_name || 'User'}</h1>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="bg-gradient-to-br from-red-500 to-rose-600 rounded-2xl p-4 text-white animate-fade-in" style={{ animationDelay: '50ms' }}>
-          <p className="text-white/70 text-xs font-medium mb-1">Aku Hutang</p>
+        <div className="relative overflow-hidden rounded-2xl p-4 text-white animate-fade-in" style={{ animationDelay: '50ms', background: 'linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.15))', border: '1px solid rgba(239,68,68,0.2)' }}>
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-red-500/10 -mr-6 -mt-6" />
+          <p className="text-white/60 text-xs font-medium mb-1">Aku Hutang</p>
           <p className="money text-2xl text-white">{formatRupiah(totalIowe)}</p>
-          <p className="text-white/50 text-[10px] mt-1">{myDebts.length} transaksi</p>
+          <p className="text-white/30 text-[10px] mt-1">{myDebts.length} transaksi</p>
         </div>
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-4 text-white animate-fade-in" style={{ animationDelay: '100ms' }}>
-          <p className="text-white/70 text-xs font-medium mb-1">Piutangku</p>
+        <div className="relative overflow-hidden rounded-2xl p-4 text-white animate-fade-in" style={{ animationDelay: '100ms', background: 'linear-gradient(135deg, rgba(34,197,94,0.25), rgba(22,163,74,0.15))', border: '1px solid rgba(34,197,94,0.2)' }}>
+          <div className="absolute top-0 right-0 w-20 h-20 rounded-full bg-emerald-500/10 -mr-6 -mt-6" />
+          <p className="text-white/60 text-xs font-medium mb-1">Piutangku</p>
           <p className="money text-2xl text-white">{formatRupiah(totalOwedToMe)}</p>
-          <p className="text-white/50 text-[10px] mt-1">{owedToMe.length} transaksi</p>
+          <p className="text-white/30 text-[10px] mt-1">{owedToMe.length} transaksi</p>
         </div>
       </div>
 
@@ -90,29 +90,29 @@ export default function HomePage() {
       <div className="grid grid-cols-2 gap-3 mb-6">
         <Link
           href="/bills/new"
-          className="bg-white rounded-2xl p-4 border border-border card-hover flex flex-col items-center gap-2 text-center animate-fade-in"
+          className="glass-card p-4 card-hover flex flex-col items-center gap-2 text-center animate-fade-in"
           style={{ animationDelay: '150ms' }}
         >
           <span className="text-2xl">📸</span>
-          <span className="text-sm font-semibold text-text-primary">Scan Nota</span>
-          <span className="text-xs text-text-secondary">Upload & split bill</span>
+          <span className="text-sm font-semibold text-white">Scan Nota</span>
+          <span className="text-xs text-white/40">Upload & split bill</span>
         </Link>
         <Link
           href="/debts"
-          className="bg-white rounded-2xl p-4 border border-border card-hover flex flex-col items-center gap-2 text-center animate-fade-in"
+          className="glass-card p-4 card-hover flex flex-col items-center gap-2 text-center animate-fade-in"
           style={{ animationDelay: '200ms' }}
         >
           <span className="text-2xl">📊</span>
-          <span className="text-sm font-semibold text-text-primary">Lihat Hutang</span>
-          <span className="text-xs text-text-secondary">Detail hutang & piutang</span>
+          <span className="text-sm font-semibold text-white">Lihat Hutang</span>
+          <span className="text-xs text-white/40">Detail hutang & piutang</span>
         </Link>
       </div>
 
       {/* My Debts (I owe) */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-bold">Hutangku</h2>
-          <Link href="/debts" className="text-sm text-primary font-medium">
+          <h2 className="text-lg font-bold text-white">Hutangku</h2>
+          <Link href="/debts" className="text-sm text-amber-400 font-medium">
             Lihat semua →
           </Link>
         </div>
@@ -124,9 +124,9 @@ export default function HomePage() {
             ))}
           </div>
         ) : myDebts.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-border p-6 text-center">
+          <div className="glass-card p-6 text-center">
             <p className="text-2xl mb-2">🎉</p>
-            <p className="text-text-secondary text-sm">Tidak ada hutang! Kamu bebas!</p>
+            <p className="text-white/50 text-sm">Tidak ada hutang! Kamu bebas!</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -134,7 +134,7 @@ export default function HomePage() {
               <Link
                 key={debt.id}
                 href={`/pay/${debt.id}`}
-                className="block bg-white rounded-2xl border border-border p-4 card-hover animate-fade-in"
+                className="block glass-card p-4 card-hover animate-fade-in"
                 style={{ animationDelay: `${(idx + 3) * 50}ms` }}
               >
                 <div className="flex items-center gap-3">
@@ -145,14 +145,14 @@ export default function HomePage() {
                     {getInitials(debt.creditor?.name || '?')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
+                    <p className="text-sm font-semibold text-white truncate">
                       ke {debt.creditor?.name}
                     </p>
-                    <p className="text-xs text-text-secondary truncate">
+                    <p className="text-xs text-white/40 truncate">
                       {debt.bill?.title || 'Bill'}
                     </p>
                   </div>
-                  <p className="money text-base text-danger shrink-0">
+                  <p className="money text-base text-red-400 shrink-0">
                     {formatRupiah(Number(debt.amount))}
                   </p>
                 </div>
@@ -166,13 +166,13 @@ export default function HomePage() {
       {owedToMe.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold">Yang Hutang ke Aku</h2>
+            <h2 className="text-lg font-bold text-white">Yang Hutang ke Aku</h2>
           </div>
           <div className="space-y-3">
             {owedToMe.slice(0, 3).map((debt, idx) => (
               <div
                 key={debt.id}
-                className="bg-white rounded-2xl border border-border p-4 animate-fade-in"
+                className="glass-card p-4 animate-fade-in"
                 style={{ animationDelay: `${idx * 50}ms` }}
               >
                 <div className="flex items-center gap-3">
@@ -183,14 +183,14 @@ export default function HomePage() {
                     {getInitials(debt.debtor?.name || '?')}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate">
+                    <p className="text-sm font-semibold text-white truncate">
                       {debt.debtor?.name}
                     </p>
-                    <p className="text-xs text-text-secondary truncate">
+                    <p className="text-xs text-white/40 truncate">
                       {debt.bill?.title || 'Bill'}
                     </p>
                   </div>
-                  <p className="money text-base text-success shrink-0">
+                  <p className="money text-base text-emerald-400 shrink-0">
                     +{formatRupiah(Number(debt.amount))}
                   </p>
                 </div>
@@ -201,13 +201,13 @@ export default function HomePage() {
       )}
 
       {/* Friends count */}
-      <div className="bg-white rounded-2xl border border-border p-4 flex items-center gap-3 animate-fade-in">
+      <div className="glass-card p-4 flex items-center gap-3 animate-fade-in">
         <span className="text-2xl">👥</span>
         <div className="flex-1">
-          <p className="text-sm font-semibold">{friendCount} Teman</p>
-          <p className="text-xs text-text-secondary">di sirkel kamu</p>
+          <p className="text-sm font-semibold text-white">{friendCount} Teman</p>
+          <p className="text-xs text-white/40">di sirkel kamu</p>
         </div>
-        <Link href="/friends" className="text-sm text-primary font-medium">
+        <Link href="/friends" className="text-sm text-amber-400 font-medium">
           Kelola →
         </Link>
       </div>

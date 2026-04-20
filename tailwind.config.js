@@ -8,30 +8,36 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563EB',
-          light: '#DBEAFE',
-          dark: '#1D4ED8',
+          DEFAULT: '#f59e0b',
+          light: 'rgba(245, 158, 11, 0.15)',
+          dark: '#d97706',
         },
-        surface: '#FFFFFF',
-        page: '#F1F5F9',
-        'text-primary': '#0F172A',
-        'text-secondary': '#64748B',
-        'text-muted': '#94A3B8',
+        surface: 'rgba(255, 255, 255, 0.05)',
+        page: '#0a0a12',
+        'text-primary': '#f1f5f9',
+        'text-secondary': 'rgba(255, 255, 255, 0.55)',
+        'text-muted': 'rgba(255, 255, 255, 0.3)',
         border: {
-          DEFAULT: '#E2E8F0',
-          light: '#F1F5F9',
+          DEFAULT: 'rgba(255, 255, 255, 0.08)',
+          light: 'rgba(255, 255, 255, 0.04)',
         },
         success: {
-          DEFAULT: '#16A34A',
-          light: '#DCFCE7',
+          DEFAULT: '#22c55e',
+          light: 'rgba(34, 197, 94, 0.12)',
         },
         warning: {
-          DEFAULT: '#F59E0B',
-          light: '#FEF3C7',
+          DEFAULT: '#f59e0b',
+          light: 'rgba(245, 158, 11, 0.12)',
         },
         danger: {
-          DEFAULT: '#EF4444',
-          light: '#FEE2E2',
+          DEFAULT: '#ef4444',
+          light: 'rgba(239, 68, 68, 0.12)',
+        },
+        // Dark glass
+        glass: {
+          DEFAULT: 'rgba(255, 255, 255, 0.04)',
+          hover: 'rgba(255, 255, 255, 0.08)',
+          active: 'rgba(255, 255, 255, 0.12)',
         },
       },
       fontFamily: {
@@ -41,6 +47,7 @@ module.exports = {
       borderRadius: {
         '2xl': '1rem',
         '3xl': '1.5rem',
+        '4xl': '2rem',
       },
     },
   },

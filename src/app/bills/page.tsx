@@ -22,21 +22,21 @@ export default function BillsPage() {
   }
 
   const statusLabel: Record<string, { text: string; color: string }> = {
-    draft: { text: 'Draft', color: 'bg-amber-50 text-amber-700' },
-    assigned: { text: 'Dibagi', color: 'bg-blue-50 text-blue-700' },
-    settled: { text: 'Selesai', color: 'bg-emerald-50 text-emerald-700' },
+    draft: { text: 'Draft', color: 'bg-amber-500/15 text-amber-400' },
+    assigned: { text: 'Dibagi', color: 'bg-blue-500/15 text-blue-400' },
+    settled: { text: 'Selesai', color: 'bg-emerald-500/15 text-emerald-400' },
   };
 
   return (
     <div className="content-padding pt-6 pb-4">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Bills</h1>
-          <p className="text-sm text-text-secondary">Riwayat split bill</p>
+          <h1 className="text-2xl font-bold text-white">Bills</h1>
+          <p className="text-sm text-white/40">Riwayat split bill</p>
         </div>
         <Link
           href="/bills/new"
-          className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20 hover:shadow-xl active:scale-95 transition-all"
+          className="btn-glow px-4 py-2.5 text-sm"
         >
           + Baru
         </Link>
@@ -47,10 +47,10 @@ export default function BillsPage() {
           {[1, 2, 3].map(i => <div key={i} className="skeleton h-24 w-full" />)}
         </div>
       ) : bills.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-border p-10 text-center">
+        <div className="glass-card p-10 text-center">
           <p className="text-4xl mb-3">🧾</p>
-          <p className="text-text-secondary mb-4">Belum ada bill. Yuk scan nota pertama!</p>
-          <Link href="/bills/new" className="inline-block bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-blue-500/20">
+          <p className="text-white/50 mb-4">Belum ada bill. Yuk scan nota pertama!</p>
+          <Link href="/bills/new" className="inline-block btn-glow px-5 py-2.5 text-sm">
             📸 Scan Nota
           </Link>
         </div>
@@ -62,7 +62,7 @@ export default function BillsPage() {
               <Link
                 key={bill.id}
                 href={`/bills/${bill.id}`}
-                className="block bg-white rounded-2xl border border-border p-4 card-hover animate-fade-in"
+                className="block glass-card p-4 card-hover animate-fade-in"
                 style={{ animationDelay: `${idx * 40}ms` }}
               >
                 <div className="flex items-start gap-3">
@@ -74,16 +74,16 @@ export default function BillsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
-                      <p className="font-semibold truncate">{bill.title}</p>
+                      <p className="font-semibold text-white truncate">{bill.title}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${status.color}`}>
                         {status.text}
                       </span>
                     </div>
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-xs text-white/40">
                       Ditalangi oleh {bill.paid_by_friend?.name} • {formatDate(bill.bill_date)}
                     </p>
                   </div>
-                  <p className="money text-base text-text-primary shrink-0">
+                  <p className="money text-base text-white shrink-0">
                     {formatRupiah(Number(bill.total_amount))}
                   </p>
                 </div>

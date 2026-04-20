@@ -207,10 +207,10 @@ export default function NewBillPage() {
     <div className="content-padding pt-6 pb-4 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-xl text-text-secondary p-1">←</button>
+        <button onClick={() => router.back()} className="text-xl text-white/50 p-1">←</button>
         <div>
           <h1 className="text-xl font-bold">Bill Baru</h1>
-          <p className="text-xs text-text-secondary">
+          <p className="text-xs text-white/50">
             {step === 'upload' && 'Upload foto nota'}
             {step === 'scanning' && 'Memproses nota...'}
             {step === 'edit' && 'Review & edit item'}
@@ -225,30 +225,30 @@ export default function NewBillPage() {
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           {!imagePreview ? (
             <button onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-border hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-white">
+              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-white/8 hover:border-amber-500/30 transition-colors flex flex-col items-center justify-center gap-3 bg-white">
               <span className="text-5xl">📸</span>
-              <span className="text-sm font-semibold text-text-primary">Ambil Foto Nota</span>
-              <span className="text-xs text-text-secondary">atau pilih dari galeri</span>
+              <span className="text-sm font-semibold text-white">Ambil Foto Nota</span>
+              <span className="text-xs text-white/50">atau pilih dari galeri</span>
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-border bg-white">
+              <div className="relative rounded-2xl overflow-hidden border border-white/8 bg-white">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-                  className="absolute top-3 right-3 bg-white/90 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
+                  className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
               </div>
               <button onClick={handleScan}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-blue-500/20">
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-amber-500/20">
                 🔍 Scan & Baca Nota
               </button>
             </div>
           )}
-          {scanError && <div className="mt-4 bg-red-50 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
+          {scanError && <div className="mt-4 bg-red-500/100/10 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" /><span className="text-xs text-text-secondary">atau</span><div className="flex-1 h-px bg-border" />
+            <div className="flex-1 h-px bg-border" /><span className="text-xs text-white/50">atau</span><div className="flex-1 h-px bg-border" />
           </div>
           <button onClick={handleManualInput}
-            className="w-full mt-4 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm text-text-primary active:scale-[0.98] transition-transform">
+            className="w-full mt-4 py-3.5 rounded-xl border border-white/8 bg-white/5 font-semibold text-sm text-white active:scale-[0.98] transition-transform">
             ✍️ Input Manual
           </button>
         </div>
@@ -263,9 +263,9 @@ export default function NewBillPage() {
             {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
           </p>
           <div className="w-48 h-2 bg-border rounded-full overflow-hidden mt-2">
-            <div className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
+            <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
           </div>
-          <p className="text-xs text-text-secondary mt-2">{Math.round(scanProgress)}%</p>
+          <p className="text-xs text-white/50 mt-2">{Math.round(scanProgress)}%</p>
         </div>
       )}
 
@@ -273,45 +273,45 @@ export default function NewBillPage() {
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
           {scanSource && (
-            <div className="flex justify-between items-center bg-blue-50/50 border border-blue-100 rounded-xl p-3">
-              <span className="text-xs text-text-secondary font-medium">Scan:</span>
+            <div className="flex justify-between items-center bg-blue-500/100/10/50 border border-blue-100 rounded-xl p-3">
+              <span className="text-xs text-white/50 font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
               </span>
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-text-secondary mb-1.5">Judul Bill</label>
+            <label className="block text-sm font-medium text-white/50 mb-1.5">Judul Bill</label>
             <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+              className="w-full px-4 py-3 rounded-xl border border-white/8 bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-text-secondary">Daftar Item</label>
-              <button onClick={addItem} className="text-sm text-primary font-semibold">+ Tambah</button>
+              <label className="text-sm font-medium text-white/50">Daftar Item</label>
+              <button onClick={addItem} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
             </div>
             <div className="space-y-2">
               {items.map((item, idx) => (
-                <div key={idx} className="bg-white rounded-xl border border-border p-3 animate-fade-in">
+                <div key={idx} className="bg-white/5 rounded-xl border border-white/8 p-3 animate-fade-in">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
                       <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
-                        className="w-full px-3 py-2 rounded-lg bg-page text-sm focus:outline-none focus:ring-2 focus:ring-primary" />
+                        className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <input type="number" value={item.price || ''} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="Harga"
-                            className="w-full px-3 py-2 rounded-lg bg-page text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                         <div className="w-16">
                           <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} min="1"
-                            className="w-full px-3 py-2 rounded-lg bg-page text-sm text-center focus:outline-none focus:ring-2 focus:ring-primary" />
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => removeItem(idx)} className="p-2 text-text-secondary hover:text-danger transition-colors shrink-0">🗑️</button>
+                    <button onClick={() => removeItem(idx)} className="p-2 text-white/50 hover:text-danger transition-colors shrink-0">🗑️</button>
                   </div>
                   {item.price > 0 && item.quantity > 1 && (
-                    <p className="text-xs text-text-secondary mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
+                    <p className="text-xs text-white/50 mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
                   )}
                 </div>
               ))}
@@ -319,28 +319,28 @@ export default function NewBillPage() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">Pajak (Tax)</label>
+              <label className="block text-xs font-medium text-white/50 mb-1">Pajak (Tax)</label>
               <input type="number" value={tax || ''} onChange={e => setTax(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                className="w-full px-3 py-2.5 rounded-xl border border-white/8 bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-text-secondary mb-1">Service Charge</label>
+              <label className="block text-xs font-medium text-white/50 mb-1">Service Charge</label>
               <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl border border-border bg-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-primary" />
+                className="w-full px-3 py-2.5 rounded-xl border border-white/8 bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
             </div>
           </div>
-          <div className="bg-white rounded-2xl border border-border p-4">
+          <div className="glass-card p-4">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-text-secondary">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
-              {tax > 0 && <div className="flex justify-between"><span className="text-text-secondary">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
-              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-text-secondary">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
-              <div className="border-t border-border pt-2 flex justify-between">
+              <div className="flex justify-between"><span className="text-white/50">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
+              {tax > 0 && <div className="flex justify-between"><span className="text-white/50">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
+              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-white/50">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
+              <div className="border-t border-white/8 pt-2 flex justify-between">
                 <span className="font-semibold">Total</span><span className="money text-lg">{formatRupiah(grandTotal)}</span>
               </div>
             </div>
           </div>
           <button onClick={() => setStep('payer')} disabled={items.length === 0 || subtotal <= 0}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-blue-500/20">
+            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
             Lanjut — Pilih Payer →
           </button>
         </div>
@@ -349,7 +349,7 @@ export default function NewBillPage() {
       {/* Step: Select Payer */}
       {step === 'payer' && (
         <div className="animate-fade-in">
-          <p className="text-sm text-text-secondary mb-4">Siapa yang menalangi (membayar) bill ini?</p>
+          <p className="text-sm text-white/50 mb-4">Siapa yang menalangi (membayar) bill ini?</p>
           <div className="space-y-2 mb-6">
             {friends.map(friend => (
               <button
@@ -357,8 +357,8 @@ export default function NewBillPage() {
                 onClick={() => setSelectedPayer(friend.id)}
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
-                    ? 'border-primary bg-blue-50 ring-2 ring-primary'
-                    : 'border-border bg-white hover:border-primary/50'
+                    ? 'border-primary bg-blue-500/100/10 ring-2 ring-primary'
+                    : 'border-white/8 bg-white/5 hover:border-amber-500/30/50'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -367,26 +367,26 @@ export default function NewBillPage() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{friend.name}</p>
-                  {friend.id === user?.friend_id && <p className="text-[10px] text-primary font-bold">KAMU</p>}
+                  {friend.id === user?.friend_id && <p className="text-[10px] text-amber-400 font-bold">KAMU</p>}
                 </div>
-                {selectedPayer === friend.id && <span className="text-primary text-lg">✓</span>}
+                {selectedPayer === friend.id && <span className="text-amber-400 text-lg">✓</span>}
               </button>
             ))}
           </div>
           {friends.length === 0 && (
-            <div className="text-center py-8 text-sm text-text-secondary">
-              Belum ada teman. <a href="/friends" className="text-primary font-semibold">Tambah dulu →</a>
+            <div className="text-center py-8 text-sm text-white/50">
+              Belum ada teman. <a href="/friends" className="text-amber-400 font-semibold">Tambah dulu →</a>
             </div>
           )}
-          <div className="bg-white rounded-2xl border border-border p-4 mb-4">
-            <p className="text-xs text-text-secondary mb-1">{title}</p>
+          <div className="glass-card p-4 mb-4">
+            <p className="text-xs text-white/50 mb-1">{title}</p>
             <p className="money text-xl">{formatRupiah(grandTotal)}</p>
-            <p className="text-xs text-text-secondary mt-1">{items.length} item</p>
+            <p className="text-xs text-white/50 mt-1">{items.length} item</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-border bg-white font-semibold text-sm">← Kembali</button>
+            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-white/8 bg-white/5 font-semibold text-sm">← Kembali</button>
             <button onClick={handleSave} disabled={!selectedPayer || saving}
-              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-blue-500/20">
+              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}
             </button>
           </div>

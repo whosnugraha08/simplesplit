@@ -190,7 +190,7 @@ export default function AssignPage() {
   }
 
   if (!bill) {
-    return <div className="content-padding pt-6 text-center py-16 text-text-secondary">Bill tidak ditemukan</div>;
+    return <div className="content-padding pt-6 text-center py-16 text-white/50">Bill tidak ditemukan</div>;
   }
 
   const allAssigned = items.every(item => item.assignments.length > 0 || item.assignee_ids.length > 0);
@@ -199,19 +199,19 @@ export default function AssignPage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => router.back()} className="text-xl text-text-secondary p-1">←</button>
+        <button onClick={() => router.back()} className="text-xl text-white/50 p-1">←</button>
         <div>
           <h1 className="text-xl font-bold">Bagi Item</h1>
-          <p className="text-xs text-text-secondary">{bill.title}</p>
+          <p className="text-xs text-white/50">{bill.title}</p>
         </div>
       </div>
 
       {/* Split Mode Toggle */}
-      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-border mb-4 mt-3">
+      <div className="flex gap-1 bg-white/5 rounded-2xl p-1 border border-white/8 mb-4 mt-3">
         <button
           onClick={() => setSplitMode('qty')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            splitMode === 'qty' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary'
+            splitMode === 'qty' ? 'bg-primary text-white shadow-sm' : 'text-white/50'
           }`}
         >
           🔢 Per Qty
@@ -219,7 +219,7 @@ export default function AssignPage() {
         <button
           onClick={() => setSplitMode('equal')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            splitMode === 'equal' ? 'bg-primary text-white shadow-sm' : 'text-text-secondary'
+            splitMode === 'equal' ? 'bg-primary text-white shadow-sm' : 'text-white/50'
           }`}
         >
           ➗ Bagi Rata
@@ -228,10 +228,10 @@ export default function AssignPage() {
 
       {/* Quick Actions */}
       <div className="flex gap-2 mb-4">
-        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-blue-50 text-primary text-xs font-semibold">
+        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-blue-500/10 text-amber-400 text-xs font-semibold">
           Semua bagi rata
         </button>
-        <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-page text-text-secondary text-xs font-semibold border border-border">
+        <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-white/5 text-white/50 text-xs font-semibold border border-white/8">
           Reset
         </button>
       </div>
@@ -239,7 +239,7 @@ export default function AssignPage() {
       {/* Friends Legend */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 md:-mx-8 md:px-8 scrollbar-hide">
         {friends.map(friend => (
-          <div key={friend.id} className="flex items-center gap-1.5 shrink-0 bg-white rounded-full px-3 py-1.5 border border-border">
+          <div key={friend.id} className="flex items-center gap-1.5 shrink-0 bg-white/5 rounded-full px-3 py-1.5 border border-white/8">
             <div
               className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold"
               style={{ backgroundColor: getAvatarColor(friend.name) }}
@@ -259,12 +259,12 @@ export default function AssignPage() {
           const isExact = totalAssigned === item.quantity;
 
           return (
-            <div key={item.id} className="bg-white rounded-2xl border border-border p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
+            <div key={item.id} className="glass-card p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
               {/* Item info */}
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-semibold text-sm">{item.item_name}</p>
-                  <p className="text-xs text-text-secondary">
+                  <p className="text-xs text-white/50">
                     {item.quantity}x @ {formatRupiah(Number(item.item_price))}
                   </p>
                 </div>
@@ -304,7 +304,7 @@ export default function AssignPage() {
                           >
                             −
                           </button>
-                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-primary' : 'text-text-muted'}`}>
+                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-amber-400' : 'text-white/30'}`}>
                             {qty}
                           </span>
                           <button
@@ -318,7 +318,7 @@ export default function AssignPage() {
 
                         {/* Per-person amount */}
                         {qty > 0 && (
-                          <span className="money text-xs text-text-secondary w-20 text-right shrink-0">
+                          <span className="money text-xs text-white/50 w-20 text-right shrink-0">
                             {formatRupiah((Number(item.item_price) * item.quantity / (totalAssigned || 1)) * qty)}
                           </span>
                         )}
@@ -338,7 +338,7 @@ export default function AssignPage() {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                           isAssigned
                             ? 'bg-primary text-white shadow-sm'
-                            : 'bg-page text-text-secondary hover:bg-blue-50 hover:text-primary'
+                            : 'bg-white/5 text-white/50 hover:bg-blue-500/10 hover:text-amber-400'
                         }`}
                       >
                         <div
@@ -358,7 +358,7 @@ export default function AssignPage() {
 
               {/* Per-person share preview (equal mode) */}
               {splitMode === 'equal' && item.assignee_ids.length > 0 && (
-                <p className="text-xs text-text-secondary mt-2 text-right">
+                <p className="text-xs text-white/50 mt-2 text-right">
                   = {formatRupiah((Number(item.item_price) * item.quantity) / item.assignee_ids.length)} / orang
                 </p>
               )}
@@ -370,8 +370,8 @@ export default function AssignPage() {
       {/* Breakdown Preview */}
       {breakdowns.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-text-secondary mb-2">Ringkasan Per Orang</h2>
-          <div className="bg-white rounded-2xl border border-border divide-y divide-border">
+          <h2 className="text-sm font-semibold text-white/50 mb-2">Ringkasan Per Orang</h2>
+          <div className="glass-card divide-y divide-border">
             {breakdowns.map(b => {
               const isPayer = b.friend.id === bill.paid_by;
               return (
@@ -386,18 +386,18 @@ export default function AssignPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {b.friend.name}
-                        {isPayer && <span className="text-primary text-[10px] font-bold ml-1">PAYER</span>}
+                        {isPayer && <span className="text-amber-400 text-[10px] font-bold ml-1">PAYER</span>}
                       </p>
-                      <p className="text-[10px] text-text-secondary">
+                      <p className="text-[10px] text-white/50">
                         {b.item_details.map(d => `${d.itemName} x${d.qty}`).join(', ')}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`money text-sm ${isPayer ? 'text-success' : 'text-text-primary'}`}>
+                      <p className={`money text-sm ${isPayer ? 'text-success' : 'text-white'}`}>
                         {formatRupiah(b.total)}
                       </p>
                       {(b.tax_share > 0 || b.service_share > 0) && (
-                        <p className="text-[9px] text-text-muted">
+                        <p className="text-[9px] text-white/30">
                           {b.tax_share > 0 && `+tax ${formatRupiah(b.tax_share)}`}
                           {b.service_share > 0 && ` +svc ${formatRupiah(b.service_share)}`}
                         </p>
@@ -415,7 +415,7 @@ export default function AssignPage() {
       <button
         onClick={handleSave}
         disabled={saving || !allAssigned}
-        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-blue-500/20"
+        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
       >
         {saving ? 'Menyimpan...' : !allAssigned ? 'Assign semua item dulu' : '✓ Simpan Pembagian'}
       </button>

@@ -48,26 +48,26 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-blue-950 to-indigo-950 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0a0a12 0%, #12111f 50%, #0f0e1a 100%)' }}>
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-indigo-500/10 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-blue-600/5 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-amber-500/8 blur-[100px]" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 rounded-full bg-orange-500/6 blur-[80px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-amber-600/3 blur-[100px]" />
       </div>
 
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/20 mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 shadow-xl shadow-amber-500/20 mb-4">
             <span className="text-3xl">💰</span>
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">SimpleSplit</h1>
-          <p className="text-blue-200/60 text-sm mt-1">Split bill, tanpa ribet.</p>
+          <p className="text-white/40 text-sm mt-1">Split bill, tanpa ribet.</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/10 p-6 shadow-2xl animate-slide-up">
+        <div className="glass rounded-3xl p-6 shadow-2xl shadow-black/30 animate-slide-up">
           {/* Mode Toggle */}
           <div className="flex gap-1 bg-white/5 rounded-2xl p-1 mb-6">
             <button
@@ -75,8 +75,8 @@ export default function LoginPage() {
               onClick={() => { setMode('login'); setError(null); }}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 mode === 'login'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg shadow-amber-500/20'
+                  : 'text-white/50 hover:text-white/70'
               }`}
             >
               Masuk
@@ -86,8 +86,8 @@ export default function LoginPage() {
               onClick={() => { setMode('register'); setError(null); }}
               className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                 mode === 'register'
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-white/60 hover:text-white/80'
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg shadow-amber-500/20'
+                  : 'text-white/50 hover:text-white/70'
               }`}
             >
               Daftar
@@ -95,7 +95,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-red-500/20 border border-red-400/20 rounded-xl px-4 py-3 text-sm text-red-200 mb-4 animate-fade-in">
+            <div className="bg-red-500/15 border border-red-400/20 rounded-xl px-4 py-3 text-sm text-red-300 mb-4 animate-fade-in">
               ⚠️ {error}
             </div>
           )}
@@ -103,33 +103,33 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div className="animate-fade-in">
-                <label className="block text-xs font-medium text-blue-200/60 mb-1.5 ml-1">Nama Tampilan</label>
+                <label className="block text-xs font-medium text-white/40 mb-1.5 ml-1">Nama Tampilan</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="Nama kamu"
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition"
+                  className="w-full px-4 py-3 rounded-xl glass-input text-sm"
                   required
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-blue-200/60 mb-1.5 ml-1">Username</label>
+              <label className="block text-xs font-medium text-white/40 mb-1.5 ml-1">Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="contoh: faiz"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition"
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm"
                 required
                 autoComplete="username"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-blue-200/60 mb-1.5 ml-1">PIN</label>
+              <label className="block text-xs font-medium text-white/40 mb-1.5 ml-1">PIN</label>
               <input
                 type="password"
                 value={pin}
@@ -137,23 +137,23 @@ export default function LoginPage() {
                 placeholder="4-6 digit angka"
                 inputMode="numeric"
                 pattern="[0-9]*"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm tracking-[0.3em] font-mono focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent transition"
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm tracking-[0.3em] font-mono"
                 required
                 minLength={4}
                 maxLength={6}
                 autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               />
-              <p className="text-[10px] text-white/30 mt-1 ml-1">Minimal 4 digit, maksimal 6 digit</p>
+              <p className="text-[10px] text-white/25 mt-1 ml-1">Minimal 4 digit, maksimal 6 digit</p>
             </div>
 
             <button
               type="submit"
               disabled={loading || !username.trim() || !pin.trim() || (mode === 'register' && !displayName.trim())}
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 disabled:opacity-50 hover:shadow-xl hover:shadow-blue-500/30 active:scale-[0.98] transition-all"
+              className="w-full py-3.5 rounded-xl btn-glow text-sm disabled:opacity-50 active:scale-[0.98] transition-all"
             >
               {loading ? (
                 <span className="inline-flex items-center gap-2">
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
                   {mode === 'login' ? 'Masuk...' : 'Mendaftar...'}
                 </span>
               ) : (
@@ -163,7 +163,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">SimpleSplit v2 • 2024</p>
+        <p className="text-center text-white/15 text-xs mt-6">SimpleSplit v2 • 2024</p>
       </div>
     </div>
   );
