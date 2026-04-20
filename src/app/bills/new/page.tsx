@@ -225,14 +225,14 @@ export default function NewBillPage() {
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           {!imagePreview ? (
             <button onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-white/8 hover:border-amber-500/30 transition-colors flex flex-col items-center justify-center gap-3 bg-white">
+              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-white/10 hover:border-amber-500/40 transition-colors flex flex-col items-center justify-center gap-3 bg-white/5">
               <span className="text-5xl">📸</span>
               <span className="text-sm font-semibold text-white">Ambil Foto Nota</span>
-              <span className="text-xs text-white/50">atau pilih dari galeri</span>
+              <span className="text-xs text-white/40">atau pilih dari galeri</span>
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-white/8 bg-white">
+              <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/30">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
                   className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
@@ -257,7 +257,7 @@ export default function NewBillPage() {
       {/* Step: Scanning */}
       {step === 'scanning' && (
         <div className="animate-fade-in flex flex-col items-center justify-center py-16">
-          <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin mb-6" />
+          <div className="w-16 h-16 border-4 border-white/10 border-t-amber-500 rounded-full animate-spin mb-6" />
           <p className="text-lg font-semibold mb-2">Membaca Nota...</p>
           <p className="text-sm pb-1 font-medium gradient-text">
             {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
@@ -273,7 +273,7 @@ export default function NewBillPage() {
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
           {scanSource && (
-            <div className="flex justify-between items-center bg-blue-500/10/50 border border-blue-100 rounded-xl p-3">
+            <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
               <span className="text-xs text-white/50 font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
@@ -357,8 +357,8 @@ export default function NewBillPage() {
                 onClick={() => setSelectedPayer(friend.id)}
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
-                    ? 'border-primary bg-blue-500/10 ring-2 ring-primary'
-                    : 'border-white/8 bg-white/5 hover:border-amber-500/30/50'
+                    ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
+                    : 'border-white/8 bg-white/5 hover:border-amber-500/30'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
