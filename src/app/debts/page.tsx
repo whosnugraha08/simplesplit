@@ -533,7 +533,7 @@ export default function DebtsPage() {
             <div className="glass-card p-4 mb-4">
               <h3 className="text-sm font-semibold text-white/50 mb-1">📸 Bukti Pembayaran</h3>
               <p className="text-[10px] text-white/30 mb-3">Upload screenshot bukti transfer. Akan dikirim otomatis ke penagih via WhatsApp.</p>
-              <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) { setPayAllProofFile(f); setPayAllProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-payall-upload" />
+              <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setPayAllProofFile(f); setPayAllProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-payall-upload" />
               {payAllProofPreview ? (
                 <div className="relative">
                   <img src={payAllProofPreview} alt="Bukti" className="w-full max-h-40 object-contain rounded-xl border border-white/8 bg-white/5" />
@@ -584,7 +584,7 @@ export default function DebtsPage() {
               <p className="text-xs text-amber-400">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
             </div>
 
-            <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
+            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
             
             {proofPreview ? (
               <div className="relative mb-4">
