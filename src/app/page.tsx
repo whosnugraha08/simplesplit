@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { Debt, Friend, Bill } from '@/lib/types';
 import { formatRupiah, formatDate, getInitials, getAvatarColor } from '@/lib/formatters';
 import { runAutoCleanup } from '@/lib/cleanup';
+import { calculateNettingSummary, NettingPair } from '@/lib/netting';
 import Link from 'next/link';
 
 export default function HomePage() {
@@ -14,6 +15,7 @@ export default function HomePage() {
   const [owedToMe, setOwedToMe] = useState<(Debt & { debtor?: Friend; creditor?: Friend; bill?: Bill })[]>([]);
   const [friendCount, setFriendCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [nettingPairs, setNettingPairs] = useState<NettingPair[]>([]);
 
   useEffect(() => {
     runAutoCleanup();
@@ -44,6 +46,12 @@ export default function HomePage() {
       setMyDebts((myDebtsRes.data as any[]) || []);
       setOwedToMe((owedRes.data as any[]) || []);
       setFriendCount(friendsRes.data?.length || 0);
+
+      // Load netting pairs
+      try {
+        const pairs = await calculateNettingSummary(friendId!);
+        setNettingPairs(pairs);
+      } catch {}
     } catch (err) {
       console.error(err);
     } finally {
@@ -85,6 +93,27 @@ export default function HomePage() {
           <p className="text-white/30 text-[10px] mt-1">{owedToMe.length} transaksi</p>
         </div>
       </div>
+
+      {/* Netting Alert */}
+      {nettingPairs.length > 0 && (
+        <Link href="/debts" className="block mb-4 animate-fade-in" style={{ animationDelay: '120ms' }}>
+          <div className="bg-gradient-to-r from-amber-500/15 to-orange-500/10 border border-amber-500/25 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔄</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-amber-400">Ada hutang yang bisa di-offset!</p>
+                <p className="text-[11px] text-white/50 mt-0.5">
+                  {nettingPairs.length === 1
+                    ? `Kamu & ${nettingPairs[0].personA.id === user?.friend_id ? nettingPairs[0].personB.name : nettingPairs[0].personA.name} saling hutang — bisa dikurangi otomatis`
+                    : `${nettingPairs.length} pasangan hutang bisa di-offset otomatis`
+                  }
+                </p>
+              </div>
+              <span className="text-amber-400 text-sm">→</span>
+            </div>
+          </div>
+        </Link>
+      )}
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-3 mb-6">

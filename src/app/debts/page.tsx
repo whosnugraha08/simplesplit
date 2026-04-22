@@ -7,6 +7,7 @@ import { Debt, Friend, Bill, PaymentMethod } from '@/lib/types';
 import { formatRupiah, formatDate, getInitials, getAvatarColor } from '@/lib/formatters';
 import { generateDynamicQRIS } from '@/lib/qris';
 import { useToast } from '@/components/Toast';
+import { calculateNettingSummary, processNetting, NettingPair } from '@/lib/netting';
 import Link from 'next/link';
 
 type DebtWithRelations = Debt & { debtor?: Friend; creditor?: Friend; bill?: Bill };
@@ -43,6 +44,11 @@ export default function DebtsPage() {
   const [generatingQris, setGeneratingQris] = useState(false);
   const [qrisMode, setQrisMode] = useState<'dynamic' | 'static'>('dynamic');
 
+  // Netting
+  const [nettingPairs, setNettingPairs] = useState<NettingPair[]>([]);
+  const [processingNetting, setProcessingNetting] = useState(false);
+  const [expandedNetting, setExpandedNetting] = useState<string | null>(null);
+
   useEffect(() => {
     if (selectedPM?.qris_image_url && payAllConfirm?.total) {
       (async () => {
@@ -59,6 +65,45 @@ export default function DebtsPage() {
   }, [selectedPM?.id, payAllConfirm?.total]);
 
   useEffect(() => { loadDebts(); }, [tab, statusFilter, friendId]);
+
+  // Load netting data whenever debts change
+  useEffect(() => { if (friendId) loadNetting(); }, [friendId, debts]);
+
+  async function loadNetting() {
+    if (!friendId) return;
+    try {
+      const pairs = await calculateNettingSummary(friendId);
+      setNettingPairs(pairs);
+    } catch (err) {
+      console.error('Error loading netting:', err);
+    }
+  }
+
+  async function handleProcessNetting(pair: NettingPair) {
+    setProcessingNetting(true);
+    try {
+      const result = await processNetting(pair);
+      showToast(result, 'success');
+      await loadDebts();
+    } catch (err) {
+      showToast('Gagal memproses netting', 'error');
+    }
+    setProcessingNetting(false);
+  }
+
+  async function handleProcessAllNetting() {
+    setProcessingNetting(true);
+    try {
+      for (const pair of nettingPairs) {
+        await processNetting(pair);
+      }
+      showToast('Semua hutang berhasil di-netting! 🎉', 'success');
+      await loadDebts();
+    } catch (err) {
+      showToast('Gagal memproses netting', 'error');
+    }
+    setProcessingNetting(false);
+  }
 
   async function loadDebts() {
     if (!friendId) { setLoading(false); return; }
@@ -260,6 +305,166 @@ export default function DebtsPage() {
           </p>
           <p className="money text-2xl text-white">{formatRupiah(totalUnpaid)}</p>
           <p className="text-white/50 text-[10px] mt-1">{debts.filter(d => d.status === 'unpaid').length} transaksi belum lunas</p>
+        </div>
+      )}
+
+      {/* 🔄 NETTING SECTION — Clear explanation */}
+      {nettingPairs.length > 0 && statusFilter === 'unpaid' && (
+        <div className="mb-4 animate-fade-in">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🔄</span>
+              <p className="text-xs font-bold text-amber-400">Ada Hutang yang Bisa Di-offset!</p>
+            </div>
+            {nettingPairs.length > 1 && (
+              <button
+                onClick={handleProcessAllNetting}
+                disabled={processingNetting}
+                className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold disabled:opacity-50 active:scale-[0.98] transition"
+              >
+                {processingNetting ? '⏳ Proses...' : '🔄 Offset Semua'}
+              </button>
+            )}
+          </div>
+
+          {/* Explanation banner */}
+          <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3 mb-3">
+            <p className="text-[11px] text-blue-300 leading-relaxed">
+              💡 <strong>Apa itu offset?</strong> Kalau kamu hutang ke seseorang, tapi dia juga hutang ke kamu, 
+              maka hutang kalian bisa saling dikurangi. Jadi yang perlu transfer cuma <strong>selisihnya</strong> aja — 
+              gak perlu saling kirim uang bolak-balik!
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {nettingPairs.map((pair, idx) => {
+              const isMe = (id: string) => id === friendId;
+              const me = isMe(pair.personA.id) ? pair.personA : pair.personB;
+              const other = isMe(pair.personA.id) ? pair.personB : pair.personA;
+              const iOwe = isMe(pair.personA.id) ? pair.aOwesB.total : pair.bOwesA.total;
+              const theyOwe = isMe(pair.personA.id) ? pair.bOwesA.total : pair.aOwesB.total;
+              const iOweDebts = isMe(pair.personA.id) ? pair.aOwesB.debts : pair.bOwesA.debts;
+              const theyOweDebts = isMe(pair.personA.id) ? pair.bOwesA.debts : pair.aOwesB.debts;
+              
+              // Net result from MY perspective
+              const netIPay = iOwe > theyOwe ? iOwe - theyOwe : 0;
+              const netTheyPay = theyOwe > iOwe ? theyOwe - iOwe : 0;
+              const isSettled = iOwe === theyOwe;
+              const pairKey = `${pair.personA.id}|${pair.personB.id}`;
+              const isExpanded = expandedNetting === pairKey;
+
+              return (
+                <div key={idx} className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 rounded-2xl p-4 animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                  {/* Header */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="relative">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                        style={{ backgroundColor: getAvatarColor(me.name) }}>
+                        {getInitials(me.name)}
+                      </div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px]">🔄</div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-white/50 text-lg">⇄</span>
+                    </div>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                      style={{ backgroundColor: getAvatarColor(other.name) }}>
+                      {getInitials(other.name)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold">Kamu ↔ {other.name}</p>
+                      <p className="text-[10px] text-white/40">Saling punya hutang</p>
+                    </div>
+                  </div>
+
+                  {/* Breakdown */}
+                  <div className="bg-white/5 rounded-xl p-3 mb-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-red-400">🔴 Kamu hutang ke {other.name}</span>
+                      <span className="money text-xs text-red-400 font-bold">{formatRupiah(iOwe)}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-emerald-400">🟢 {other.name} hutang ke kamu</span>
+                      <span className="money text-xs text-emerald-400 font-bold">{formatRupiah(theyOwe)}</span>
+                    </div>
+                    <div className="border-t border-white/10 pt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-white/60">🔄 Di-offset (saling dikurangi)</span>
+                        <span className="money text-xs text-amber-400 font-bold">-{formatRupiah(pair.offsetAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Result — VERY CLEAR */}
+                  <div className={`rounded-xl p-3 mb-3 text-center ${
+                    isSettled 
+                      ? 'bg-emerald-500/15 border border-emerald-500/25' 
+                      : netIPay > 0 
+                        ? 'bg-red-500/10 border border-red-500/20' 
+                        : 'bg-emerald-500/10 border border-emerald-500/20'
+                  }`}>
+                    {isSettled ? (
+                      <>
+                        <p className="text-emerald-400 text-sm font-bold">✅ Impas! Gak ada yang perlu transfer</p>
+                        <p className="text-emerald-400/60 text-[10px] mt-1">Hutang kalian saling menghapus karena jumlahnya sama</p>
+                      </>
+                    ) : netIPay > 0 ? (
+                      <>
+                        <p className="text-xs text-white/50 mb-0.5">Setelah di-offset, kamu tinggal bayar:</p>
+                        <p className="money text-xl text-red-400 font-bold">{formatRupiah(netIPay)}</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">ke {other.name}</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-xs text-white/50 mb-0.5">Setelah di-offset, {other.name} tinggal bayar:</p>
+                        <p className="money text-xl text-emerald-400 font-bold">{formatRupiah(netTheyPay)}</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">ke kamu</p>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Detail toggle */}
+                  <button onClick={() => setExpandedNetting(isExpanded ? null : pairKey)}
+                    className="w-full text-[11px] text-amber-400 font-medium mb-2">
+                    {isExpanded ? '▲ Sembunyikan detail asal hutang' : '▼ Lihat detail asal hutang'}
+                  </button>
+
+                  {isExpanded && (
+                    <div className="bg-white/5 rounded-xl p-3 space-y-2 animate-fade-in mb-3">
+                      <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Hutang kamu ke {other.name}:</p>
+                      {iOweDebts.map((d, i) => (
+                        <div key={i} className="flex justify-between text-[11px]">
+                          <span className="text-red-400/70">📋 {d.billTitle}</span>
+                          <span className="money text-red-400 font-semibold">{formatRupiah(d.amount)}</span>
+                        </div>
+                      ))}
+                      <div className="border-t border-white/10 pt-2 mt-2">
+                        <p className="text-[10px] font-bold text-white/40 uppercase tracking-wider">Hutang {other.name} ke kamu:</p>
+                      </div>
+                      {theyOweDebts.map((d, i) => (
+                        <div key={i} className="flex justify-between text-[11px]">
+                          <span className="text-emerald-400/70">📋 {d.billTitle}</span>
+                          <span className="money text-emerald-400 font-semibold">{formatRupiah(d.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <button
+                    onClick={() => handleProcessNetting(pair)}
+                    disabled={processingNetting}
+                    className="w-full py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
+                  >
+                    {processingNetting ? '⏳ Memproses...' : '🔄 Proses Offset Sekarang'}
+                  </button>
+                  <p className="text-[9px] text-white/30 text-center mt-1.5">
+                    Hutang yang saling berlawanan akan otomatis ditandai lunas, sisanya tetap perlu dibayar
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

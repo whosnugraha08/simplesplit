@@ -8,6 +8,7 @@ import { BillItem, Friend, ItemWithAssignees, PersonBreakdown, Bill, AssignmentE
 import { calculateSplit, calculateDebts } from '@/lib/calculations';
 import { formatRupiah, getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
+import { autoProcessNetting } from '@/lib/netting';
 
 export default function AssignPage() {
   const params = useParams();
@@ -168,7 +169,14 @@ export default function AssignPage() {
 
       await supabase.from('bills').update({ status: 'assigned' }).eq('id', billId);
 
-      showToast('Pembagian berhasil disimpan!', 'success');
+      // Auto-netting: check if any debts can be offset
+      const nettingResult = await autoProcessNetting(bill.paid_by);
+      
+      if (nettingResult.netted) {
+        showToast('Pembagian disimpan & hutang di-netting otomatis! 🔄', 'success');
+      } else {
+        showToast('Pembagian berhasil disimpan!', 'success');
+      }
       router.push(`/bills/${billId}`);
     } catch (err) {
       console.error('Error saving assignments:', err);
