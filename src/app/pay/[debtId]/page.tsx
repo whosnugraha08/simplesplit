@@ -268,7 +268,7 @@ export default function PayPage() {
       <div className="glass-card p-5 mb-4">
         <h2 className="text-sm font-semibold text-white/50 mb-1">📸 Bukti Pembayaran</h2>
         <p className="text-[11px] text-white/30 mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan dikirim otomatis ke penagih via WhatsApp.</p>
-        <input type="file" accept="image/*" capture="environment" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
+        <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
         {proofPreview ? (
           <div className="relative">
             <button onClick={() => setShowProofFull(true)} className="w-full">
