@@ -17,7 +17,39 @@ export default function BillsPage() {
       .from('bills')
       .select('*, paid_by_friend:paid_by(id,name)')
       .order('created_at', { ascending: false });
-    setBills((data as any[]) || []);
+    
+    const loadedBills = (data as any[]) || [];
+    
+    // Self-healing: fix bills stuck on 'assigned' when all debts are actually paid (e.g. via netting)
+    const assignedBills = loadedBills.filter(b => b.status === 'assigned');
+    if (assignedBills.length > 0) {
+      const billIds = assignedBills.map(b => b.id);
+      const { data: unpaidDebts } = await supabase
+        .from('debts')
+        .select('bill_id')
+        .in('bill_id', billIds)
+        .eq('status', 'unpaid');
+      
+      const billsWithUnpaid = new Set((unpaidDebts || []).map(d => d.bill_id));
+      
+      for (const bill of loadedBills) {
+        if (bill.status === 'assigned' && !billsWithUnpaid.has(bill.id)) {
+          // Check that the bill actually has debts (not just an empty assigned bill)
+          const { count } = await supabase
+            .from('debts')
+            .select('id', { count: 'exact', head: true })
+            .eq('bill_id', bill.id);
+          
+          if (count && count > 0) {
+            bill.status = 'settled';
+            // Also fix in DB for future loads
+            supabase.from('bills').update({ status: 'settled' }).eq('id', bill.id).then(() => {});
+          }
+        }
+      }
+    }
+    
+    setBills(loadedBills);
     setLoading(false);
   }
 

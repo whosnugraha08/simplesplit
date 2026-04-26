@@ -34,9 +34,22 @@ export default function BillDetailPage() {
       supabase.from('bill_items').select('*').eq('bill_id', billId).order('created_at'),
       supabase.from('debts').select('*, debtor:debtor_id(id,name,whatsapp_number)').eq('bill_id', billId).order('amount', { ascending: false }),
     ]);
-    setBill(billRes.data as any);
+    
+    const billData = billRes.data as any;
+    const debtsData = (debtsRes.data as any[]) || [];
+    
+    // Self-healing: if bill is 'assigned' but all debts are paid (e.g. via netting), fix to 'settled'
+    if (billData && billData.status === 'assigned' && debtsData.length > 0) {
+      const hasUnpaid = debtsData.some((d: any) => d.status === 'unpaid');
+      if (!hasUnpaid) {
+        billData.status = 'settled';
+        supabase.from('bills').update({ status: 'settled' }).eq('id', billId).then(() => {});
+      }
+    }
+    
+    setBill(billData);
     setItems(itemsRes.data || []);
-    setDebts((debtsRes.data as any[]) || []);
+    setDebts(debtsData);
     setLoading(false);
   }
 

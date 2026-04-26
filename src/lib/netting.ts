@@ -207,6 +207,36 @@ export async function processNetting(pair: NettingPair): Promise<string> {
     }
   }
 
+  // After netting, check if any bills now have ALL debts paid → update bill status to 'settled'
+  const allAffectedDebts = [...smallerDebts, ...largerDebts];
+  const affectedBillIds = new Set<string>();
+  
+  // Collect bill_ids from the affected debts
+  for (const debt of allAffectedDebts) {
+    const { data: debtRecord } = await supabase
+      .from('debts')
+      .select('bill_id')
+      .eq('id', debt.id)
+      .single();
+    if (debtRecord?.bill_id) {
+      affectedBillIds.add(debtRecord.bill_id);
+    }
+  }
+
+  // For each affected bill, check if there are remaining unpaid debts
+  for (const billId of affectedBillIds) {
+    const { data: remainingUnpaid } = await supabase
+      .from('debts')
+      .select('id')
+      .eq('bill_id', billId)
+      .eq('status', 'unpaid');
+    
+    if (!remainingUnpaid || remainingUnpaid.length === 0) {
+      // All debts for this bill are paid — mark bill as settled
+      await supabase.from('bills').update({ status: 'settled' }).eq('id', billId);
+    }
+  }
+
   // Build result description
   if (netDirection === 'settled') {
     return `✅ Hutang antara ${personA.name} dan ${personB.name} sudah saling lunas! (Rp ${offsetAmount.toLocaleString('id-ID')} di-offset)`;
