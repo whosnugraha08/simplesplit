@@ -93,6 +93,22 @@ function formatRupiah(num) {
   return 'Rp ' + Number(num).toLocaleString('id-ID');
 }
 
+function getTag(person) {
+  if (!person) return 'Seseorang';
+  if (person.whatsapp_number) {
+    let num = person.whatsapp_number.replace(/[^0-9]/g, '');
+    if (num.startsWith('0')) num = '62' + num.substring(1);
+    return `@${num}`;
+  }
+  return `*${person.name}*`;
+}
+
+function extractMentions(text) {
+  const matches = text.match(/@\d+/g);
+  if (!matches) return [];
+  return matches.map(m => m.substring(1) + '@c.us');
+}
+
 function buildPaymentInfo(paymentMethods) {
   if (!paymentMethods || paymentMethods.length === 0) return '';
   let info = '\n💳 *Metode Pembayaran:*\n';
@@ -110,14 +126,14 @@ function buildPaymentInfo(paymentMethods) {
 
 // Template: Kirim tagihan ke semua pengutang
 function buildBillMessage(bill, items, debt, paymentMethods, payerHasQris) {
-  const debtorName = debt.debtor?.name || 'Teman';
-  const payerName = bill.paid_by_friend?.name || 'Seseorang';
+  const debtorTag = getTag(debt.debtor);
+  const payerTag = getTag(bill.paid_by_friend);
   const payLink = `${APP_URL}/pay/${debt.id}`;
 
   let msg = `*[SIMPLESPLIT]*\n`;
   msg += `📋 *TAGIHAN BARU*\n\n`;
-  msg += `Halo *${debtorName}*,\n`;
-  msg += `Kamu punya tagihan dari *${payerName}* untuk:\n\n`;
+  msg += `Halo ${debtorTag},\n`;
+  msg += `Kamu punya tagihan dari ${payerTag} untuk:\n\n`;
   msg += `🏷️ *${bill.title || 'Bill'}*\n`;
 
   // Item details
@@ -138,14 +154,14 @@ function buildBillMessage(bill, items, debt, paymentMethods, payerHasQris) {
 
 // Template: Reminder individual
 function buildRemindMessage(bill, debt) {
-  const debtorName = debt.debtor?.name || 'Teman';
-  const payerName = bill.paid_by_friend?.name || 'Seseorang';
+  const debtorTag = getTag(debt.debtor);
+  const payerTag = getTag(bill.paid_by_friend);
   const payLink = `${APP_URL}/pay/${debt.id}`;
 
   let msg = `*[SIMPLESPLIT]*\n`;
   msg += `🔔 *PENGINGAT TAGIHAN*\n\n`;
-  msg += `Halo *${debtorName}*,\n`;
-  msg += `Ini reminder dari *${payerName}* — kamu masih punya tagihan yang belum lunas:\n\n`;
+  msg += `Halo ${debtorTag},\n`;
+  msg += `Ini reminder dari ${payerTag} — kamu masih punya tagihan yang belum lunas:\n\n`;
   msg += `🏷️ *${bill.title || 'Bill'}*\n`;
   msg += `💰 *${formatRupiah(debt.amount)}*\n`;
   msg += `\n🔗 *Bayar di sini:*\n${payLink}\n`;
@@ -156,13 +172,13 @@ function buildRemindMessage(bill, debt) {
 
 // Template: Notifikasi "sudah bayar" ke penagih
 function buildPaidMessage(bill, debt) {
-  const debtorName = debt.debtor?.name || 'Seseorang';
-  const payerName = bill.paid_by_friend?.name || 'Kamu';
+  const debtorTag = getTag(debt.debtor);
+  const payerTag = getTag(bill.paid_by_friend);
 
   let msg = `*[SIMPLESPLIT]*\n`;
   msg += `✅ *PEMBAYARAN DITERIMA*\n\n`;
-  msg += `Halo *${payerName}*,\n`;
-  msg += `*${debtorName}* baru saja melunasi tagihannya:\n\n`;
+  msg += `Halo ${payerTag},\n`;
+  msg += `${debtorTag} baru saja melunasi tagihannya:\n\n`;
   msg += `🏷️ *${bill.title || 'Bill'}*\n`;
   msg += `💰 *${formatRupiah(debt.amount)}*\n`;
   if (debt.proof_image_url) {
@@ -176,14 +192,14 @@ function buildPaidMessage(bill, debt) {
 
 // Template: Pelunasan kolektif ("Bayar Semua")
 function buildPaidAllMessage(bill, debts) {
-  const payerName = bill.paid_by_friend?.name || 'Kamu';
-  const debtorName = debts[0]?.debtor?.name || 'Seseorang';
+  const payerTag = getTag(bill.paid_by_friend);
+  const debtorTag = getTag(debts[0]?.debtor);
   const total = debts.reduce((sum, d) => sum + Number(d.amount), 0);
 
   let msg = `*[SIMPLESPLIT]*\n`;
   msg += `✅ *PELUNASAN KOLEKTIF*\n\n`;
-  msg += `Halo *${payerName}*,\n`;
-  msg += `Mantap! *${debtorName}* baru saja melunasi *SEMUA* tunggakannya kepadamu.\n\n`;
+  msg += `Halo ${payerTag},\n`;
+  msg += `Mantap! ${debtorTag} baru saja melunasi *SEMUA* tunggakannya kepadamu.\n\n`;
   msg += `💰 *Total: ${formatRupiah(total)}* (${debts.length} Transaksi)\n\n`;
   msg += `📋 *Rincian:*\n`;
 
@@ -206,12 +222,18 @@ let linkedGroupJid = process.env.WA_GROUP_JID || null;
 async function sendToGroup(groupJid, message, imageUrl) {
   if (!isReady) throw new Error('WhatsApp client belum ready');
   const chatId = groupJid.includes('@') ? groupJid : groupJid + '@g.us';
+  const mentions = extractMentions(message);
+
   try {
+    const options = {};
+    if (mentions.length > 0) options.mentions = mentions;
+
     if (imageUrl && imageUrl.startsWith('http')) {
       const media = await MessageMedia.fromUrl(imageUrl, { unsafeMime: true });
-      await client.sendMessage(chatId, media, { caption: message });
+      options.caption = message;
+      await client.sendMessage(chatId, media, options);
     } else {
-      await client.sendMessage(chatId, message);
+      await client.sendMessage(chatId, message, options);
     }
     console.log(`✅ Pesan grup terkirim ke ${chatId}`);
     return { success: true };
@@ -225,8 +247,7 @@ function buildGroupBillMessage(bill, items, debts) {
   let msg = `*[SIMPLESPLIT]*\n🧾 *Bill baru!*\n\n`;
   msg += `🏷️ *${bill.title || 'Bill'}* — Total ${formatRupiah(bill.total_amount || 0)}\n`;
   debts.forEach(d => {
-    const name = d.debtor?.name || 'Teman';
-    msg += `├ ${name}: ${formatRupiah(d.amount)}\n`;
+    msg += `├ ${getTag(d.debtor)}: ${formatRupiah(d.amount)}\n`;
   });
   msg += `\n_(Notifikasi grup SimpleSplit)_`;
   return msg;
@@ -383,6 +404,10 @@ async function processQueueItem(item) {
       const targetGroup = groupJid || linkedGroupJid;
       if (targetGroup) {
         const { pair } = payload;
+        // In netting, we only have personA and personB strings in pair. 
+        // We will try to rely on their names, or if we pass full objects from Vercel we could tag.
+        // Wait, payload doesn't have the person objects, only their names.
+        // I will let netting be names for now since we didn't update Vercel side payload for netting yet.
         let msg = `*[SIMPLESPLIT]*\n🔄 *NETTING OTOMATIS*\n\n`;
         msg += `Hutang antara *${pair.personA}* dan *${pair.personB}* baru saja di-offset (saling dikurangi) sebesar *${formatRupiah(pair.offsetAmount)}*!\n\n`;
         
