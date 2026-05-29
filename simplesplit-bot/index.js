@@ -3,6 +3,7 @@
 // Express webhook server + whatsapp-web.js client
 // ============================================================
 
+require('dotenv').config();
 const express = require('express');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
