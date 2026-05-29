@@ -423,6 +423,31 @@ app.post('/webhook', async (req, res) => {
       }
     }
 
+    // ── NETTING (offset) ──────────────────────────────────
+    else if (type === 'netting') {
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
+        const { pair } = payload;
+        let msg = `*[SIMPLESPLIT]*\n🔄 *NETTING OTOMATIS*\n\n`;
+        msg += `Hutang antara *${pair.personA}* dan *${pair.personB}* baru saja di-offset (saling dikurangi) sebesar *${formatRupiah(pair.offsetAmount)}*!\n\n`;
+        
+        if (pair.netDirection === 'settled') {
+          msg += `✅ Hasilnya: Hutang mereka berdua impas! (Tidak ada yang perlu transfer).`;
+        } else {
+          const payer = pair.netDirection === 'a_pays_b' ? pair.personA : pair.personB;
+          const receiver = pair.netDirection === 'a_pays_b' ? pair.personB : pair.personA;
+          msg += `✅ Hasilnya: *${payer}* tinggal bayar sisanya sebesar *${formatRupiah(pair.netAmount)}* ke *${receiver}*.`;
+        }
+        
+        msg += `\n\n_(Pesan otomatis dari SimpleSplit)_`;
+        const result = await sendToGroup(targetGroup, msg);
+        results.push({ to: 'group', ...result });
+      } else {
+        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi netting');
+        results.push({ to: 'group', success: false, reason: 'no_group' });
+      }
+    }
+
     // ── REMIND ────────────────────────────────────────────
     else if (type === 'remind') {
       for (const debt of debts) {

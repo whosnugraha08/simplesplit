@@ -237,6 +237,26 @@ export async function processNetting(pair: NettingPair): Promise<string> {
     }
   }
 
+  // Announce via WA Webhook
+  try {
+    fetch('/api/webhook-wa', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'netting',
+        pair: {
+          personA: personA.name,
+          personB: personB.name,
+          offsetAmount,
+          netDirection,
+          netAmount
+        }
+      })
+    }).catch(console.error);
+  } catch (e) {
+    console.error(e);
+  }
+
   // Build result description
   if (netDirection === 'settled') {
     return `✅ Hutang antara ${personA.name} dan ${personB.name} sudah saling lunas! (Rp ${offsetAmount.toLocaleString('id-ID')} di-offset)`;
