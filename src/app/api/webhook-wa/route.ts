@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(req: NextRequest) {
   try {
@@ -15,6 +16,23 @@ export async function POST(req: NextRequest) {
       const hasQris = pmData?.some(pm => pm.type === 'qris') || false;
       payload.payerHasQris = hasQris;
       payload.paymentMethods = pmData || [];
+    }
+
+    // Always try to attach the linked WA group JID
+    try {
+      const adminClient = getSupabaseAdmin();
+      if (adminClient) {
+        const { data: groupSettings } = await adminClient
+          .from('wa_group_settings')
+          .select('group_jid')
+          .eq('is_active', true)
+          .maybeSingle();
+        if (groupSettings?.group_jid) {
+          payload.groupJid = groupSettings.group_jid;
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch group JID for webhook:', e);
     }
 
     // Forward the payload to the VPS Bot
