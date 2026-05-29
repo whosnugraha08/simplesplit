@@ -72,11 +72,10 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
   );
 }
 
-const NAV_ITEMS = [
+const BASE_NAV_ITEMS = [
   { href: '/', icon: '🏠', label: 'Beranda' },
   { href: '/bills', icon: '🧾', label: 'Split Bill' },
   { href: '/debts', icon: '💰', label: 'Hutang' },
-  { href: '/friends', icon: '👥', label: 'Teman' },
 ];
 
 function DesktopSidebar() {
@@ -84,7 +83,8 @@ function DesktopSidebar() {
   const pathname = usePathname();
 
   const navItems = [
-    ...NAV_ITEMS,
+    ...BASE_NAV_ITEMS,
+    ...(user?.is_admin ? [{ href: '/friends', icon: '👥', label: 'Teman' }] : []),
     ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
     { href: '/profile', icon: '👤', label: 'Profil' },
   ];
@@ -151,7 +151,8 @@ function MobileBottomNav() {
   const pathname = usePathname();
 
   const navItems = [
-    ...NAV_ITEMS,
+    ...BASE_NAV_ITEMS,
+    ...(user?.is_admin ? [{ href: '/friends', icon: '👥', label: 'Teman' }] : []),
     ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
     { href: '/profile', icon: '👤', label: 'Profil' },
   ];

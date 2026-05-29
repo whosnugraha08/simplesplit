@@ -47,71 +47,81 @@ export default function FriendsPage() {
 
   return (
     <div className="content-padding pt-6 pb-4">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold">Teman</h1>
-          <p className="text-sm text-warm-muted">Kelola sirkel kamu</p>
-        </div>
-        <button onClick={() => { setEditingFriend(null); setShowForm(true); }}
-          className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
-          + Tambah
-        </button>
-      </div>
-
-      {loading ? (
-        <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="skeleton h-20 w-full" />)}</div>
-      ) : friends.length === 0 ? (
-        <div className="glass-card p-10 text-center">
-          <p className="text-4xl mb-3">👥</p>
-          <p className="text-warm-muted mb-4">Belum ada teman. Tambahkan sirkel kamu!</p>
-          <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20">
-            + Tambah Teman
-          </button>
+      {user && !user.is_admin ? (
+        <div className="text-center py-16">
+          <p className="text-4xl mb-3">🔒</p>
+          <p className="text-warm-muted font-semibold">Akses Ditolak</p>
+          <p className="text-xs text-warm-muted mt-2">Hanya Admin yang bisa melihat dan mengelola Teman.</p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {friends.map((friend, idx) => {
-            const pmCount = friend.payment_methods?.length || 0;
-            const isMe = friend.id === user?.friend_id;
-            return (
-              <div key={friend.id} className="glass-card p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                    style={{ backgroundColor: getAvatarColor(friend.name) }}>
-                    {getInitials(friend.name)}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold truncate">{friend.name}</p>
-                      {isMe && <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
-                      {friend.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+        <>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-2xl font-bold">Teman</h1>
+              <p className="text-sm text-warm-muted">Kelola sirkel kamu</p>
+            </div>
+            <button onClick={() => { setEditingFriend(null); setShowForm(true); }}
+              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+              + Tambah
+            </button>
+          </div>
+
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="skeleton h-20 w-full" />)}</div>
+          ) : friends.length === 0 ? (
+            <div className="glass-card p-10 text-center">
+              <p className="text-4xl mb-3">👥</p>
+              <p className="text-warm-muted mb-4">Belum ada teman. Tambahkan sirkel kamu!</p>
+              <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20">
+                + Tambah Teman
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {friends.map((friend, idx) => {
+                const pmCount = friend.payment_methods?.length || 0;
+                const isMe = friend.id === user?.friend_id;
+                return (
+                  <div key={friend.id} className="glass-card p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                        style={{ backgroundColor: getAvatarColor(friend.name) }}>
+                        {getInitials(friend.name)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold truncate">{friend.name}</p>
+                          {isMe && <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
+                          {friend.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+                        </div>
+                        {pmCount > 0 ? (
+                          <p className="text-xs text-warm-muted mt-0.5">💳 {pmCount} metode pembayaran</p>
+                        ) : (
+                          <p className="text-xs text-warm-muted mt-0.5 italic">Belum ada rekening</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => { setEditingFriend(friend); setShowForm(true); }}
+                          className="p-2 rounded-lg hover:bg-blush/40 transition-colors text-warm-muted" title="Edit">✏️</button>
+                        {!isMe && (
+                          <button onClick={() => setDeleteConfirm(friend.id)}
+                            className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-warm-muted" title="Hapus">🗑️</button>
+                        )}
+                      </div>
                     </div>
-                    {pmCount > 0 ? (
-                      <p className="text-xs text-warm-muted mt-0.5">💳 {pmCount} metode pembayaran</p>
-                    ) : (
-                      <p className="text-xs text-warm-muted mt-0.5 italic">Belum ada rekening</p>
+                    {pmCount > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {friend.payment_methods!.map(pm => (
+                          <span key={pm.id} className="bg-blush/40 text-warm-muted text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
+                        ))}
+                      </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button onClick={() => { setEditingFriend(friend); setShowForm(true); }}
-                      className="p-2 rounded-lg hover:bg-blush/40 transition-colors text-warm-muted" title="Edit">✏️</button>
-                    {!isMe && (
-                      <button onClick={() => setDeleteConfirm(friend.id)}
-                        className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-warm-muted" title="Hapus">🗑️</button>
-                    )}
-                  </div>
-                </div>
-                {pmCount > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {friend.payment_methods!.map(pm => (
-                      <span key={pm.id} className="bg-blush/40 text-warm-muted text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* Delete Confirm */}

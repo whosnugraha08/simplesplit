@@ -408,11 +408,13 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      <Link href="/friends"
-        className="flex items-center justify-between w-full py-3.5 px-4 rounded-card warm-card text-sm font-semibold mb-3 card-hover">
-        <span>👥 Kelola Teman</span>
-        <span className="text-warm-muted">→</span>
-      </Link>
+      {user?.is_admin && (
+        <Link href="/friends"
+          className="flex items-center justify-between w-full py-3.5 px-4 rounded-card warm-card text-sm font-semibold mb-3 card-hover">
+          <span>👥 Kelola Teman</span>
+          <span className="text-warm-muted">→</span>
+        </Link>
+      )}
 
       {/* Logout */}
       <button onClick={() => setShowLogoutConfirm(true)}
