@@ -28,15 +28,23 @@ module.exports = {
           DEFAULT: '#C0392B',
           light: 'rgba(192, 57, 43, 0.12)',
         },
+        danger: {
+          DEFAULT: '#C0392B',
+          light: 'rgba(192, 57, 43, 0.12)',
+        },
+        success: {
+          DEFAULT: '#2D7A4F',
+          light: 'rgba(45, 122, 79, 0.12)',
+        },
         warm: {
           muted: 'rgba(44, 24, 16, 0.45)',
           border: 'rgba(196, 98, 45, 0.15)',
         },
       },
       fontFamily: {
-        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
-        display: ['Fraunces', 'Georgia', 'serif'],
-        mono: ['"JetBrains Mono"', 'SF Mono', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'Segoe UI', 'system-ui', 'sans-serif'],
+        display: ['"Plus Jakarta Sans"', 'Segoe UI', 'system-ui', 'sans-serif'],
+        mono: ['"Plus Jakarta Sans"', 'Segoe UI', 'sans-serif'],
       },
       borderRadius: {
         card: '16px',

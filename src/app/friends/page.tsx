@@ -50,7 +50,7 @@ export default function FriendsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold">Teman</h1>
-          <p className="text-sm text-white/50">Kelola sirkel kamu</p>
+          <p className="text-sm text-warm-muted">Kelola sirkel kamu</p>
         </div>
         <button onClick={() => { setEditingFriend(null); setShowForm(true); }}
           className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
@@ -63,7 +63,7 @@ export default function FriendsPage() {
       ) : friends.length === 0 ? (
         <div className="glass-card p-10 text-center">
           <p className="text-4xl mb-3">👥</p>
-          <p className="text-white/50 mb-4">Belum ada teman. Tambahkan sirkel kamu!</p>
+          <p className="text-warm-muted mb-4">Belum ada teman. Tambahkan sirkel kamu!</p>
           <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20">
             + Tambah Teman
           </button>
@@ -87,24 +87,24 @@ export default function FriendsPage() {
                       {friend.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                     </div>
                     {pmCount > 0 ? (
-                      <p className="text-xs text-white/50 mt-0.5">💳 {pmCount} metode pembayaran</p>
+                      <p className="text-xs text-warm-muted mt-0.5">💳 {pmCount} metode pembayaran</p>
                     ) : (
-                      <p className="text-xs text-white/30 mt-0.5 italic">Belum ada rekening</p>
+                      <p className="text-xs text-warm-muted mt-0.5 italic">Belum ada rekening</p>
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <button onClick={() => { setEditingFriend(friend); setShowForm(true); }}
-                      className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/50" title="Edit">✏️</button>
+                      className="p-2 rounded-lg hover:bg-blush/40 transition-colors text-warm-muted" title="Edit">✏️</button>
                     {!isMe && (
                       <button onClick={() => setDeleteConfirm(friend.id)}
-                        className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-white/50" title="Hapus">🗑️</button>
+                        className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-warm-muted" title="Hapus">🗑️</button>
                     )}
                   </div>
                 </div>
                 {pmCount > 0 && (
                   <div className="mt-3 flex flex-wrap gap-1.5">
                     {friend.payment_methods!.map(pm => (
-                      <span key={pm.id} className="bg-white/5 text-white/50 text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
+                      <span key={pm.id} className="bg-blush/40 text-warm-muted text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
                     ))}
                   </div>
                 )}
@@ -117,11 +117,11 @@ export default function FriendsPage() {
       {/* Delete Confirm */}
       {deleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setDeleteConfirm(null)}>
-          <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#1a1a2e] border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold mb-2">Hapus Teman?</h3>
-            <p className="text-sm text-white/50 mb-6">Semua data terkait teman ini akan ikut terhapus.</p>
+            <p className="text-sm text-warm-muted mb-6">Semua data terkait teman ini akan ikut terhapus.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 rounded-xl border border-white/8 font-semibold text-sm">Batal</button>
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 rounded-xl border border-warm-border font-semibold text-sm">Batal</button>
               <button onClick={() => deleteFriend(deleteConfirm)} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm">Ya, Hapus</button>
             </div>
           </div>
@@ -266,24 +266,24 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
 
   return (
     <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="bg-[#1a1a2e] border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-bold">{friend ? 'Edit Teman' : 'Tambah Teman'}</h3>
-          <button onClick={onClose} className="text-white/50 text-xl p-1">✕</button>
+          <button onClick={onClose} className="text-warm-muted text-xl p-1">✕</button>
         </div>
 
         {error && <div className="bg-red-500/10 text-danger rounded-xl p-3 text-sm mb-4">⚠️ {error}</div>}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-white/50 mb-1.5">Nama *</label>
+            <label className="block text-sm font-medium text-warm-muted mb-1.5">Nama *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Contoh: Faiz"
-              className="w-full px-4 py-3 rounded-xl border border-white/8 bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" required />
+              className="w-full px-4 py-3 rounded-xl border border-warm-border bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" required />
           </div>
           <div>
-            <label className="block text-sm font-medium text-white/50 mb-1.5">No. WhatsApp</label>
+            <label className="block text-sm font-medium text-warm-muted mb-1.5">No. WhatsApp</label>
             <input type="tel" value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="081234567890"
-              className="w-full px-4 py-3 rounded-xl border border-white/8 bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" />
+              className="w-full px-4 py-3 rounded-xl border border-warm-border bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" />
           </div>
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={isAdmin} onChange={e => setIsAdmin(e.target.checked)} />
@@ -293,12 +293,12 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
           {/* Payment Methods */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-white/50">Rekening / E-Wallet</label>
+              <label className="text-sm font-medium text-warm-muted">Rekening / E-Wallet</label>
               <button type="button" onClick={addPaymentMethod} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
             </div>
             {activePMs.length === 0 ? (
               <button type="button" onClick={addPaymentMethod}
-                className="w-full py-6 rounded-xl border-2 border-dashed border-white/8 hover:border-amber-500/30 transition-colors text-white/50 text-sm text-center">
+                className="w-full py-6 rounded-xl border-2 border-dashed border-warm-border hover:border-amber-500/30 transition-colors text-warm-muted text-sm text-center">
                 💳 Tambah rekening / e-wallet
               </button>
             ) : (
@@ -306,27 +306,27 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
                 {paymentMethods.map((pm, idx) => {
                   if (pm._deleted) return null;
                   return (
-                    <div key={idx} className="bg-white/5 rounded-xl p-3 space-y-2 relative animate-fade-in">
-                      <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-white/50 hover:text-danger text-sm p-1">✕</button>
+                    <div key={idx} className="bg-blush/40 rounded-xl p-3 space-y-2 relative animate-fade-in">
+                      <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-warm-muted hover:text-danger text-sm p-1">✕</button>
                       <input type="text" value={pm.label} onChange={e => updatePM(idx, 'label', e.target.value)} placeholder="Label (cth: BCA Utama)"
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/8 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-warm-border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       <div className="grid grid-cols-2 gap-2">
                         <input type="text" value={pm.bank_name} onChange={e => updatePM(idx, 'bank_name', e.target.value)} placeholder="Bank *"
-                          className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/8 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-warm-border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         <input type="text" value={pm.account_number} onChange={e => updatePM(idx, 'account_number', e.target.value)} placeholder="No. Rekening"
-                          className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/8 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-warm-border text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       </div>
                       <div>
                         <input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) handleQrisFile(idx, file); }} className="hidden" id={`qris-${idx}`} />
                         {pm.qris_image_url ? (
                           <div className="relative">
-                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-white/8 bg-white" />
+                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-warm-border bg-white" />
                             <button type="button" onClick={() => { const updated = [...paymentMethods]; updated[idx].qris_image_url = null; updated[idx].qris_file = null; setPaymentMethods(updated); }}
-                              className="absolute top-1 right-1 bg-white/5 rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
+                              className="absolute top-1 right-1 bg-blush/40 rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
                           </div>
                         ) : (
                           <label htmlFor={`qris-${idx}`}
-                            className="block w-full py-3 rounded-lg border border-dashed border-white/8 hover:border-amber-500/30 transition-colors text-white/50 text-xs text-center cursor-pointer">
+                            className="block w-full py-3 rounded-lg border border-dashed border-warm-border hover:border-amber-500/30 transition-colors text-warm-muted text-xs text-center cursor-pointer">
                             📷 Upload QRIS (opsional)
                           </label>
                         )}

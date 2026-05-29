@@ -115,7 +115,7 @@ export default function LoginPage() {
                 onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="4-6 digit angka"
                 inputMode="numeric"
-                className="warm-input w-full px-4 py-3 text-sm tracking-[0.3em] font-mono"
+                className="warm-input w-full px-4 py-3 text-sm tracking-[0.2em] tabular-nums"
                 required
                 minLength={4}
                 maxLength={6}

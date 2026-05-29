@@ -22,21 +22,60 @@ body {
     radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196, 98, 45, 0.06), transparent),
     radial-gradient(ellipse 50% 40% at 100% 80%, rgba(232, 149, 109, 0.08), transparent);
   color: #2C1810;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Typography ───────────────────────────────────────── */
+/* ─── Typography (sans-serif, warm) ─────────────────────── */
+h1, h2, h3, h4, h5, h6,
 .font-display {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* ─── Money Display ────────────────────────────────────── */
 .money {
-  font-family: 'JetBrains Mono', 'SF Mono', monospace;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
+}
+
+/* ─── Legacy aliases (halaman lama → tema warm) ─────────── */
+.glass-card {
+  background: #fff;
+  border: 1px solid rgba(196, 98, 45, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(196, 98, 45, 0.08);
+  color: #2C1810;
+}
+
+.glass-input {
+  background: #fff;
+  border: 1px solid rgba(196, 98, 45, 0.2);
+  color: #2C1810;
+  border-radius: 12px;
+}
+.glass-input:focus {
+  outline: none;
+  border-color: #C4622D;
+  box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.15);
+}
+.glass-input::placeholder {
+  color: rgba(44, 24, 16, 0.35);
+}
+
+/* Tab / chip tidak aktif */
+.chip-inactive {
+  background: #fff;
+  color: rgba(44, 24, 16, 0.55);
+  border: 1px solid rgba(196, 98, 45, 0.15);
+}
+.chip-inactive:hover {
+  color: #2C1810;
+  border-color: rgba(196, 98, 45, 0.25);
 }
 
 /* ─── Cards ────────────────────────────────────────────── */

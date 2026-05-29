@@ -99,7 +99,7 @@ export default function BillDetailPage() {
     return (
       <div className="content-padding pt-6 text-center py-16">
         <p className="text-3xl mb-3">🤷</p>
-        <p className="text-white/50">Bill tidak ditemukan</p>
+        <p className="text-warm-muted">Bill tidak ditemukan</p>
       </div>
     );
   }
@@ -115,13 +115,13 @@ export default function BillDetailPage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.push('/bills')} className="text-xl text-white/50 p-1">←</button>
+        <button onClick={() => router.push('/bills')} className="text-xl text-warm-muted p-1">←</button>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold truncate">{bill.title}</h1>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${status.color}`}>{status.text}</span>
           </div>
-          <p className="text-xs text-white/50">{formatDate(bill.bill_date)}</p>
+          <p className="text-xs text-warm-muted">{formatDate(bill.bill_date)}</p>
         </div>
       </div>
 
@@ -133,7 +133,7 @@ export default function BillDetailPage() {
             {getInitials(bill.paid_by_friend?.name || '?')}
           </div>
           <div>
-            <p className="text-xs text-white/50">Ditalangi oleh</p>
+            <p className="text-xs text-warm-muted">Ditalangi oleh</p>
             <p className="font-semibold">{bill.paid_by_friend?.name}</p>
           </div>
         </div>
@@ -154,13 +154,13 @@ export default function BillDetailPage() {
 
       {/* Items */}
       <div className="mb-4">
-        <h2 className="text-sm font-semibold text-white/50 mb-2">Item ({items.length})</h2>
+        <h2 className="text-sm font-semibold text-warm-muted mb-2">Item ({items.length})</h2>
         <div className="glass-card divide-y divide-border">
           {items.map(item => (
             <div key={item.id} className="px-4 py-3 flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium">{item.item_name}</p>
-                {item.quantity > 1 && <p className="text-xs text-white/50">{item.quantity}x @ {formatRupiah(Number(item.item_price))}</p>}
+                {item.quantity > 1 && <p className="text-xs text-warm-muted">{item.quantity}x @ {formatRupiah(Number(item.item_price))}</p>}
               </div>
               <p className="money text-sm">{formatRupiah(Number(item.item_price) * item.quantity)}</p>
             </div>
@@ -171,7 +171,7 @@ export default function BillDetailPage() {
       {/* Debts with detail */}
       {debts.length > 0 && (
         <div className="mb-4">
-          <h2 className="text-sm font-semibold text-white/50 mb-2">Pembagian</h2>
+          <h2 className="text-sm font-semibold text-warm-muted mb-2">Pembagian</h2>
           <div className="space-y-2">
             {debts.map(debt => {
               const isExpanded = expandedDebt === debt.id;
@@ -212,9 +212,9 @@ export default function BillDetailPage() {
                         {isExpanded ? '▲ Sembunyikan' : '▼ Lihat detail'}
                       </button>
                       {isExpanded && (
-                        <div className="mt-2 bg-white/5 rounded-lg p-2.5 animate-fade-in">
+                        <div className="mt-2 bg-blush/40 rounded-lg p-2.5 animate-fade-in">
                           {debt.notes.split('\n').map((line, i) => (
-                            <p key={i} className="text-[11px] text-white/50">{line}</p>
+                            <p key={i} className="text-[11px] text-warm-muted">{line}</p>
                           ))}
                         </div>
                       )}
@@ -249,12 +249,12 @@ export default function BillDetailPage() {
       {/* Delete Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-[#1a1a2e] border border-white/10 w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-2">Hapus Bill?</h3>
-            <p className="text-sm text-white/50 mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
+          <div className="bg-white shadow-warm-lg border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-espresso mb-2">Hapus Bill?</h3>
+            <p className="text-sm text-warm-muted mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl border border-white/8 font-semibold text-sm">Batal</button>
-              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm disabled:opacity-50">
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl bg-blush/40 border border-warm-border font-semibold text-sm text-espresso hover:bg-blush transition-colors">Batal</button>
+              <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm disabled:opacity-50 hover:bg-red-600 transition-colors">
                 {deleting ? 'Menghapus...' : 'Ya, Hapus'}
               </button>
             </div>

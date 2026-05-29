@@ -179,9 +179,13 @@ export default function NewBillPage() {
       if (imageFile) {
         const fileExt = imageFile.name.split('.').pop();
         const fileName = `receipt_${Date.now()}.${fileExt}`;
-        await supabase.storage.from('receipts').upload(fileName, imageFile, { upsert: true });
-        const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
-        receiptUrl = urlData.publicUrl;
+        const { error: uploadErr } = await supabase.storage.from('receipts').upload(fileName, imageFile, { upsert: true });
+        if (uploadErr) {
+          console.warn('Receipt upload failed (skipping):', uploadErr.message);
+        } else {
+          const { data: urlData } = supabase.storage.from('receipts').getPublicUrl(fileName);
+          receiptUrl = urlData.publicUrl;
+        }
       }
 
       const { data: billData, error: billError } = await supabase
@@ -217,9 +221,10 @@ export default function NewBillPage() {
 
       showToast('Bill berhasil disimpan!', 'success');
       router.push(`/bills/${billData.id}/assign`);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving bill:', err);
-      showToast('Gagal menyimpan bill', 'error');
+      const msg = err?.message || err?.details || JSON.stringify(err);
+      showToast(`Gagal: ${msg}`, 'error');
     } finally {
       setSaving(false);
     }
@@ -257,7 +262,7 @@ export default function NewBillPage() {
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-black/30">
+              <div className="relative rounded-2xl overflow-hidden border border-warm-border bg-black/30">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
                   className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
@@ -298,7 +303,7 @@ export default function NewBillPage() {
         <div className="animate-fade-in space-y-4">
           {scanSource && (
             <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-              <span className="text-xs text-white/50 font-medium">Scan:</span>
+              <span className="text-xs text-warm-muted font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
               </span>
@@ -322,31 +327,31 @@ export default function NewBillPage() {
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-white/50">Daftar Item</label>
+              <label className="text-sm font-medium text-warm-muted">Daftar Item</label>
               <button onClick={addItem} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
             </div>
             <div className="space-y-2">
               {items.map((item, idx) => (
-                <div key={idx} className="bg-white/5 rounded-xl border border-white/8 p-3 animate-fade-in">
+                <div key={idx} className="bg-blush/40 rounded-xl border border-warm-border p-3 animate-fade-in">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
                       <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
-                        className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <input type="number" value={item.price || ''} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="Harga"
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                         <div className="w-16">
                           <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} min="1"
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => removeItem(idx)} className="p-2 text-white/50 hover:text-danger transition-colors shrink-0">🗑️</button>
+                    <button onClick={() => removeItem(idx)} className="p-2 text-warm-muted hover:text-danger transition-colors shrink-0">🗑️</button>
                   </div>
                   {item.price > 0 && item.quantity > 1 && (
-                    <p className="text-xs text-white/50 mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
+                    <p className="text-xs text-warm-muted mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
                   )}
                 </div>
               ))}
@@ -356,27 +361,27 @@ export default function NewBillPage() {
             <div>
               <FieldTooltip label="Pajak (Tax)" hint="Biasanya 10–15% dari subtotal. Cek struk/nota kamu." />
               <input type="number" value={tax || ''} onChange={e => setTax(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="warm-input w-full px-3 py-2.5 text-sm font-mono mt-1" />
+                className="warm-input w-full px-3 py-2.5 text-sm tabular-nums mt-1" />
             </div>
             <div>
               <label className="block text-xs font-medium text-warm-muted mb-1">Service</label>
               <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="warm-input w-full px-3 py-2.5 text-sm font-mono" />
+                className="warm-input w-full px-3 py-2.5 text-sm tabular-nums" />
               <FormHelper text="Service charge dari resto, biasanya 5–10%." />
             </div>
             <div>
               <label className="block text-xs font-medium text-warm-muted mb-1">Pembulatan</label>
               <input type="number" value={rounding || ''} onChange={e => setRounding(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="warm-input w-full px-3 py-2.5 text-sm font-mono" />
+                className="warm-input w-full px-3 py-2.5 text-sm tabular-nums" />
             </div>
           </div>
           <div className="glass-card p-4">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-white/50">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
-              {tax > 0 && <div className="flex justify-between"><span className="text-white/50">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
-              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-white/50">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
-              {rounding !== 0 && <div className="flex justify-between"><span className="text-white/50">Pembulatan</span><span className="money">{formatRupiah(rounding)}</span></div>}
-              <div className="border-t border-white/8 pt-2 flex justify-between">
+              <div className="flex justify-between"><span className="text-warm-muted">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
+              {tax > 0 && <div className="flex justify-between"><span className="text-warm-muted">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
+              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-warm-muted">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
+              {rounding !== 0 && <div className="flex justify-between"><span className="text-warm-muted">Pembulatan</span><span className="money">{formatRupiah(rounding)}</span></div>}
+              <div className="border-t border-warm-border pt-2 flex justify-between">
                 <span className="font-semibold">Total</span><span className="money text-lg">{formatRupiah(grandTotal)}</span>
               </div>
               {totalOnReceipt > 0 && (
@@ -400,7 +405,7 @@ export default function NewBillPage() {
       {/* Step: Select Payer */}
       {step === 'payer' && (
         <div className="animate-fade-in">
-          <p className="text-sm text-white/50 mb-4">Siapa yang menalangi (membayar) bill ini?</p>
+          <p className="text-sm text-warm-muted mb-4">Siapa yang menalangi (membayar) bill ini?</p>
           <div className="space-y-2 mb-6">
             {friends.map(friend => (
               <button
@@ -409,7 +414,7 @@ export default function NewBillPage() {
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
                     ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
-                    : 'border-white/8 bg-white/5 hover:border-amber-500/30'
+                    : 'border-warm-border bg-blush/40 hover:border-amber-500/30'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -425,17 +430,17 @@ export default function NewBillPage() {
             ))}
           </div>
           {friends.length === 0 && (
-            <div className="text-center py-8 text-sm text-white/50">
+            <div className="text-center py-8 text-sm text-warm-muted">
               Belum ada teman. <a href="/friends" className="text-amber-400 font-semibold">Tambah dulu →</a>
             </div>
           )}
           <div className="glass-card p-4 mb-4">
-            <p className="text-xs text-white/50 mb-1">{title}</p>
+            <p className="text-xs text-warm-muted mb-1">{title}</p>
             <p className="money text-xl">{formatRupiah(grandTotal)}</p>
-            <p className="text-xs text-white/50 mt-1">{items.length} item</p>
+            <p className="text-xs text-warm-muted mt-1">{items.length} item</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-white/8 bg-white/5 font-semibold text-sm">← Kembali</button>
+            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-warm-border bg-blush/40 font-semibold text-sm">← Kembali</button>
             <button onClick={handleSave} disabled={!selectedPayer || saving}
               className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}

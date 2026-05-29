@@ -125,7 +125,7 @@ export default function PayPage() {
   }
 
   if (!debt || !debt.creditor) {
-    return <div className="content-padding pt-6 text-center py-16"><p className="text-3xl mb-3">🤷</p><p className="text-white/50">Data hutang tidak ditemukan</p></div>;
+    return <div className="content-padding pt-6 text-center py-16"><p className="text-3xl mb-3">🤷</p><p className="text-warm-muted">Data hutang tidak ditemukan</p></div>;
   }
 
   const creditor = debt.creditor;
@@ -136,10 +136,10 @@ export default function PayPage() {
     <div className="content-padding pt-6 pb-4 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-xl text-white/50 p-1">←</button>
+        <button onClick={() => router.back()} className="text-xl text-warm-muted p-1">←</button>
         <div>
           <h1 className="text-xl font-bold">Bayar Hutang</h1>
-          <p className="text-xs text-white/50">{debt.bill?.title}</p>
+          <p className="text-xs text-warm-muted">{debt.bill?.title}</p>
         </div>
       </div>
 
@@ -166,13 +166,13 @@ export default function PayPage() {
       {debt.notes && (
         <div className="glass-card p-4 mb-4">
           <button onClick={() => setExpandNotes(!expandNotes)} className="w-full flex items-center justify-between">
-            <span className="text-sm font-semibold text-white/50">📋 Detail Item</span>
+            <span className="text-sm font-semibold text-warm-muted">📋 Detail Item</span>
             <span className="text-xs text-amber-400 font-medium">{expandNotes ? '▲' : '▼'}</span>
           </button>
           {expandNotes && (
-            <div className="mt-3 bg-white/5 rounded-xl p-3 animate-fade-in">
+            <div className="mt-3 bg-blush/40 rounded-xl p-3 animate-fade-in">
               {debt.notes.split('\n').map((line, i) => (
-                <p key={i} className="text-xs text-white/50">{line}</p>
+                <p key={i} className="text-xs text-warm-muted">{line}</p>
               ))}
             </div>
           )}
@@ -182,12 +182,12 @@ export default function PayPage() {
       {/* Payment Methods */}
       {paymentMethods.length > 1 && (
         <div className="mb-4">
-          <p className="text-sm font-semibold text-white/50 mb-2">Pilih Metode Pembayaran</p>
+          <p className="text-sm font-semibold text-warm-muted mb-2">Pilih Metode Pembayaran</p>
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {paymentMethods.map(pm => (
               <button key={pm.id} onClick={() => setSelectedPM(pm)}
                 className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-                  selectedPM?.id === pm.id ? 'bg-primary text-white shadow-sm' : 'bg-white text-white/50 border border-white/8'
+                  selectedPM?.id === pm.id ? 'bg-primary text-white shadow-sm' : 'bg-white text-warm-muted border border-warm-border'
                 }`}>
                 {pm.label || pm.bank_name}
               </button>
@@ -199,7 +199,7 @@ export default function PayPage() {
       {selectedPM ? (
         <>
           <div className="glass-card p-5 mb-4">
-            <h2 className="text-sm font-semibold text-white/50 mb-4">Transfer ke</h2>
+            <h2 className="text-sm font-semibold text-warm-muted mb-4">Transfer ke</h2>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold"
                 style={{ backgroundColor: getAvatarColor(creditor.name) }}>
@@ -207,18 +207,18 @@ export default function PayPage() {
               </div>
               <div>
                 <p className="font-bold text-lg">{creditor.name}</p>
-                <p className="text-sm text-white/50">{selectedPM.label || selectedPM.bank_name}</p>
+                <p className="text-sm text-warm-muted">{selectedPM.label || selectedPM.bank_name}</p>
               </div>
             </div>
             {selectedPM.account_number && (
-              <div className="bg-white/5 rounded-xl p-4 mb-3">
-                <p className="text-xs text-white/50 mb-1">Nomor Rekening</p>
+              <div className="bg-blush/40 rounded-xl p-4 mb-3">
+                <p className="text-xs text-warm-muted mb-1">Nomor Rekening</p>
                 <div className="flex items-center justify-between">
                   <p className="money text-xl">{selectedPM.account_number}</p>
                   <button onClick={() => { navigator.clipboard.writeText(selectedPM.account_number || ''); showToast('Nomor rekening disalin!', 'success'); }}
                     className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">📋 Salin</button>
                 </div>
-                <p className="text-sm text-white/50 mt-1">{selectedPM.bank_name}</p>
+                <p className="text-sm text-warm-muted mt-1">{selectedPM.bank_name}</p>
               </div>
             )}
           </div>
@@ -226,15 +226,15 @@ export default function PayPage() {
           {selectedPM.qris_image_url && (
             <div className="glass-card p-5 mb-6">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-white/50">Scan QRIS</h2>
+                <h2 className="text-sm font-semibold text-warm-muted">Scan QRIS</h2>
                 {dynamicQris && (
-                  <div className="flex gap-1 bg-white/5 rounded-lg p-0.5">
+                  <div className="flex gap-1 bg-blush/40 rounded-lg p-0.5">
                     <button onClick={() => setQrisMode('dynamic')}
-                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${qrisMode === 'dynamic' ? 'bg-primary text-white' : 'text-white/50'}`}>
+                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${qrisMode === 'dynamic' ? 'bg-primary text-white' : 'text-warm-muted'}`}>
                       ⚡ Dynamic
                     </button>
                     <button onClick={() => setQrisMode('static')}
-                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${qrisMode === 'static' ? 'bg-white text-white shadow-sm' : 'text-white/50'}`}>
+                      className={`px-2 py-1 rounded-md text-[10px] font-semibold transition ${qrisMode === 'static' ? 'bg-primary text-white shadow-sm' : 'text-warm-muted'}`}>
                       📷 Asli
                     </button>
                   </div>
@@ -249,11 +249,11 @@ export default function PayPage() {
               {generatingQris ? (
                 <div className="py-8 text-center">
                   <div className="inline-block w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2" />
-                  <p className="text-xs text-white/50">Generating QRIS...</p>
+                  <p className="text-xs text-warm-muted">Generating QRIS...</p>
                 </div>
               ) : (
                 <button onClick={() => setShowQris(true)} className="w-full">
-                  <img src={qrisImageToShow || selectedPM.qris_image_url} alt="QRIS" className="w-full max-h-64 object-contain rounded-xl border border-white/8" />
+                  <img src={qrisImageToShow || selectedPM.qris_image_url} alt="QRIS" className="w-full max-h-64 object-contain rounded-xl border border-warm-border" />
                   <p className="text-xs text-amber-400 font-medium mt-2">Tap untuk perbesar</p>
                 </button>
               )}
@@ -263,20 +263,20 @@ export default function PayPage() {
       ) : paymentMethods.length === 0 ? (
         <div className="glass-card p-8 mb-6 text-center">
           <p className="text-3xl mb-2">⚠️</p>
-          <p className="text-sm text-white/50">{creditor.name} belum punya metode pembayaran.</p>
+          <p className="text-sm text-warm-muted">{creditor.name} belum punya metode pembayaran.</p>
           <a href="/friends" className="text-sm text-amber-400 font-semibold mt-2 inline-block">Tambahkan di Teman →</a>
         </div>
       ) : null}
 
       {/* Proof Upload */}
       <div className="glass-card p-5 mb-4">
-        <h2 className="text-sm font-semibold text-white/50 mb-1">📸 Bukti Pembayaran</h2>
-        <p className="text-[11px] text-white/30 mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan dikirim otomatis ke penagih via WhatsApp.</p>
+        <h2 className="text-sm font-semibold text-warm-muted mb-1">📸 Bukti Pembayaran</h2>
+        <p className="text-[11px] text-warm-muted mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan dikirim otomatis ke penagih via WhatsApp.</p>
         <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
         {proofPreview ? (
           <div className="relative">
             <button onClick={() => setShowProofFull(true)} className="w-full">
-              <img src={proofPreview} alt="Bukti" className="w-full max-h-48 object-contain rounded-xl border border-white/8 bg-white/5" />
+              <img src={proofPreview} alt="Bukti" className="w-full max-h-48 object-contain rounded-xl border border-warm-border bg-blush/40" />
             </button>
             <button onClick={() => { setProofFile(null); setProofPreview(null); }}
               className="absolute top-2 right-2 bg-white/10 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
@@ -287,7 +287,7 @@ export default function PayPage() {
             className="block w-full py-8 rounded-xl border-2 border-dashed border-amber-500/20 hover:border-amber-500/30 bg-blue-500/10/50 transition-colors cursor-pointer text-center">
             <span className="text-3xl block mb-2">📷</span>
             <span className="text-sm text-amber-400 font-semibold">Upload Bukti Transfer</span>
-            <span className="block text-[11px] text-white/30 mt-1">Tap untuk foto atau pilih dari galeri</span>
+            <span className="block text-[11px] text-warm-muted mt-1">Tap untuk foto atau pilih dari galeri</span>
           </label>
         )}
       </div>
@@ -297,7 +297,7 @@ export default function PayPage() {
         className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition shadow-lg ${
           proofFile
             ? 'bg-emerald-600 text-white shadow-emerald-500/20'
-            : 'bg-white/10 text-white/40 cursor-not-allowed shadow-none'
+            : 'bg-white/10 text-warm-muted cursor-not-allowed shadow-none'
         } disabled:opacity-50`}>
         {markingPaid ? 'Mengunggah & Memproses...' : proofFile ? '✓ Kirim Bukti & Tandai Lunas' : '📷 Upload bukti dulu'}
       </button>
@@ -312,7 +312,7 @@ export default function PayPage() {
               <p className="text-white text-xs font-semibold">⚡ Dynamic — {formatRupiah(Number(debt.amount))}</p>
             </div>
           )}
-          <img src={qrisImageToShow} alt="QRIS" className="max-w-[95vw] max-h-[80vh] object-contain bg-white/5 rounded-2xl p-4" />
+          <img src={qrisImageToShow} alt="QRIS" className="max-w-[95vw] max-h-[80vh] object-contain bg-blush/40 rounded-2xl p-4" />
           {dynamicQris && (
             <div className="mt-4 flex gap-2">
               <button onClick={e => { e.stopPropagation(); setQrisMode('dynamic'); }}

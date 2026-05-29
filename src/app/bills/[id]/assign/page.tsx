@@ -31,8 +31,13 @@ export default function AssignPage() {
   // Recalculate whenever items or assignments change
   useEffect(() => {
     if (items.length > 0 && friends.length > 0 && bill) {
-      const result = calculateSplit(items, friends, Number(bill.tax_amount), Number(bill.service_charge_amount));
-      setBreakdowns(result);
+      try {
+        const result = calculateSplit(items, friends, Number(bill.tax_amount), Number(bill.service_charge_amount));
+        setBreakdowns(result);
+      } catch (err) {
+        // Ignored: this happens normally when some items are not fully assigned yet
+        setBreakdowns([]);
+      }
     }
   }, [items, friends, bill]);
 
@@ -218,7 +223,7 @@ export default function AssignPage() {
   }
 
   if (!bill) {
-    return <div className="content-padding pt-6 text-center py-16 text-white/50">Bill tidak ditemukan</div>;
+    return <div className="content-padding pt-6 text-center py-16 text-warm-muted">Bill tidak ditemukan</div>;
   }
 
   const allAssigned = items.every(item => item.assignments.length > 0 || item.assignee_ids.length > 0);
@@ -227,19 +232,19 @@ export default function AssignPage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header */}
       <div className="flex items-center gap-3 mb-2">
-        <button onClick={() => router.back()} className="text-xl text-white/50 p-1">←</button>
+        <button onClick={() => router.back()} className="text-xl text-warm-muted p-1">←</button>
         <div>
           <h1 className="text-xl font-bold">Bagi Item</h1>
-          <p className="text-xs text-white/50">{bill.title}</p>
+          <p className="text-xs text-warm-muted">{bill.title}</p>
         </div>
       </div>
 
       {/* Split Mode Toggle */}
-      <div className="flex gap-1 bg-white/5 rounded-2xl p-1 border border-white/8 mb-4 mt-3">
+      <div className="flex gap-1 bg-blush/40 rounded-2xl p-1 border border-warm-border mb-4 mt-3">
         <button
           onClick={() => setSplitMode('qty')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            splitMode === 'qty' ? 'bg-primary text-white shadow-sm' : 'text-white/50'
+            splitMode === 'qty' ? 'bg-primary text-white shadow-sm' : 'text-warm-muted'
           }`}
         >
           🔢 Per Qty
@@ -247,7 +252,7 @@ export default function AssignPage() {
         <button
           onClick={() => setSplitMode('equal')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            splitMode === 'equal' ? 'bg-primary text-white shadow-sm' : 'text-white/50'
+            splitMode === 'equal' ? 'bg-primary text-white shadow-sm' : 'text-warm-muted'
           }`}
         >
           ➗ Bagi Rata
@@ -259,7 +264,7 @@ export default function AssignPage() {
         <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">
           Semua bagi rata
         </button>
-        <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-white/5 text-white/50 text-xs font-semibold border border-white/8">
+        <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-blush/40 text-warm-muted text-xs font-semibold border border-warm-border">
           Reset
         </button>
       </div>
@@ -267,7 +272,7 @@ export default function AssignPage() {
       {/* Friends Legend */}
       <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-4 px-4 md:-mx-8 md:px-8 scrollbar-hide">
         {friends.map(friend => (
-          <div key={friend.id} className="flex items-center gap-1.5 shrink-0 bg-white/5 rounded-full px-3 py-1.5 border border-white/8">
+          <div key={friend.id} className="flex items-center gap-1.5 shrink-0 bg-blush/40 rounded-full px-3 py-1.5 border border-warm-border">
             <div
               className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold"
               style={{ backgroundColor: getAvatarColor(friend.name) }}
@@ -292,7 +297,7 @@ export default function AssignPage() {
               <div className="flex justify-between items-start mb-3">
                 <div>
                   <p className="font-semibold text-sm">{item.item_name}</p>
-                  <p className="text-xs text-white/50">
+                  <p className="text-xs text-warm-muted">
                     {item.quantity}x @ {formatRupiah(Number(item.item_price))}
                   </p>
                 </div>
@@ -332,7 +337,7 @@ export default function AssignPage() {
                           >
                             −
                           </button>
-                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-amber-400' : 'text-white/30'}`}>
+                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-amber-400' : 'text-warm-muted'}`}>
                             {qty}
                           </span>
                           <button
@@ -346,7 +351,7 @@ export default function AssignPage() {
 
                         {/* Per-person amount */}
                         {qty > 0 && (
-                          <span className="money text-xs text-white/50 w-20 text-right shrink-0">
+                          <span className="money text-xs text-warm-muted w-20 text-right shrink-0">
                             {formatRupiah((Number(item.item_price) * item.quantity / (totalAssigned || 1)) * qty)}
                           </span>
                         )}
@@ -366,7 +371,7 @@ export default function AssignPage() {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                           isAssigned
                             ? 'bg-primary text-white shadow-sm'
-                            : 'bg-white/5 text-white/50 hover:bg-blue-500/10 hover:text-amber-400'
+                            : 'bg-blush/40 text-warm-muted hover:bg-blue-500/10 hover:text-amber-400'
                         }`}
                       >
                         <div
@@ -386,7 +391,7 @@ export default function AssignPage() {
 
               {/* Per-person share preview (equal mode) */}
               {splitMode === 'equal' && item.assignee_ids.length > 0 && (
-                <p className="text-xs text-white/50 mt-2 text-right">
+                <p className="text-xs text-warm-muted mt-2 text-right">
                   = {formatRupiah((Number(item.item_price) * item.quantity) / item.assignee_ids.length)} / orang
                 </p>
               )}
@@ -398,7 +403,7 @@ export default function AssignPage() {
       {/* Breakdown Preview */}
       {breakdowns.length > 0 && (
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-white/50 mb-2">Ringkasan Per Orang</h2>
+          <h2 className="text-sm font-semibold text-warm-muted mb-2">Ringkasan Per Orang</h2>
           <div className="glass-card divide-y divide-border">
             {breakdowns.map(b => {
               const isPayer = b.friend.id === bill.paid_by;
@@ -416,16 +421,16 @@ export default function AssignPage() {
                         {b.friend.name}
                         {isPayer && <span className="text-amber-400 text-[10px] font-bold ml-1">PAYER</span>}
                       </p>
-                      <p className="text-[10px] text-white/50">
+                      <p className="text-[10px] text-warm-muted">
                         {b.item_details.map(d => `${d.itemName} x${d.qty}`).join(', ')}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className={`money text-sm ${isPayer ? 'text-success' : 'text-white'}`}>
+                      <p className={`money text-sm ${isPayer ? 'text-success' : 'text-espresso'}`}>
                         {formatRupiah(b.total)}
                       </p>
                       {(b.tax_share > 0 || b.service_share > 0) && (
-                        <p className="text-[9px] text-white/30">
+                        <p className="text-[9px] text-warm-muted">
                           {b.tax_share > 0 && `+tax ${formatRupiah(b.tax_share)}`}
                           {b.service_share > 0 && ` +svc ${formatRupiah(b.service_share)}`}
                         </p>
