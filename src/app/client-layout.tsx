@@ -147,14 +147,21 @@ function DesktopSidebar() {
 }
 
 function MobileBottomNav() {
+  const { user } = useAuth();
   const pathname = usePathname();
+
+  const navItems = [
+    ...NAV_ITEMS,
+    ...(user?.is_admin ? [{ href: '/admin', icon: '⚙️', label: 'Admin' }] : []),
+    { href: '/profile', icon: '👤', label: 'Profil' },
+  ];
 
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-bottom bg-white/95 backdrop-blur-lg border-t border-warm-border shadow-warm"
     >
-      <div className="flex items-center justify-around h-16">
-        {NAV_ITEMS.map(item => {
+      <div className="flex items-center overflow-x-auto scrollbar-hide snap-x px-2 h-16 w-full justify-between sm:justify-around">
+        {navItems.map(item => {
           const isActive =
             pathname === item.href ||
             (item.href !== '/' && pathname.startsWith(item.href));
@@ -162,7 +169,7 @@ function MobileBottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center justify-center gap-0.5 px-2 py-1.5 rounded-xl min-w-[64px] transition-colors btn-press ${
+              className={`snap-center flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl min-w-[70px] shrink-0 transition-colors btn-press ${
                 isActive ? 'text-primary' : 'text-warm-muted'
               }`}
             >
@@ -170,7 +177,7 @@ function MobileBottomNav() {
               <span className={`text-[10px] ${isActive ? 'font-bold' : 'font-medium'}`}>
                 {item.label}
               </span>
-              {isActive && <div className="w-1 h-1 rounded-full bg-primary" />}
+              {isActive && <div className="w-1 h-1 rounded-full bg-primary mt-0.5" />}
             </Link>
           );
         })}
