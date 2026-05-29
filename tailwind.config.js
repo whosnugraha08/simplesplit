@@ -8,46 +8,46 @@ module.exports = {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#f59e0b',
-          light: 'rgba(245, 158, 11, 0.15)',
-          dark: '#d97706',
+          DEFAULT: '#C4622D',
+          light: '#F5D4C1',
+          dark: '#A04E22',
+          hover: '#E8956D',
         },
-        surface: 'rgba(255, 255, 255, 0.05)',
-        page: '#0a0a12',
-        'text-primary': '#f1f5f9',
-        'text-secondary': 'rgba(255, 255, 255, 0.55)',
-        'text-muted': 'rgba(255, 255, 255, 0.3)',
-        border: {
-          DEFAULT: 'rgba(255, 255, 255, 0.08)',
-          light: 'rgba(255, 255, 255, 0.04)',
+        accent: {
+          DEFAULT: '#E8956D',
+          light: '#F5D4C1',
         },
-        success: {
-          DEFAULT: '#22c55e',
-          light: 'rgba(34, 197, 94, 0.12)',
+        blush: '#F5D4C1',
+        cream: '#FDF6F0',
+        espresso: '#2C1810',
+        forest: {
+          DEFAULT: '#2D7A4F',
+          light: 'rgba(45, 122, 79, 0.12)',
         },
-        warning: {
-          DEFAULT: '#f59e0b',
-          light: 'rgba(245, 158, 11, 0.12)',
+        ruby: {
+          DEFAULT: '#C0392B',
+          light: 'rgba(192, 57, 43, 0.12)',
         },
-        danger: {
-          DEFAULT: '#ef4444',
-          light: 'rgba(239, 68, 68, 0.12)',
-        },
-        // Dark glass
-        glass: {
-          DEFAULT: 'rgba(255, 255, 255, 0.04)',
-          hover: 'rgba(255, 255, 255, 0.08)',
-          active: 'rgba(255, 255, 255, 0.12)',
+        warm: {
+          muted: 'rgba(44, 24, 16, 0.45)',
+          border: 'rgba(196, 98, 45, 0.15)',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'SF Mono', 'Fira Code', 'monospace'],
+        sans: ['"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
+        mono: ['"JetBrains Mono"', 'SF Mono', 'monospace'],
       },
       borderRadius: {
-        '2xl': '1rem',
-        '3xl': '1.5rem',
-        '4xl': '2rem',
+        card: '16px',
+        modal: '24px',
+      },
+      boxShadow: {
+        warm: '0 4px 24px rgba(196, 98, 45, 0.08)',
+        'warm-lg': '0 8px 32px rgba(196, 98, 45, 0.12)',
+      },
+      maxWidth: {
+        content: '1200px',
       },
     },
   },

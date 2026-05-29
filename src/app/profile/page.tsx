@@ -6,6 +6,8 @@ import { useAuth } from '@/lib/auth';
 import { PaymentMethod } from '@/lib/types';
 import { getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
+import { getSoundEnabled, setSoundEnabled } from '@/lib/settings';
+import { FormHelper } from '@/components/ui/FormHelper';
 import Link from 'next/link';
 
 interface LocalPM {
@@ -29,10 +31,56 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [soundOn, setSoundOn] = useState(true);
+  const [waGroupJid, setWaGroupJid] = useState('');
+  const [waGroupName, setWaGroupName] = useState('');
+  const [linkingGroup, setLinkingGroup] = useState(false);
 
   useEffect(() => {
+    setSoundOn(getSoundEnabled());
+    loadWaGroup();
     if (user?.friend_id) loadProfile();
   }, [user?.friend_id]);
+
+  async function loadWaGroup() {
+    try {
+      const res = await fetch('/api/wa-group');
+      const data = await res.json();
+      if (data.group) {
+        setWaGroupJid(data.group.group_jid || '');
+        setWaGroupName(data.group.group_name || '');
+      }
+    } catch {
+      /* optional */
+    }
+  }
+
+  async function handleLinkWaGroup() {
+    if (!waGroupJid.trim()) {
+      showToast('Isi Group JID dulu (dari bot setelah scan)', 'error');
+      return;
+    }
+    setLinkingGroup(true);
+    try {
+      const res = await fetch('/api/wa-group', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ group_jid: waGroupJid.trim(), group_name: waGroupName.trim() }),
+      });
+      if (!res.ok) throw new Error('Gagal menghubungkan');
+      showToast('Grup WA berhasil dihubungkan!', 'success');
+    } catch {
+      showToast('Gagal hubungkan grup WA', 'error');
+    }
+    setLinkingGroup(false);
+  }
+
+  async function handleUnlinkWaGroup() {
+    await fetch('/api/wa-group', { method: 'DELETE' });
+    setWaGroupJid('');
+    setWaGroupName('');
+    showToast('Grup WA diputus', 'success');
+  }
 
   async function loadProfile() {
     if (!user?.friend_id) return;
@@ -306,14 +354,66 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* Admin: link to Teman */}
-      {user?.is_admin && (
-        <Link href="/friends"
-          className="flex items-center justify-between w-full py-3.5 px-4 rounded-xl bg-white/5 border border-white/8 text-sm font-semibold hover:bg-white/5 transition mb-3">
-          <span>👥 Kelola Teman</span>
-          <span className="text-white/50">→</span>
-        </Link>
-      )}
+      {/* Settings v2 */}
+      <div className="warm-card p-5 mb-4">
+        <h2 className="text-sm font-semibold text-warm-muted mb-4">⚙️ Pengaturan</h2>
+
+        <label className="flex items-center justify-between py-2 mb-3">
+          <span className="text-sm text-espresso">Suara Interaksi</span>
+          <input
+            type="checkbox"
+            checked={soundOn}
+            onChange={e => {
+              setSoundOn(e.target.checked);
+              setSoundEnabled(e.target.checked);
+            }}
+          />
+        </label>
+
+        <div className="border-t border-warm-border pt-4">
+          <p className="text-sm font-semibold text-espresso mb-1">Hubungkan Grup WA</p>
+          <FormHelper text="Scan QR bot di VPS, lalu salin Group JID dari log bot saat bot join grup." />
+          <input
+            type="text"
+            value={waGroupName}
+            onChange={e => setWaGroupName(e.target.value)}
+            placeholder="Nama grup (opsional)"
+            className="warm-input w-full px-3 py-2 text-sm mt-2"
+          />
+          <input
+            type="text"
+            value={waGroupJid}
+            onChange={e => setWaGroupJid(e.target.value)}
+            placeholder="120363...@g.us"
+            className="warm-input w-full px-3 py-2 text-sm mt-2 font-mono text-xs"
+          />
+          <div className="flex gap-2 mt-3">
+            <button
+              type="button"
+              onClick={handleLinkWaGroup}
+              disabled={linkingGroup}
+              className="flex-1 py-2.5 btn-primary text-sm disabled:opacity-50"
+            >
+              {linkingGroup ? 'Menghubungkan...' : '🔗 Hubungkan'}
+            </button>
+            {waGroupJid && (
+              <button
+                type="button"
+                onClick={handleUnlinkWaGroup}
+                className="px-4 py-2.5 btn-secondary text-sm"
+              >
+                Putus
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <Link href="/friends"
+        className="flex items-center justify-between w-full py-3.5 px-4 rounded-card warm-card text-sm font-semibold mb-3 card-hover">
+        <span>👥 Kelola Teman</span>
+        <span className="text-warm-muted">→</span>
+      </Link>
 
       {/* Logout */}
       <button onClick={() => setShowLogoutConfirm(true)}

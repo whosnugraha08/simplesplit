@@ -1,19 +1,45 @@
-import { createWorker, Worker } from 'tesseract.js';
 import { ParsedReceipt, ParsedReceiptItem } from './types';
 import { parsePrice } from './formatters';
 
 let worker: Worker | null = null;
+let workerReady = false;
 
-async function getWorker(): Promise<Worker> {
+function getWorker(): Worker {
   if (!worker) {
-    worker = await createWorker('ind+eng', undefined, {});
+    worker = new Worker('/workers/ocr.worker.js');
+    workerReady = true;
   }
   return worker;
 }
 
-/**
- * Preprocess image for better OCR results.
- */
+function recognizeInWorker(
+  imageDataUrl: string,
+  onProgress?: (progress: number) => void,
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const w = getWorker();
+    const id = Math.random().toString(36).slice(2);
+
+    const handler = (e: MessageEvent) => {
+      if (e.data.id !== id) return;
+      if (e.data.type === 'progress' && onProgress) {
+        onProgress(Math.round(e.data.progress * 100));
+      }
+      if (e.data.type === 'result') {
+        w.removeEventListener('message', handler);
+        resolve(e.data.text);
+      }
+      if (e.data.type === 'error') {
+        w.removeEventListener('message', handler);
+        reject(new Error(e.data.message));
+      }
+    };
+
+    w.addEventListener('message', handler);
+    w.postMessage({ type: 'recognize', imageDataUrl, id });
+  });
+}
+
 function preprocessImage(imageFile: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
@@ -54,23 +80,10 @@ export async function scanReceipt(
   onProgress?: (progress: number) => void,
 ): Promise<ParsedReceipt> {
   const processedImage = await preprocessImage(imageFile);
-  const ocrWorker = await getWorker();
-  const result = await ocrWorker.recognize(processedImage);
-  const rawText = result.data.text;
+  const rawText = await recognizeInWorker(processedImage, onProgress);
   return parseReceiptText(rawText);
 }
 
-/**
- * Parse OCR raw text into structured receipt data.
- * Improved: handles multi-line item format common in Indonesian receipts.
- * 
- * Receipt format:
- *   Item Name                    <- line N (item name)
- *   1x  @34.000         34.000  <- line N+1 (qty, unit price, total price)
- * 
- * OR single-line:
- *   Item Name   2x   34.000
- */
 export function parseReceiptText(rawText: string): ParsedReceipt {
   const lines = rawText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
@@ -80,21 +93,13 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
   let serviceCharge: number | null = null;
   let total: number | null = null;
 
-  // --- PATTERNS ---
-
-  // Lines that indicate tax/service/total — extract value, don't treat as items
   const taxPatterns = /^(?:tax|pajak|ppn|pb1|pbr|pbi|vat)\s*:?\s*/i;
   const servicePatterns = /^(?:service|servis|sc|svc|service\s*charge)\s*:?\s*/i;
   const totalPatterns = /^(?:total|grand\s*total|jumlah|g\.?\s*total|amount)\s*:?\s*/i;
   const subtotalPatterns = /^(?:sub\s*total|subtotal|sub\.?\s*total)\s*:?\s*/i;
-
-  // Lines to COMPLETELY SKIP (not items, not financial)
   const skipPatterns = /^(---|===|\*\*\*|#{2,}|tanggal|date|kasir|cashier|no\.|receipt|invoice|struk|nota|thank|terima|member|telp|phone|alamat|address|table|meja|mode|info|dine|take\s*away|delivery|instagram|@\w|www\.|http|\d+\s*item)/i;
-
-  // Non-item financial lines to skip
   const nonItemPatterns = /^\s*(pembulatan|rounding|kembalian|change|tunai|cash|debit|kredit|credit|qris|qr\s*is|oris|ovo|gopay|dana|shopeepay|linkaja|card|kartu|visa|master|bca|mandiri|bni|bri|cimb|grand\s*total|5\s*item|\d+\s*item)\s*:?\s*/i;
 
-  // Helper: check if text looks like a non-item (for filtering extracted names)
   function isNonItem(text: string): boolean {
     const t = text.trim().toLowerCase();
     const blacklist = ['pembulatan', 'rounding', 'kembalian', 'change', 'tunai', 'cash',
@@ -105,111 +110,73 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
     return blacklist.some(b => t.startsWith(b)) || /^\d+\s*item/.test(t);
   }
 
-  // Discount (skip)
   const discountPatterns = /^(?:discount|diskon|disc|potongan)\s*:?\s*/i;
-
-  // Price at end of line
   const priceAtEnd = /(\d[\d.,]*\d|\d+)\s*$/;
-
-  // Quantity line: "1x @34.000   34.000" or "2x @15.000   30.000" or "1x  34.000  34.000"
   const qtyLineRegex = /^(\d+)\s*[xX×]\s*@?\s*([\d.,]+)/;
-
-  // Check if a line is ONLY a qty/price line (no real item name)
   const isQtyPriceLine = /^\d+\s*[xX×]\s*@?\s*[\d.,]+/;
-
-  // Check if a line looks like just numbers/prices (no text)
   const isOnlyNumbers = /^[0@\s.,\d]+$/;
-
-  // --- PARSING (multi-line aware) ---
-
-  // Track which lines have been consumed as qty/price for a previous name line
   const consumed = new Set<number>();
 
   for (let i = 0; i < lines.length; i++) {
     if (consumed.has(i)) continue;
     const line = lines[i];
 
-    // Skip irrelevant lines
     if (skipPatterns.test(line)) continue;
     if (line.length < 3) continue;
     if (/^-+$/.test(line) || /^=+$/.test(line)) continue;
-
-    // Check for non-item financial lines (pembulatan, QRIS, etc.)
     if (nonItemPatterns.test(line)) continue;
 
-    // Check for tax
     if (taxPatterns.test(line)) {
       const match = line.match(priceAtEnd);
       if (match) tax = parsePrice(match[1]);
       continue;
     }
-
-    // Check for service charge
     if (servicePatterns.test(line)) {
       const match = line.match(priceAtEnd);
       if (match) serviceCharge = parsePrice(match[1]);
       continue;
     }
-
-    // Check for subtotal
     if (subtotalPatterns.test(line)) {
       const match = line.match(priceAtEnd);
       if (match) subtotal = parsePrice(match[1]);
       continue;
     }
-
-    // Check for total
     if (totalPatterns.test(line)) {
       const match = line.match(priceAtEnd);
       if (match) total = parsePrice(match[1]);
       continue;
     }
-
-    // Check for discount (skip)
     if (discountPatterns.test(line)) continue;
 
-    // --- MULTI-LINE ITEM DETECTION ---
-    // Pattern: line N = item name, line N+1 = "1x @price   price"
     const nextLine = i + 1 < lines.length ? lines[i + 1] : '';
     const nextLineIsQtyPrice = qtyLineRegex.test(nextLine);
 
     if (nextLineIsQtyPrice && !isOnlyNumbers.test(line) && !isQtyPriceLine.test(line)) {
-      // Current line is item name, next line is qty/price
       const qtyMatch = nextLine.match(qtyLineRegex);
       const priceMatch = nextLine.match(priceAtEnd);
 
       if (qtyMatch && priceMatch) {
-        const quantity = parseInt(qtyMatch[1], 10) || 1;
         const unitPrice = parsePrice(qtyMatch[2]);
         const totalPrice = parsePrice(priceMatch[1]);
-
-        // Use total price if available and differs from unit price, else use unit price
         const price = totalPrice > unitPrice ? totalPrice : unitPrice;
-
-        let itemName = cleanItemName(line);
+        const itemName = cleanItemName(line);
 
         if (itemName.length > 1 && price > 0 && price < 100000000 && !isNonItem(itemName)) {
           items.push({ name: itemName, price, quantity: 1 });
         }
-
         consumed.add(i + 1);
         continue;
       }
     }
 
-    // --- SINGLE-LINE ITEM DETECTION ---
-    // "Item Name   34.000"
     const priceMatch = line.match(priceAtEnd);
     if (priceMatch) {
       const price = parsePrice(priceMatch[1]);
       if (price <= 0 || price > 100000000) continue;
 
       let itemName = line.slice(0, priceMatch.index).trim();
-
-      // If the "name" part is just qty info like "1x @34.000", skip — it was a price line
       if (isQtyPriceLine.test(line) || isOnlyNumbers.test(itemName)) continue;
 
-      // Check for qty prefix
       const qtyPrefix = itemName.match(/^(\d+)\s*[xX×]\s*/);
       let quantity = 1;
       if (qtyPrefix) {
@@ -218,14 +185,12 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
       }
 
       itemName = cleanItemName(itemName);
-
       if (itemName.length > 1 && !isNonItem(itemName)) {
         items.push({ name: itemName, price, quantity });
       }
     }
   }
 
-  // If no subtotal found, calculate from items
   if (subtotal === null && items.length > 0) {
     subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   }
@@ -233,21 +198,21 @@ export function parseReceiptText(rawText: string): ParsedReceipt {
   return { items, subtotal, tax, service_charge: serviceCharge, total, raw_text: rawText };
 }
 
-/**
- * Clean up an item name extracted from OCR
- */
 function cleanItemName(name: string): string {
   return name
-    .replace(/[.\-_=]+$/, '')       // trailing dots/dashes
-    .replace(/^\*+\s*/, '')          // leading asterisks (modifiers like "* do hot less sug")
-    .replace(/^[0@\s]+/, '')         // leading zeros/@ symbols
-    .replace(/\s{2,}/g, ' ')        // collapse multiple spaces
+    .replace(/[.\-_=]+$/, '')
+    .replace(/^\*+\s*/, '')
+    .replace(/^[0@\s]+/, '')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 }
 
 export async function terminateOCR(): Promise<void> {
-  if (worker) {
-    await worker.terminate();
+  if (worker && workerReady) {
+    const id = 'terminate';
+    worker.postMessage({ type: 'terminate', id });
+    worker.terminate();
     worker = null;
+    workerReady = false;
   }
 }

@@ -189,6 +189,76 @@ function buildPaidAllMessage(bill, debts) {
 
 // ── Send Message Helper ─────────────────────────────────────
 
+// Linked group JID (set via webhook or env)
+let linkedGroupJid = process.env.WA_GROUP_JID || null;
+
+async function sendToGroup(groupJid, message, imageUrl) {
+  if (!isReady) throw new Error('WhatsApp client belum ready');
+  const chatId = groupJid.includes('@') ? groupJid : groupJid + '@g.us';
+  try {
+    if (imageUrl && imageUrl.startsWith('http')) {
+      const media = await MessageMedia.fromUrl(imageUrl, { unsafeMime: true });
+      await client.sendMessage(chatId, media, { caption: message });
+    } else {
+      await client.sendMessage(chatId, message);
+    }
+    console.log(`✅ Pesan grup terkirim ke ${chatId}`);
+    return { success: true };
+  } catch (err) {
+    console.error(`❌ Gagal kirim ke grup:`, err.message);
+    return { success: false, reason: err.message };
+  }
+}
+
+function buildGroupBillMessage(bill, items, debts) {
+  let msg = `*[SIMPLESPLIT]*\n🧾 *Bill baru!*\n\n`;
+  msg += `🏷️ *${bill.title || 'Bill'}* — Total ${formatRupiah(bill.total_amount || 0)}\n`;
+  debts.forEach(d => {
+    const name = d.debtor?.name || 'Teman';
+    msg += `├ ${name}: ${formatRupiah(d.amount)}\n`;
+  });
+  msg += `\n_(Notifikasi grup SimpleSplit)_`;
+  return msg;
+}
+
+async function handleGroupCommand(message) {
+  const body = message.body.trim();
+  if (!body.startsWith('!')) return;
+
+  const parts = body.slice(1).split(/\s+/);
+  const command = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  try {
+    const res = await fetch(`${APP_URL}/api/wa-group/query`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-webhook-secret': WEBHOOK_SECRET,
+      },
+      body: JSON.stringify({ command, args }),
+    });
+    const data = await res.json();
+    if (data.text) {
+      await message.reply(data.text);
+    }
+  } catch (err) {
+    console.error('Group command error:', err.message);
+    await message.reply('⚠️ Gagal memproses perintah. Coba lagi nanti.');
+  }
+}
+
+client.on('message', async (message) => {
+  try {
+    const chat = await message.getChat();
+    if (!chat.isGroup) return;
+    if (linkedGroupJid && chat.id._serialized !== linkedGroupJid) return;
+    await handleGroupCommand(message);
+  } catch (err) {
+    console.error('Message handler error:', err.message);
+  }
+});
+
 async function sendWhatsApp(phoneNumber, message, imageUrl) {
   if (!isReady) {
     throw new Error('WhatsApp client belum ready. Scan QR dulu!');
@@ -267,7 +337,27 @@ app.post('/webhook', async (req, res) => {
   }
 
   const payload = req.body;
-  const { bill, items, debts, type, paymentMethods, payerHasQris } = payload;
+  const { bill, items, debts, type, paymentMethods, payerHasQris, groupJid } = payload;
+
+  // Register linked group
+  if (groupJid) {
+    linkedGroupJid = groupJid;
+    console.log(`📎 Grup WA terhubung: ${groupJid}`);
+  }
+
+  // Group-only notification (no individual DMs required)
+  if (type === 'group_notify') {
+    if (!bill || !debts?.length) {
+      return res.status(400).json({ error: 'Payload group_notify tidak lengkap' });
+    }
+    const targetGroup = groupJid || linkedGroupJid;
+    if (!targetGroup) {
+      return res.json({ skipped: true, reason: 'no_group_linked' });
+    }
+    const msg = buildGroupBillMessage(bill, items, debts);
+    const result = await sendToGroup(targetGroup, msg);
+    return res.json({ success: result.success, type: 'group_notify' });
+  }
 
   if (!bill || !debts || debts.length === 0) {
     return res.status(400).json({ error: 'Payload tidak lengkap' });
@@ -278,6 +368,13 @@ app.post('/webhook', async (req, res) => {
   const results = [];
 
   try {
+    // Also notify linked group on new bills
+    if ((type === 'tagihan' || !type) && (groupJid || linkedGroupJid)) {
+      const targetGroup = groupJid || linkedGroupJid;
+      const groupMsg = buildGroupBillMessage(bill, items, debts);
+      await sendToGroup(targetGroup, groupMsg);
+      await sleep(1000);
+    }
     // ── PAID ALL (kolektif) ───────────────────────────────
     if (type === 'paid_all') {
       const creditorPhone = bill.paid_by_friend?.whatsapp_number;

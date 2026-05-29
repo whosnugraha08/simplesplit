@@ -5,6 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/lib/auth';
 import { Friend, ParsedReceiptItem } from '@/lib/types';
 import { scanReceipt } from '@/lib/ocr';
+import { playScanCompleteSound } from '@/lib/sounds';
+import { compressImage } from '@/lib/compress-image';
+import { CategoryChips, BillCategory } from '@/components/ui/CategoryChip';
+import { HintCard } from '@/components/ui/HintCard';
+import { FormHelper, FieldTooltip } from '@/components/ui/FormHelper';
 import { formatRupiah } from '@/lib/formatters';
 import { getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
@@ -30,6 +35,7 @@ export default function NewBillPage() {
   const [serviceCharge, setServiceCharge] = useState<number>(0);
   const [rounding, setRounding] = useState<number>(0);
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<BillCategory | null>('makan');
   const [billDate, setBillDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [totalOnReceipt, setTotalOnReceipt] = useState<number>(0);
 
@@ -48,11 +54,12 @@ export default function NewBillPage() {
     });
   }, [user]);
 
-  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+    const compressed = await compressImage(file);
+    setImageFile(compressed);
+    setImagePreview(URL.createObjectURL(compressed));
   }
 
   async function handleScan() {
@@ -112,6 +119,7 @@ export default function NewBillPage() {
         setTotalOnReceipt(Number(result.totalOnReceipt) || 0);
         setTitle(result.storeName || '');
         if (result.date) setBillDate(result.date);
+        playScanCompleteSound();
         setTimeout(() => setStep('edit'), 300);
       } catch (geminiErr) {
         console.warn('Gemini failed, fallback to Tesseract...', geminiErr);
@@ -125,6 +133,7 @@ export default function NewBillPage() {
         setRounding(0);
         setTotalOnReceipt(0);
         setTitle('');
+        playScanCompleteSound();
         setTimeout(() => setStep('edit'), 300);
       }
     } catch (err) {
