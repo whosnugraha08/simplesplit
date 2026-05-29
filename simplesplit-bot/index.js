@@ -422,17 +422,25 @@ app.post('/webhook', async (req, res) => {
 
     // ── TAGIHAN (default — kirim ke semua pengutang) ──────
     else {
-      for (const debt of debts) {
-        const phone = debt.debtor?.whatsapp_number;
-        if (phone) {
-          const msg = buildBillMessage(bill, items, debt, paymentMethods, payerHasQris);
-          const result = await sendWhatsApp(phone, msg);
-          results.push({ to: phone, ...result });
-          // Small delay between messages to avoid rate limiting
-          if (debts.length > 1) await sleep(2000);
-        } else {
-          console.log(`⚠️  ${debt.debtor?.name || '?'} tidak punya nomor WA`);
-          results.push({ to: debt.debtor?.name, success: false, reason: 'no_phone' });
+      // Jika grup terhubung, cukup kirim ke grup saja (tidak perlu japri)
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
+        console.log('📎 Grup terhubung, skip japri dan hanya mengirim pesan ke grup.');
+        results.push({ to: 'group', success: true, reason: 'sent_to_group_only' });
+      } else {
+        // Fallback: Jika tidak ada grup, terpaksa japri
+        for (const debt of debts) {
+          const phone = debt.debtor?.whatsapp_number;
+          if (phone) {
+            const msg = buildBillMessage(bill, items, debt, paymentMethods, payerHasQris);
+            const result = await sendWhatsApp(phone, msg);
+            results.push({ to: phone, ...result });
+            // Small delay between messages to avoid rate limiting
+            if (debts.length > 1) await sleep(2000);
+          } else {
+            console.log(`⚠️  ${debt.debtor?.name || '?'} tidak punya nomor WA`);
+            results.push({ to: debt.debtor?.name, success: false, reason: 'no_phone' });
+          }
         }
       }
     }
