@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 function formatRupiah(num: number): string {
   return 'Rp ' + Number(num).toLocaleString('id-ID');
@@ -14,6 +9,11 @@ export async function POST(req: NextRequest) {
   const secret = req.headers.get('x-webhook-secret');
   if (secret !== (process.env.WEBHOOK_SECRET || 'super-secret-key-123')) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
   }
 
   try {

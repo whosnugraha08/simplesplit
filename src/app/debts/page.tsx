@@ -8,6 +8,10 @@ import { formatRupiah, formatDate, getInitials, getAvatarColor } from '@/lib/for
 import { generateDynamicQRIS } from '@/lib/qris';
 import { useToast } from '@/components/Toast';
 import { calculateNettingSummary, processNetting, NettingPair } from '@/lib/netting';
+import { playPaidSound } from '@/lib/sounds';
+import { burstConfetti } from '@/lib/confetti';
+import { PageHeader } from '@/components/ui/PageHeader';
+import { HintCard } from '@/components/ui/HintCard';
 import Link from 'next/link';
 
 type DebtWithRelations = Debt & { debtor?: Friend; creditor?: Friend; bill?: Bill };
@@ -172,6 +176,8 @@ export default function DebtsPage() {
     }
     setSubmittingProof(false);
     setProofModal(null);
+    playPaidSound();
+    burstConfetti();
     showToast('Hutang ditandai lunas!', 'success');
     loadDebts();
   }
@@ -271,18 +277,17 @@ export default function DebtsPage() {
 
   return (
     <div className="content-padding pt-6 pb-4">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Hutang</h1>
-        <p className="text-sm text-white/50">Kelola hutang & piutang kamu</p>
-      </div>
+      <PageHeader title="Hutang" subtitle="Kelola hutang & piutang kamu" />
 
-      {/* Tab: My Debts vs Owed to Me — only personal, no "all" */}
-      <div className="flex gap-1 bg-white/5 rounded-2xl p-1 border border-white/8 mb-4">
+      <HintCard hintKey="debts_empty">
+        Belum ada hutang? Buat split bill pertama dengan tap <strong>(+)</strong> di pojok kanan bawah.
+      </HintCard>
+
+      <div className="flex gap-1 bg-blush/50 rounded-card p-1 border border-warm-border mb-4">
         <button
           onClick={() => setTab('my-debts')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            tab === 'my-debts' ? 'bg-primary text-white shadow-sm' : 'text-white/50 hover:text-white'
+            tab === 'my-debts' ? 'bg-primary text-white shadow-sm' : 'text-warm-muted hover:text-espresso'
           }`}
         >
           💸 Aku Hutang
@@ -290,7 +295,7 @@ export default function DebtsPage() {
         <button
           onClick={() => setTab('owed-to-me')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
-            tab === 'owed-to-me' ? 'bg-primary text-white shadow-sm' : 'text-white/50 hover:text-white'
+            tab === 'owed-to-me' ? 'bg-primary text-white shadow-sm' : 'text-warm-muted hover:text-espresso'
           }`}
         >
           💰 Piutangku

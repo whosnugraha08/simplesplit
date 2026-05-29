@@ -9,6 +9,7 @@ import { calculateSplit, calculateDebts } from '@/lib/calculations';
 import { formatRupiah, getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
 import { autoProcessNetting } from '@/lib/netting';
+import { notifyWhatsApp, notifyWhatsAppGroup } from '@/lib/notify';
 
 export default function AssignPage() {
   const params = useParams();
@@ -168,6 +169,25 @@ export default function AssignPage() {
       }
 
       await supabase.from('bills').update({ status: 'assigned' }).eq('id', billId);
+
+      const { data: insertedDebts } = await supabase
+        .from('debts')
+        .select('*, debtor:debtor_id(id,name,whatsapp_number), creditor:creditor_id(id,name,whatsapp_number)')
+        .eq('bill_id', billId)
+        .eq('status', 'unpaid');
+
+      const { data: billFull } = await supabase
+        .from('bills')
+        .select('*, paid_by_friend:paid_by(id,name,whatsapp_number)')
+        .eq('id', billId)
+        .single();
+
+      const { data: billItems } = await supabase.from('bill_items').select('*').eq('bill_id', billId);
+
+      if (billFull && insertedDebts?.length) {
+        notifyWhatsApp({ bill: billFull, items: billItems || [], debts: insertedDebts });
+        notifyWhatsAppGroup({ type: 'group_notify', bill: billFull, items: billItems || [], debts: insertedDebts });
+      }
 
       // Auto-netting: check if any debts can be offset
       const nettingResult = await autoProcessNetting(bill.paid_by);

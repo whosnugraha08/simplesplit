@@ -7,6 +7,8 @@ import { Debt, Friend, Bill, PaymentMethod } from '@/lib/types';
 import { formatRupiah, getInitials, getAvatarColor } from '@/lib/formatters';
 import { generateDynamicQRIS } from '@/lib/qris';
 import { useToast } from '@/components/Toast';
+import { playPaidSound } from '@/lib/sounds';
+import { burstConfetti } from '@/lib/confetti';
 
 export default function PayPage() {
   const params = useParams();
@@ -112,6 +114,8 @@ export default function PayPage() {
         }).catch(console.error);
       }
     }
+    playPaidSound();
+    burstConfetti();
     showToast('Hutang berhasil dilunasi!', 'success');
     router.push('/debts');
   }

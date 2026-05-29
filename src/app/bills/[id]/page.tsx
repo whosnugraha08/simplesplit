@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { Bill, BillItem, Friend, Debt } from '@/lib/types';
 import { formatRupiah, formatDate, getInitials, getAvatarColor } from '@/lib/formatters';
 import { useToast } from '@/components/Toast';
+import { notifyWhatsApp, notifyWhatsAppGroup } from '@/lib/notify';
 import Link from 'next/link';
 
 export default function BillDetailPage() {
@@ -64,10 +65,12 @@ export default function BillDetailPage() {
     if (!bill || debts.length === 0) return;
     setSendingWA(true);
     try {
-      const res = await fetch('/api/webhook-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bill, items, debts }) });
-      if (!res.ok) throw new Error('Gagal');
-      showToast('Pesan berhasil dikirim ke antrean Bot!', 'success');
-    } catch { showToast('Gagal menghubungi server Bot WA', 'error'); }
+      await notifyWhatsApp({ bill, items, debts });
+      await notifyWhatsAppGroup({ type: 'group_notify', bill, items, debts });
+      showToast('Pesan dikirim ke Bot & grup (jika terhubung)!', 'success');
+    } catch {
+      showToast('Gagal menghubungi server Bot WA', 'error');
+    }
     finally { setSendingWA(false); }
   }
 
@@ -75,8 +78,7 @@ export default function BillDetailPage() {
     if (!bill) return;
     setSendingRemind(debt.id);
     try {
-      const res = await fetch('/api/webhook-wa', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ bill, items, debts: [debt], type: 'remind' }) });
-      if (!res.ok) throw new Error('Gagal');
+      await notifyWhatsApp({ bill, items, debts: [debt], type: 'remind' });
       showToast(`Pengingat dikirim ke ${debt.debtor?.name}!`, 'success');
     } catch { showToast(`Gagal kirim pengingat ke ${debt.debtor?.name}`, 'error'); }
     finally { setSendingRemind(null); }

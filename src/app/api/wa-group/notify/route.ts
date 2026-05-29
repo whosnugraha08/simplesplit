@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,13 +7,19 @@ export async function POST(req: NextRequest) {
     const botUrl = process.env.VPS_BOT_URL || 'http://localhost:8803/webhook';
     const webhookSecret = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
 
-    const { data: groupSettings } = await supabaseAdmin
-      .from('wa_group_settings')
-      .select('group_jid')
-      .eq('is_active', true)
-      .maybeSingle();
+    const supabase = getSupabaseAdmin();
+    let groupJid: string | undefined;
 
-    if (!groupSettings?.group_jid) {
+    if (supabase) {
+      const { data: groupSettings } = await supabase
+        .from('wa_group_settings')
+        .select('group_jid')
+        .eq('is_active', true)
+        .maybeSingle();
+      groupJid = groupSettings?.group_jid;
+    }
+
+    if (!groupJid) {
       return NextResponse.json({ skipped: true, reason: 'no_group_linked' });
     }
 
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         ...payload,
         type: payload.type || 'group_notify',
-        groupJid: groupSettings.group_jid,
+        groupJid,
       }),
       signal: controller.signal,
     });

@@ -226,16 +226,15 @@ export default function ProfilePage() {
           style={{ backgroundColor: getAvatarColor(displayName || 'U') }}>
           {getInitials(displayName || 'User')}
         </div>
-        <h1 className="text-xl font-bold mt-3">{displayName}</h1>
-        <p className="text-xs text-white/50">@{user?.username}</p>
+        <h1 className="font-display text-xl font-bold mt-3 text-espresso">{displayName}</h1>
+        <p className="text-xs text-warm-muted">@{user?.username}</p>
       </div>
 
-      {/* Profile Info Card */}
-      <div className="glass-card p-5 mb-4">
+      <div className="warm-card p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/50">Informasi Profil</h2>
+          <h2 className="text-sm font-semibold text-warm-muted">Informasi Profil</h2>
           {!editMode && (
-            <button onClick={() => setEditMode(true)} className="text-xs text-amber-400 font-semibold">
+            <button onClick={() => setEditMode(true)} className="text-xs text-primary font-semibold">
               ✏️ Edit
             </button>
           )}
@@ -275,10 +274,10 @@ export default function ProfilePage() {
       </div>
 
       {/* Payment Methods */}
-      <div className="glass-card p-5 mb-4">
+      <div className="warm-card p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white/50">💳 Rekening / E-Wallet</h2>
-          <button type="button" onClick={addPaymentMethod} className="text-xs text-amber-400 font-semibold">
+          <h2 className="text-sm font-semibold text-warm-muted">💳 Rekening / E-Wallet</h2>
+          <button type="button" onClick={addPaymentMethod} className="text-xs text-primary font-semibold">
             + Tambah
           </button>
         </div>

@@ -196,6 +196,7 @@ export default function NewBillPage() {
           service_charge_amount: serviceCharge,
           total_amount: grandTotal,
           status: 'draft',
+          category: category || 'lainnya',
           bill_date: billDate ? new Date(billDate).toISOString() : new Date().toISOString(),
         })
         .select().single();
@@ -228,10 +229,10 @@ export default function NewBillPage() {
     <div className="content-padding pt-6 pb-4 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-xl text-white/50 p-1">←</button>
+        <button onClick={() => router.back()} className="text-xl text-warm-muted p-1 btn-press">←</button>
         <div>
-          <h1 className="text-xl font-bold">Bill Baru</h1>
-          <p className="text-xs text-white/50">
+          <h1 className="font-display text-xl font-bold text-espresso">Bill Baru</h1>
+          <p className="text-xs text-warm-muted">
             {step === 'upload' && 'Upload foto nota'}
             {step === 'scanning' && 'Memproses nota...'}
             {step === 'edit' && 'Review & edit item'}
@@ -243,13 +244,16 @@ export default function NewBillPage() {
       {/* Step: Upload */}
       {step === 'upload' && (
         <div className="animate-fade-in">
+          <HintCard hintKey="scan_receipt">
+            Cara scan nota: foto nota yang terang, pastikan teks terbaca jelas. Biasanya 5–15 detik.
+          </HintCard>
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           {!imagePreview ? (
             <button onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-[3/4] rounded-2xl border-2 border-dashed border-white/10 hover:border-amber-500/40 transition-colors flex flex-col items-center justify-center gap-3 bg-white/5">
+              className="w-full aspect-[3/4] rounded-card border-2 border-dashed border-primary/30 hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-blush/30 btn-press">
               <span className="text-5xl">📸</span>
-              <span className="text-sm font-semibold text-white">Ambil Foto Nota</span>
-              <span className="text-xs text-white/40">atau pilih dari galeri</span>
+              <span className="text-sm font-semibold text-espresso">Ambil Foto Nota</span>
+              <span className="text-xs text-warm-muted">atau pilih dari galeri</span>
             </button>
           ) : (
             <div className="space-y-4">
@@ -258,18 +262,16 @@ export default function NewBillPage() {
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
                   className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
               </div>
-              <button onClick={handleScan}
-                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm active:scale-[0.98] transition-transform shadow-lg shadow-amber-500/20">
+              <button onClick={handleScan} className="w-full py-3.5 btn-primary text-sm">
                 🔍 Scan & Baca Nota
               </button>
             </div>
           )}
-          {scanError && <div className="mt-4 bg-red-500/10 text-danger rounded-xl p-3 text-sm">{scanError}</div>}
+          {scanError && <div className="mt-4 bg-ruby-light text-ruby rounded-card p-3 text-sm animate-shake">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-border" /><span className="text-xs text-white/50">atau</span><div className="flex-1 h-px bg-border" />
+            <div className="flex-1 h-px bg-warm-border" /><span className="text-xs text-warm-muted">atau</span><div className="flex-1 h-px bg-warm-border" />
           </div>
-          <button onClick={handleManualInput}
-            className="w-full mt-4 py-3.5 rounded-xl border border-white/8 bg-white/5 font-semibold text-sm text-white active:scale-[0.98] transition-transform">
+          <button onClick={handleManualInput} className="w-full mt-4 py-3.5 btn-secondary text-sm">
             ✍️ Input Manual
           </button>
         </div>
@@ -278,15 +280,16 @@ export default function NewBillPage() {
       {/* Step: Scanning */}
       {step === 'scanning' && (
         <div className="animate-fade-in flex flex-col items-center justify-center py-16">
-          <div className="w-16 h-16 border-4 border-white/10 border-t-amber-500 rounded-full animate-spin mb-6" />
-          <p className="text-lg font-semibold mb-2">Membaca Nota...</p>
-          <p className="text-sm pb-1 font-medium gradient-text">
+          <div className="w-16 h-16 border-4 border-blush border-t-primary rounded-full animate-spin mb-6" />
+          <p className="text-lg font-semibold text-espresso mb-2">Membaca Nota...</p>
+          <p className="text-sm pb-1 font-medium text-primary">
             {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
           </p>
-          <div className="w-48 h-2 bg-border rounded-full overflow-hidden mt-2">
-            <div className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
+          <p className="text-xs text-warm-muted mb-2">Sedang membaca nota... biasanya 5–15 detik</p>
+          <div className="w-48 h-2 bg-blush rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
           </div>
-          <p className="text-xs text-white/50 mt-2">{Math.round(scanProgress)}%</p>
+          <p className="text-xs text-warm-muted mt-2">{Math.round(scanProgress)}%</p>
         </div>
       )}
 
@@ -303,15 +306,19 @@ export default function NewBillPage() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-white/50 mb-1.5">Judul Bill</label>
+              <label className="block text-sm font-medium text-warm-muted mb-1.5">Judul Bill</label>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
-                className="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+                className="warm-input w-full px-4 py-3 text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-white/50 mb-1.5">Tanggal</label>
+              <label className="block text-sm font-medium text-warm-muted mb-1.5">Tanggal</label>
               <input type="date" value={billDate} onChange={e => setBillDate(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl glass-input text-sm" />
+                className="warm-input w-full px-4 py-3 text-sm" />
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-warm-muted mb-2">Kategori</label>
+            <CategoryChips value={category} onChange={setCategory} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -347,19 +354,20 @@ export default function NewBillPage() {
           </div>
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Pajak (Tax)</label>
+              <FieldTooltip label="Pajak (Tax)" hint="Biasanya 10–15% dari subtotal. Cek struk/nota kamu." />
               <input type="number" value={tax || ''} onChange={e => setTax(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
+                className="warm-input w-full px-3 py-2.5 text-sm font-mono mt-1" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Service</label>
+              <label className="block text-xs font-medium text-warm-muted mb-1">Service</label>
               <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
+                className="warm-input w-full px-3 py-2.5 text-sm font-mono" />
+              <FormHelper text="Service charge dari resto, biasanya 5–10%." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-white/50 mb-1">Pembulatan</label>
+              <label className="block text-xs font-medium text-warm-muted mb-1">Pembulatan</label>
               <input type="number" value={rounding || ''} onChange={e => setRounding(parseFloat(e.target.value) || 0)} placeholder="0"
-                className="w-full px-3 py-2.5 rounded-xl glass-input text-sm font-mono" />
+                className="warm-input w-full px-3 py-2.5 text-sm font-mono" />
             </div>
           </div>
           <div className="glass-card p-4">

@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
+import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function GET() {
-  const { data, error } = await supabaseAdmin
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
+  }
+
+  const { data, error } = await supabase
     .from('wa_group_settings')
     .select('*')
     .eq('is_active', true)
@@ -21,6 +21,11 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
+  }
+
   try {
     const body = await req.json();
     const { group_jid, group_name, reminder_frequency } = body;
@@ -29,7 +34,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'group_jid required' }, { status: 400 });
     }
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await supabase
       .from('wa_group_settings')
       .upsert(
         {
@@ -56,7 +61,12 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE() {
-  const { error } = await supabaseAdmin
+  const supabase = getSupabaseAdmin();
+  if (!supabase) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 503 });
+  }
+
+  const { error } = await supabase
     .from('wa_group_settings')
     .update({ is_active: false, updated_at: new Date().toISOString() })
     .eq('is_active', true);
