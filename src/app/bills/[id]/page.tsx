@@ -249,11 +249,11 @@ export default function BillDetailPage() {
       {/* Delete Modal */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowDeleteConfirm(false)}>
-          <div className="bg-white shadow-warm-lg border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-espresso mb-2">Hapus Bill?</h3>
+          <div className="bg-[#1a1a2e] shadow-warm-lg border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-white mb-2">Hapus Bill?</h3>
             <p className="text-sm text-warm-muted mb-6">Bill &quot;{bill.title}&quot; dan semua data terkait akan dihapus.</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl bg-blush/40 border border-warm-border font-semibold text-sm text-espresso hover:bg-blush transition-colors">Batal</button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="flex-1 py-3 rounded-xl border border-warm-border font-semibold text-sm text-white hover:bg-white/5 transition-colors">Batal</button>
               <button onClick={handleDelete} disabled={deleting} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm disabled:opacity-50 hover:bg-red-600 transition-colors">
                 {deleting ? 'Menghapus...' : 'Ya, Hapus'}
               </button>
