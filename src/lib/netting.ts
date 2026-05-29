@@ -155,8 +155,8 @@ export async function processNetting(pair: NettingPair): Promise<string> {
   const largerDebts = largerSide === 'aOwesB' ? aOwesB.debts : bOwesA.debts;
 
   // Names of bills for context
-  const largerBillNames = largerDebts.map(d => d.billTitle).join(', ');
-  const smallerBillNames = smallerDebts.map(d => d.billTitle).join(', ');
+  const largerBillNames = largerDebts.map(d => `${d.billTitle} - Rp ${d.amount.toLocaleString('id-ID')}`).join(', ');
+  const smallerBillNames = smallerDebts.map(d => `${d.billTitle} - Rp ${d.amount.toLocaleString('id-ID')}`).join(', ');
 
   // Mark ALL debts on the smaller side as paid (fully offset)
   for (const debt of smallerDebts) {
