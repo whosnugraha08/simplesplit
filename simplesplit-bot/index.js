@@ -17,12 +17,23 @@ const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app
 let isReady = false;
 let lastQR = null;
 
+const fs = require('fs');
+
+// Auto-detect Chrome Path
+let chromePath = process.env.CHROME_PATH;
+if (!chromePath) {
+  if (fs.existsSync('/usr/bin/google-chrome-stable')) {
+    chromePath = '/usr/bin/google-chrome-stable';
+  } else {
+    chromePath = '/usr/bin/chromium-browser';
+  }
+}
+
 const client = new Client({
   authStrategy: new LocalAuth(),
   puppeteer: {
     headless: true,
-    // Use system-installed Chromium instead of Puppeteer's bundled Chrome
-    executablePath: process.env.CHROME_PATH || '/usr/bin/chromium-browser' ,
+    executablePath: chromePath,
     args: [
       '--no-sandbox',
       '--disable-setuid-sandbox',
