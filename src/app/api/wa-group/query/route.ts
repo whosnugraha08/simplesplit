@@ -35,14 +35,36 @@ export async function POST(req: NextRequest) {
     if (cmd === 'ringkasan') {
       const { data: debts } = await supabase
         .from('debts')
-        .select('amount, status, debtor:debtor_id(name), creditor:creditor_id(name)')
+        .select('amount, status, debtor:debtor_id(name), creditor:creditor_id(name), bill:bill_id(title)')
         .eq('status', 'unpaid');
 
       const list = debts || [];
       const total = list.reduce((s, d) => s + Number(d.amount), 0);
-      return NextResponse.json({
-        text: `📊 *Ringkasan Hutang Aktif*\n${list.length} hutang aktif\nTotal: *${formatRupiah(total)}*`,
-      });
+      
+      let text = `📊 *Ringkasan Keseluruhan*\nTotal Hutang Aktif: *${formatRupiah(total)}*\n\n`;
+      
+      if (list.length === 0) {
+        text += `✅ _Semua hutang sudah lunas! Tidak ada tagihan aktif._ 🎉`;
+      } else {
+        const byDebtor: Record<string, typeof list> = {};
+        list.forEach(d => {
+          const debtorName = (d.debtor as { name?: string })?.name || 'Seseorang';
+          if (!byDebtor[debtorName]) byDebtor[debtorName] = [];
+          byDebtor[debtorName].push(d);
+        });
+        
+        for (const [debtor, userDebts] of Object.entries(byDebtor)) {
+          text += `👤 *${debtor}* perlu membayar:\n`;
+          userDebts.forEach(d => {
+            const creditorName = (d.creditor as { name?: string })?.name || '?';
+            const billTitle = (d.bill as { title?: string })?.title || 'Tagihan';
+            text += `   - ${formatRupiah(Number(d.amount))} ke ${creditorName} (${billTitle})\n`;
+          });
+          text += `\n`;
+        }
+      }
+
+      return NextResponse.json({ text: text.trim() });
     }
 
     if (cmd === 'hutang') {
