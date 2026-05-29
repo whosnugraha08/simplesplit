@@ -68,12 +68,24 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ text: `✅ *${friend.name}* tidak punya hutang aktif.` });
       }
 
-      let text = `💰 *Hutang ${friend.name}*\n`;
+      let text = `💰 *Hutang ${friend.name}*\n\n`;
       debts.forEach(d => {
         const bill = d.bill as { title?: string; bill_date?: string } | null;
-        text += `• ${formatRupiah(Number(d.amount))} ke ${(d.creditor as { name?: string })?.name} (${bill?.title || 'Bill'})\n`;
+        const creditorName = (d.creditor as { name?: string })?.name || 'Seseorang';
+        
+        text += `🧾 *${bill?.title || 'Bill'}* (ke ${creditorName})\n`;
+        text += `   Nominal: *${formatRupiah(Number(d.amount))}*\n`;
+        
+        if (d.notes) {
+          text += `   📌 Rincian pesanan:\n`;
+          const noteLines = d.notes.split('\n').filter(Boolean);
+          noteLines.forEach(line => {
+            text += `      - ${line.trim()}\n`;
+          });
+        }
+        text += `\n`;
       });
-      return NextResponse.json({ text });
+      return NextResponse.json({ text: text.trim() });
     }
 
     if (cmd === 'history') {
