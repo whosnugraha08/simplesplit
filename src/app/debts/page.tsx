@@ -784,14 +784,14 @@ export default function DebtsPage() {
       {/* Proof Upload Modal */}
       {proofModal && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !submittingProof && setProofModal(null)}>
-          <div className="bg-[#1a1a2e] border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="bg-white shadow-warm-lg border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">📸 Bukti Pembayaran</h3>
-              <button onClick={() => !submittingProof && setProofModal(null)} className="text-warm-muted text-xl p-1">✕</button>
+              <h3 className="text-lg font-bold text-espresso">📸 Bukti Pembayaran</h3>
+              <button onClick={() => !submittingProof && setProofModal(null)} className="text-warm-muted hover:text-espresso text-xl p-1">✕</button>
             </div>
 
-            <div className="bg-amber-500/10 rounded-xl p-3 mb-4">
-              <p className="text-xs text-amber-400">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
+            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 mb-4">
+              <p className="text-xs text-amber-700">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
             </div>
 
             <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
@@ -800,23 +800,23 @@ export default function DebtsPage() {
               <div className="relative mb-4">
                 <img src={proofPreview} alt="Bukti" className="w-full max-h-52 object-contain rounded-xl border border-warm-border bg-blush/40" />
                 <button onClick={() => { setProofFile(null); setProofPreview(null); }}
-                  className="absolute top-2 right-2 bg-white/10 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
-                <p className="text-[10px] text-emerald-400 font-medium mt-1.5 text-center">✓ Bukti pembayaran siap dikirim</p>
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+                <p className="text-[10px] text-emerald-600 font-medium mt-1.5 text-center">✓ Bukti pembayaran siap dikirim</p>
               </div>
             ) : (
               <label htmlFor="proof-debt-upload"
-                className="block w-full py-8 rounded-xl border-2 border-dashed border-amber-500/20 hover:border-amber-500/30 bg-blue-500/10/50 transition-colors cursor-pointer text-center mb-4">
+                className="block w-full py-8 rounded-xl border-2 border-dashed border-warm-border hover:border-orange-500 bg-orange-50/50 transition-colors cursor-pointer text-center mb-4">
                 <span className="text-3xl block mb-2">📷</span>
-                <span className="text-sm text-amber-400 font-semibold">Upload Bukti Transfer</span>
+                <span className="text-sm text-orange-600 font-semibold">Upload Bukti Transfer</span>
                 <span className="block text-[11px] text-warm-muted mt-1">Tap untuk foto atau pilih dari galeri</span>
               </label>
             )}
 
             <div className="flex gap-3">
               <button onClick={() => setProofModal(null)} disabled={submittingProof}
-                className="flex-1 py-3 rounded-xl border border-warm-border font-semibold text-sm disabled:opacity-50">Batal</button>
+                className="flex-1 py-3 rounded-xl border border-warm-border text-espresso hover:bg-warm-50 font-semibold text-sm disabled:opacity-50">Batal</button>
               <button onClick={submitProofAndMarkPaid} disabled={submittingProof || !proofFile}
-                className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${proofFile ? 'bg-emerald-600 text-white' : 'bg-white/10 text-warm-muted'}`}>
+                className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${proofFile ? 'bg-emerald-600 text-white shadow-emerald' : 'bg-warm-100 text-warm-muted'}`}>
                 {submittingProof ? 'Mengunggah...' : proofFile ? '✓ Kirim & Tandai Lunas' : '📷 Upload dulu'}
               </button>
             </div>
