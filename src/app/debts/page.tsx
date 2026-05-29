@@ -675,10 +675,10 @@ export default function DebtsPage() {
       {/* Pay All Modal */}
       {payAllConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !payingAll && setPayAllConfirm(null)}>
-          <div className="bg-[#1a1a2e] border border-warm-border w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+          <div className="bg-white border border-warm-border shadow-warm-lg w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Bayar Semua</h3>
-              <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-warm-muted text-xl p-1">✕</button>
+              <h3 className="text-lg font-bold text-espresso">Bayar Semua</h3>
+              <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-warm-muted text-xl p-1 hover:text-espresso">✕</button>
             </div>
 
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 mb-4 text-white text-center">

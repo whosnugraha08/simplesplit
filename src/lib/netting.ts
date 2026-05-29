@@ -154,6 +154,10 @@ export async function processNetting(pair: NettingPair): Promise<string> {
   const smallerDebts = smallerSide === 'aOwesB' ? aOwesB.debts : bOwesA.debts;
   const largerDebts = largerSide === 'aOwesB' ? aOwesB.debts : bOwesA.debts;
 
+  // Names of bills for context
+  const largerBillNames = largerDebts.map(d => d.billTitle).join(', ');
+  const smallerBillNames = smallerDebts.map(d => d.billTitle).join(', ');
+
   // Mark ALL debts on the smaller side as paid (fully offset)
   for (const debt of smallerDebts) {
     const { data: existingDebt } = await supabase
@@ -166,7 +170,7 @@ export async function processNetting(pair: NettingPair): Promise<string> {
     await supabase.from('debts').update({
       status: 'paid',
       paid_at: now,
-      notes: existingNotes + `\n\n🔄 LUNAS via NETTING OTOMATIS — Di-offset dengan hutang berlawanan. Tidak perlu transfer.`,
+      notes: existingNotes + `\n\n🔄 LUNAS via NETTING OTOMATIS — Di-offset dengan tagihan sebaliknya (${largerBillNames}). Tidak perlu transfer.`,
     }).eq('id', debt.id);
   }
 
@@ -192,7 +196,7 @@ export async function processNetting(pair: NettingPair): Promise<string> {
       await supabase.from('debts').update({
         status: 'paid',
         paid_at: now,
-        notes: existingNotes + `\n\n🔄 LUNAS via NETTING OTOMATIS — Di-offset dengan hutang berlawanan. Tidak perlu transfer.`,
+        notes: existingNotes + `\n\n🔄 LUNAS via NETTING OTOMATIS — Di-offset dengan tagihan sebaliknya (${smallerBillNames}). Tidak perlu transfer.`,
       }).eq('id', debt.id);
       remainingToOffset -= debt.amount;
     } else {
@@ -201,7 +205,7 @@ export async function processNetting(pair: NettingPair): Promise<string> {
       const offsetted = remainingToOffset;
       await supabase.from('debts').update({
         amount: newAmount,
-        notes: existingNotes + `\n\n🔄 NETTING OTOMATIS — Rp ${offsetted.toLocaleString('id-ID')} sudah di-offset dengan hutang berlawanan. Sisa yang perlu dibayar: Rp ${newAmount.toLocaleString('id-ID')}.`,
+        notes: existingNotes + `\n\n🔄 NETTING OTOMATIS — Rp ${offsetted.toLocaleString('id-ID')} sudah di-offset dengan tagihan sebaliknya (${smallerBillNames}). Sisa yang perlu dibayar: Rp ${newAmount.toLocaleString('id-ID')}.`,
       }).eq('id', debt.id);
       remainingToOffset = 0;
     }

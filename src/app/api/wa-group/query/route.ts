@@ -77,11 +77,15 @@ export async function POST(req: NextRequest) {
         text += `   Nominal: *${formatRupiah(Number(d.amount))}*\n`;
         
         if (d.notes) {
-          text += `   📌 Rincian pesanan:\n`;
           const noteLines = String(d.notes).split('\n').filter(Boolean);
-          noteLines.forEach((line: string) => {
-            text += `      - ${line.trim()}\n`;
-          });
+          const nettingLines = noteLines.filter((line: string) => line.includes('NETTING OTOMATIS'));
+          
+          if (nettingLines.length > 0) {
+            text += `   📌 Catatan Netting:\n`;
+            nettingLines.forEach((line: string) => {
+              text += `      - ${line.trim().replace('🔄 ', '')}\n`;
+            });
+          }
         }
         text += `\n`;
       });
