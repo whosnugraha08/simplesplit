@@ -1,17 +1,16 @@
 // ============================================================
-// SimpleSplit WhatsApp Bot v2.0
-// Express webhook server + whatsapp-web.js client
+// SimpleSplit WhatsApp Bot v2.0 (Polling Edition)
+// No inbound ports needed! Bypasses firewall.
 // ============================================================
 
 require('dotenv').config();
-const express = require('express');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 // ── Configuration ───────────────────────────────────────────
-const PORT = process.env.PORT || 8803;
-const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
 const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
+const POLL_INTERVAL = 3000; // Poll every 3 seconds
+
 
 // ── WhatsApp Client Setup ───────────────────────────────────
 let isReady = false;
@@ -327,65 +326,31 @@ async function sendWhatsApp(phoneNumber, message, imageUrl) {
   }
 }
 
-// ── Express Webhook Server ──────────────────────────────────
+// ── Polling Queue ───────────────────────────────────────────
 
-const app = express();
-app.use(express.json({ limit: '5mb' }));
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({
-    status: isReady ? 'ready' : 'not_ready',
-    whatsapp: isReady ? 'connected' : (lastQR ? 'waiting_for_qr_scan' : 'initializing'),
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-  });
-});
-
-// Main webhook endpoint
-app.post('/webhook', async (req, res) => {
-  // Verify secret
-  const secret = req.headers['x-webhook-secret'];
-  if (secret !== WEBHOOK_SECRET) {
-    console.log('❌ Webhook secret mismatch');
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  if (!isReady) {
-    console.log('⚠️  Webhook diterima tapi WA belum ready');
-    return res.status(503).json({ error: 'WhatsApp belum terhubung. Scan QR dulu!' });
-  }
-
-  const payload = req.body;
+async function processQueueItem(item) {
+  const payload = item.payload;
   const { bill, items, debts, type, paymentMethods, payerHasQris, groupJid } = payload;
 
   // Register linked group
   if (groupJid) {
     linkedGroupJid = groupJid;
-    console.log(`📎 Grup WA terhubung: ${groupJid}`);
   }
 
   // Group-only notification (no individual DMs required)
   if (type === 'group_notify') {
-    if (!bill || !debts?.length) {
-      return res.status(400).json({ error: 'Payload group_notify tidak lengkap' });
-    }
+    if (!bill || !debts?.length) return false;
     const targetGroup = groupJid || linkedGroupJid;
-    if (!targetGroup) {
-      return res.json({ skipped: true, reason: 'no_group_linked' });
-    }
+    if (!targetGroup) return false;
+    
     const msg = buildGroupBillMessage(bill, items, debts);
     const result = await sendToGroup(targetGroup, msg);
-    return res.json({ success: result.success, type: 'group_notify' });
+    return result.success;
   }
 
-  if (!bill || !debts || debts.length === 0) {
-    return res.status(400).json({ error: 'Payload tidak lengkap' });
-  }
+  if (!bill || !debts || debts.length === 0) return false;
 
-  console.log(`\n📨 Webhook diterima — type: ${type || 'tagihan'}, debts: ${debts.length}`);
-
-  const results = [];
+  console.log(`\n📨 Memproses pesan antrean — type: ${type || 'tagihan'}, debts: ${debts.length}`);
 
   try {
     // Also notify linked group on new bills
@@ -401,28 +366,18 @@ app.post('/webhook', async (req, res) => {
       if (targetGroup) {
         const msg = buildPaidAllMessage(bill, debts);
         const proofUrl = debts[0]?.proof_image_url || null;
-        const result = await sendToGroup(targetGroup, msg, proofUrl);
-        results.push({ to: 'group', ...result });
-      } else {
-        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi pelunasan kolektif');
-        results.push({ to: 'group', success: false, reason: 'no_group' });
+        await sendToGroup(targetGroup, msg, proofUrl);
       }
     }
-
     // ── PAID (single) ─────────────────────────────────────
     else if (type === 'paid') {
       const targetGroup = groupJid || linkedGroupJid;
       if (targetGroup) {
         const msg = buildPaidMessage(bill, debts[0]);
         const proofUrl = debts[0]?.proof_image_url || null;
-        const result = await sendToGroup(targetGroup, msg, proofUrl);
-        results.push({ to: 'group', ...result });
-      } else {
-        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi lunas');
-        results.push({ to: 'group', success: false, reason: 'no_group' });
+        await sendToGroup(targetGroup, msg, proofUrl);
       }
     }
-
     // ── NETTING (offset) ──────────────────────────────────
     else if (type === 'netting') {
       const targetGroup = groupJid || linkedGroupJid;
@@ -440,66 +395,81 @@ app.post('/webhook', async (req, res) => {
         }
         
         msg += `\n\n_(Pesan otomatis dari SimpleSplit)_`;
-        const result = await sendToGroup(targetGroup, msg);
-        results.push({ to: 'group', ...result });
-      } else {
-        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi netting');
-        results.push({ to: 'group', success: false, reason: 'no_group' });
+        await sendToGroup(targetGroup, msg);
       }
     }
-
     // ── REMIND ────────────────────────────────────────────
     else if (type === 'remind') {
       for (const debt of debts) {
         const phone = debt.debtor?.whatsapp_number;
         if (phone) {
           const msg = buildRemindMessage(bill, debt);
-          const result = await sendWhatsApp(phone, msg);
-          results.push({ to: phone, ...result });
-          // Small delay between messages to avoid rate limiting
+          await sendWhatsApp(phone, msg);
           if (debts.length > 1) await sleep(1500);
-        } else {
-          console.log(`⚠️  ${debt.debtor?.name || '?'} tidak punya nomor WA`);
-          results.push({ to: debt.debtor?.name, success: false, reason: 'no_phone' });
         }
       }
     }
-
-    // ── TAGIHAN (default — kirim ke semua pengutang) ──────
+    // ── TAGIHAN (default) ─────────────────────────────────
     else {
-      // Jika grup terhubung, cukup kirim ke grup saja (tidak perlu japri)
       const targetGroup = groupJid || linkedGroupJid;
       if (targetGroup) {
         console.log('📎 Grup terhubung, skip japri dan hanya mengirim pesan ke grup.');
-        results.push({ to: 'group', success: true, reason: 'sent_to_group_only' });
       } else {
-        // Fallback: Jika tidak ada grup, terpaksa japri
+        // Fallback japri
         for (const debt of debts) {
           const phone = debt.debtor?.whatsapp_number;
           if (phone) {
             const msg = buildBillMessage(bill, items, debt, paymentMethods, payerHasQris);
-            const result = await sendWhatsApp(phone, msg);
-            results.push({ to: phone, ...result });
-            // Small delay between messages to avoid rate limiting
+            await sendWhatsApp(phone, msg);
             if (debts.length > 1) await sleep(2000);
-          } else {
-            console.log(`⚠️  ${debt.debtor?.name || '?'} tidak punya nomor WA`);
-            results.push({ to: debt.debtor?.name, success: false, reason: 'no_phone' });
           }
         }
       }
     }
 
-    const sent = results.filter(r => r.success).length;
-    const failed = results.filter(r => !r.success).length;
-    console.log(`📊 Hasil: ${sent} terkirim, ${failed} gagal`);
-
-    return res.json({ success: true, results, sent, failed });
+    return true; // Successfully processed
   } catch (err) {
-    console.error('❌ Error processing webhook:', err);
-    return res.status(500).json({ error: err.message });
+    console.error('❌ Error processing queue item:', err);
+    return false; // Will retry next time
   }
-});
+}
+
+let isPolling = false;
+
+async function pollQueue() {
+  if (!isReady || isPolling) return;
+  isPolling = true;
+
+  try {
+    const res = await fetch(`${APP_URL}/api/bot/queue`);
+    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+    
+    const data = await res.json();
+    if (data.items && data.items.length > 0) {
+      const processedIds = [];
+      
+      for (const item of data.items) {
+        const success = await processQueueItem(item);
+        if (success !== false) { // even if false due to no group, we should ack it so it's not stuck
+          processedIds.push(item.id);
+        }
+      }
+
+      if (processedIds.length > 0) {
+        await fetch(`${APP_URL}/api/bot/queue`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: processedIds })
+        });
+        console.log(`✅ ${processedIds.length} pesan antrean telah diselesaikan.`);
+      }
+    }
+  } catch (err) {
+    // console.error('Error polling queue:', err.message);
+  } finally {
+    isPolling = false;
+  }
+}
 
 // ── Utility ─────────────────────────────────────────────────
 
@@ -516,13 +486,10 @@ console.log('║   Starting...                            ║');
 console.log('╚══════════════════════════════════════════╝');
 console.log('');
 
-// Start Express server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🌐 Webhook server berjalan di http://0.0.0.0:${PORT}`);
-  console.log(`   Endpoint: POST /webhook`);
-  console.log(`   Health:   GET  /health`);
-  console.log('');
-});
+// Start Polling Loop
+setInterval(pollQueue, POLL_INTERVAL);
+console.log(`📡 Sistem Polling aktif. Mengambil data dari web setiap ${POLL_INTERVAL/1000} detik.`);
+console.log('');
 
 // Start WhatsApp client
 console.log('📱 Menginisialisasi WhatsApp client...');

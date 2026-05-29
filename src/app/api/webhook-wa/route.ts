@@ -35,68 +35,23 @@ export async function POST(req: NextRequest) {
       console.error('Failed to fetch group JID for webhook:', e);
     }
 
-    // Forward the payload to the VPS Bot
-    const botUrl = process.env.VPS_BOT_URL || 'http://202.155.143.184:8803/webhook';
-    const webhookSecret = process.env.WEBHOOK_SECRET || 'super-secret-key-123';
-
-    // Use AbortController for timeout (10 seconds)
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
-    try {
-      const response = await fetch(botUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-webhook-secret': webhookSecret,
-        },
-        body: JSON.stringify(payload),
-        signal: controller.signal,
-      });
-
-      clearTimeout(timeout);
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.error('Bot VPS replied with error:', response.status, errText);
-        
-        let userMessage = 'Gagal menghubungi Bot WA';
-        if (response.status === 503) {
-          userMessage = 'Bot WA belum terhubung. Scan QR dulu di VPS!';
-        } else if (response.status === 401) {
-          userMessage = 'Webhook secret tidak cocok';
-        }
-        
-        return NextResponse.json(
-          { error: userMessage, details: errText },
-          { status: 502 }
-        );
-      }
-
-      const result = await response.json();
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Webhook terkirim ke VPS',
-        sent: result.sent || 0,
-        failed: result.failed || 0,
-      });
-    } catch (fetchError: any) {
-      clearTimeout(timeout);
-      
-      if (fetchError.name === 'AbortError') {
-        console.error('Bot VPS timeout after 10s');
-        return NextResponse.json(
-          { error: 'Bot WA tidak merespon (timeout). Pastikan bot berjalan di VPS.' },
-          { status: 504 }
-        );
-      }
-      
-      console.error('Bot VPS unreachable:', fetchError.message);
-      return NextResponse.json(
-        { error: 'Tidak bisa menghubungi Bot WA. Pastikan bot berjalan di VPS.', details: fetchError.message },
-        { status: 502 }
-      );
+    // Save payload to bot_queue instead of forwarding via HTTP
+    const adminClient = getSupabaseAdmin();
+    if (!adminClient) {
+      console.warn('⚠️ Supabase admin client not found, cannot queue bot message.');
+      return NextResponse.json({ success: false, error: 'Admin client not configured' }, { status: 500 });
     }
+
+    const { error: insertError } = await adminClient
+      .from('bot_queue')
+      .insert({ payload });
+
+    if (insertError) {
+      console.error('Failed to insert into bot_queue:', insertError);
+      return NextResponse.json({ success: false, error: 'Failed to queue message' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, queued: true });
   } catch (error: any) {
     console.error('Webhook error:', error);
     return NextResponse.json(
