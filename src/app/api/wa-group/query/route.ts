@@ -78,8 +78,8 @@ export async function POST(req: NextRequest) {
         
         if (d.notes) {
           text += `   📌 Rincian pesanan:\n`;
-          const noteLines = d.notes.split('\n').filter(Boolean);
-          noteLines.forEach(line => {
+          const noteLines = String(d.notes).split('\n').filter(Boolean);
+          noteLines.forEach((line: string) => {
             text += `      - ${line.trim()}\n`;
           });
         }
