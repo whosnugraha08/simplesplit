@@ -264,6 +264,14 @@ client.on('message', async (message) => {
   try {
     const chat = await message.getChat();
     if (!chat.isGroup) return;
+
+    // Helper command to get group ID easily
+    if (message.body.trim().toLowerCase() === '!id') {
+      console.log(`\n📌 ID Grup: ${chat.id._serialized}\n`);
+      await message.reply(`*ID GRUP INI:*\n${chat.id._serialized}\n\n_Silakan salin ID di atas dan masukkan ke menu Hubungkan Grup WA di web._`);
+      return;
+    }
+
     if (linkedGroupJid && chat.id._serialized !== linkedGroupJid) return;
     await handleGroupCommand(message);
   } catch (err) {
