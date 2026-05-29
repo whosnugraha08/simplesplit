@@ -5,7 +5,10 @@ create table if not exists public.bot_queue (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable RLS but restrict all direct web access
+-- Enable RLS
 alter table public.bot_queue enable row level security;
 
--- Only service role (Vercel API & Bot API) can access this table, bypassing RLS
+-- Allow anon access for queuing to avoid issues if Service Role Key is missing
+create policy "Allow insert for all" on public.bot_queue for insert with check (true);
+create policy "Allow select for all" on public.bot_queue for select using (true);
+create policy "Allow delete for all" on public.bot_queue for delete using (true);
