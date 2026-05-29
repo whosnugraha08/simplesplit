@@ -397,29 +397,29 @@ app.post('/webhook', async (req, res) => {
     }
     // ── PAID ALL (kolektif) ───────────────────────────────
     if (type === 'paid_all') {
-      const creditorPhone = bill.paid_by_friend?.whatsapp_number;
-      if (creditorPhone) {
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
         const msg = buildPaidAllMessage(bill, debts);
         const proofUrl = debts[0]?.proof_image_url || null;
-        const result = await sendWhatsApp(creditorPhone, msg, proofUrl);
-        results.push({ to: creditorPhone, ...result });
+        const result = await sendToGroup(targetGroup, msg, proofUrl);
+        results.push({ to: 'group', ...result });
       } else {
-        console.log('⚠️  Creditor tidak punya nomor WA');
-        results.push({ to: 'creditor', success: false, reason: 'no_phone' });
+        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi pelunasan kolektif');
+        results.push({ to: 'group', success: false, reason: 'no_group' });
       }
     }
 
     // ── PAID (single) ─────────────────────────────────────
     else if (type === 'paid') {
-      const creditorPhone = bill.paid_by_friend?.whatsapp_number;
-      if (creditorPhone) {
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
         const msg = buildPaidMessage(bill, debts[0]);
         const proofUrl = debts[0]?.proof_image_url || null;
-        const result = await sendWhatsApp(creditorPhone, msg, proofUrl);
-        results.push({ to: creditorPhone, ...result });
+        const result = await sendToGroup(targetGroup, msg, proofUrl);
+        results.push({ to: 'group', ...result });
       } else {
-        console.log('⚠️  Creditor tidak punya nomor WA');
-        results.push({ to: 'creditor', success: false, reason: 'no_phone' });
+        console.log('⚠️  Tidak ada grup yang terhubung untuk notifikasi lunas');
+        results.push({ to: 'group', success: false, reason: 'no_group' });
       }
     }
 
