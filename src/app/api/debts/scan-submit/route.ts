@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       category: 'makanan'
     }).select('*, paid_by_friend:paid_by(*)').single();
 
-    if (billErr || !bill) throw new Error('Gagal bikin bill');
+    if (billErr || !bill) throw new Error('Gagal bikin bill: ' + (billErr?.message || 'Unknown Error'));
 
     const itemsToInsert = scanData.items.map((item: any) => ({
       bill_id: bill.id,
@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity
     }));
 
-    const { data: items } = await supabase.from('bill_items').insert(itemsToInsert).select('*');
+    const { data: items, error: itemsErr } = await supabase.from('bill_items').insert(itemsToInsert).select('*');
+    if (itemsErr || !items) throw new Error('Gagal bikin items: ' + (itemsErr?.message || 'Unknown Error'));
 
     // Minta bot bikin polling
     await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/webhook-wa`, {
