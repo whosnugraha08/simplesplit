@@ -287,6 +287,30 @@ async function handleGroupCommand(message) {
 
   console.log(`[DEBUG] handleGroupCommand received: body="${body}", command="${command}"`);
 
+  if (command === 'idku' || command === 'link') {
+    const friendName = args.join(' ');
+    if (!friendName) return message.reply('⚠️ Sebutkan namamu di web, contoh: !idku AL');
+    
+    const senderJid = message.author || message.from;
+    const statusMsg = await message.reply('⏳ Menghubungkan nomor/LID kamu dengan web...');
+    try {
+      const res = await fetch(`${APP_URL}/api/friends/link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': process.env.WEBHOOK_SECRET || 'super-secret-key-123' },
+        body: JSON.stringify({ jid: senderJid, name: friendName })
+      });
+      const data = await res.json();
+      if (data.success) {
+        await statusMsg.edit(`✅ Sukses! WhatsApp kamu berhasil dihubungkan ke teman bernama *${data.matchedName}*. Sekarang kamu bisa bebas vote!`);
+      } else {
+        await statusMsg.edit('⚠️ Gagal menghubungkan: ' + (data.error || 'Unknown error'));
+      }
+    } catch(e) {
+      await statusMsg.edit('⚠️ Server error: ' + e.message);
+    }
+    return;
+  }
+
   if (command === 'batal') {
     const billIdPartial = args[0];
     let billId = null;
