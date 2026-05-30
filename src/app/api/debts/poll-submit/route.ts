@@ -36,10 +36,12 @@ export async function POST(req: NextRequest) {
         .map(voter => {
           const num = voter.split('@')[0]; // "62812345678"
           const last8 = num.length > 8 ? num.slice(-8) : num;
-          return friends?.find(f => {
+          const found = friends?.find(f => {
             if (f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8)) return true;
             return f.name.toLowerCase() === voter.toLowerCase();
-          })?.id;
+          });
+          console.log(`[poll-submit] mapping ${voter} -> last8: ${last8} -> found: ${found?.name || 'NONE'}`);
+          return found?.id;
         })
         .filter(Boolean) as string[];
 
@@ -60,6 +62,10 @@ export async function POST(req: NextRequest) {
         if (!userItems[fid]) userItems[fid] = [];
         userItems[fid].push(`${item.item_name}`);
       }
+    }
+
+    if (assignmentsToInsert.length === 0) {
+      return NextResponse.json({ error: 'Tidak ada satupun vote yang cocok dengan kontak di database! Pastikan nomor WA kamu sudah terdaftar di menu Teman.' }, { status: 400 });
     }
 
     if (assignmentsToInsert.length > 0) {

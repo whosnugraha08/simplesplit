@@ -95,11 +95,14 @@ client.on('vote_update', async (vote) => {
     const voter = vote.voter;
     const selectedNames = vote.selectedOptions.map(opt => opt.name);
 
+    console.log(`[DEBUG] vote_update: pollId=${pollId}, voter=${voter}, selected=${selectedNames.join(', ')}`);
+
     // Cari poll ini milik billId yang mana
     for (const billId in activePolls) {
       if (activePolls[billId].pollMessageIds.includes(pollId)) {
         if (!activePolls[billId].votes[pollId]) activePolls[billId].votes[pollId] = {};
         activePolls[billId].votes[pollId][voter] = selectedNames;
+        console.log(`[DEBUG] Merekam vote dari ${voter} untuk bill ${billId}`);
         break;
       }
     }
