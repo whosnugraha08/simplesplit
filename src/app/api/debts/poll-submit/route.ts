@@ -101,7 +101,8 @@ export async function POST(req: NextRequest) {
       .eq('bill_id', billId);
 
     // Kirim webhook notifikasi (group_notify)
-    fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/webhook-wa`, {
+    const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || 'http://203.175.125.37:8803/webhook';
+    fetch(BOT_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'group_notify', bill: bill, items: billItems, debts: insertedDebts })

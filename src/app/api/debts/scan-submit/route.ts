@@ -54,11 +54,16 @@ export async function POST(req: NextRequest) {
     if (itemsErr || !items) throw new Error('Gagal bikin items: ' + (itemsErr?.message || 'Unknown Error'));
 
     // Minta bot bikin polling
-    await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/webhook-wa`, {
+    const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || 'http://203.175.125.37:8803/webhook';
+    const pingBot = await fetch(BOT_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ type: 'create_poll', bill, items })
     });
+
+    if (!pingBot.ok) {
+       console.error('[scan-submit] Gagal ping bot VPS:', pingBot.status);
+    }
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
