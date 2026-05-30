@@ -11,8 +11,6 @@ const qrcode = require('qrcode-terminal');
 const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
 const POLL_INTERVAL = 3000; // Poll every 3 seconds
 const activePolls = {}; // Store active WA polls state
-const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
-const POLL_INTERVAL = 3000; // Poll every 3 seconds
 
 
 // ── WhatsApp Client Setup ───────────────────────────────────
@@ -283,6 +281,8 @@ async function handleGroupCommand(message) {
   const parts = body.slice(1).split(/\s+/);
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
+
+  console.log(`[DEBUG] handleGroupCommand received: body="${body}", command="${command}"`);
 
   if (command === 'batal') {
     const billIdPartial = args[0];
