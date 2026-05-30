@@ -51,20 +51,26 @@ export async function POST(req: NextRequest) {
 
 TUGAS UTAMAMU:
 1. Jika user bertanya data hutang/ringkasan, jawablah berdasarkan DATA HUTANG.
-2. Jika user MEMINTA UNTUK MENCATAT HUTANG/TAGIHAN BARU (misal: "tolong catatin Budi ngutang ke aku 50rb buat parkir"), kamu HARUS mengembalikan format JSON murni agar sistem bisa memprosesnya, BUKAN teks biasa.
+2. Jika user MEMINTA UNTUK MENCATAT HUTANG/TAGIHAN BARU (misal: "tolong catatin Budi ngutang ke aku 50rb buat parkir"), kamu HARUS mengembalikan JSON create_debt.
+3. Jika user MEMINTA MENGHAPUS HUTANG (misal: "tolong hapus tagihan bensin faiz" atau "batalkan hutang sate"), kamu HARUS mencari ID hutang di DATA HUTANG lalu mengembalikan JSON delete_debt.
 
 ATURAN OUTPUT JSON UNTUK MENCATAT HUTANG:
-Keluarkan STRICT JSON (tanpa markdown backtick, tanpa sapaan):
 {
   "action": "create_debt",
-  "debtor_name": "Nama teman yang berhutang (sesuaikan dengan DATA TEMAN jika ada)",
-  "creditor_name": "Nama teman yang memberi hutangan (siapa yang mengetik chat tersebut)",
+  "debtor_name": "Nama teman yang berhutang",
+  "creditor_name": "Nama teman yang memberi hutangan",
   "amount": 50000,
   "notes": "Alasan/Catatan singkat"
 }
 
+ATURAN OUTPUT JSON UNTUK MENGHAPUS HUTANG:
+{
+  "action": "delete_debt",
+  "debt_id": "masukkan ID hutang dari DATA HUTANG yang paling cocok"
+}
+
 Jika kamu mengeluarkan JSON di atas, JANGAN tambahkan teks sapaan apapun.
-Jika user BUKAN meminta mencatat hutang (hanya bertanya/ngobrol/minta ringkasan), jawablah dengan TEKS GAUL biasa (gunakan *asterisk* untuk bold).
+Jika user BUKAN meminta mencatat/menghapus hutang, jawablah dengan TEKS GAUL biasa (gunakan *asterisk* untuk bold).
 
 DATA HUTANG AKTIF SAAT INI:
 ${JSON.stringify(debts, null, 2)}
@@ -87,10 +93,11 @@ ${JSON.stringify(friends, null, 2)}`;
         return NextResponse.json({ text: 'Waduh, otak gue lagi nge-blank nih bro. Coba tanya lagi nanti ya.' });
       }
 
-      // Cek apakah AI membalas dengan JSON create_debt
-      if (aiText.startsWith('{') && aiText.includes('create_debt')) {
+      // Cek apakah AI membalas dengan JSON
+      if (aiText.startsWith('{') && aiText.includes('"action"')) {
         try {
           const parsed = JSON.parse(aiText);
+          
           if (parsed.action === 'create_debt') {
             const debtor = friends?.find(f => f.name.toLowerCase().includes(String(parsed.debtor_name).toLowerCase()));
             const creditor = friends?.find(f => f.name.toLowerCase().includes(String(parsed.creditor_name).toLowerCase()));
@@ -99,7 +106,6 @@ ${JSON.stringify(friends, null, 2)}`;
               return NextResponse.json({ text: `❌ Gagal mencatat otomatis: Gak nemu nama teman yang cocok untuk ${parsed.debtor_name} atau ${parsed.creditor_name}. Coba cek ejaan namanya!` });
             }
 
-            // Create invisible bill
             const { data: bill } = await supabase
               .from('bills')
               .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'draft' })
@@ -118,9 +124,21 @@ ${JSON.stringify(friends, null, 2)}`;
               return NextResponse.json({ text: `🤖 *SIAP BOS!* Hutang sukses dicatat.\n\n👤 *${debtor.name}* berhutang *${formatRupiah(parsed.amount)}* ke *${creditor.name}*.\n📝 Catatan: ${parsed.notes}` });
             }
           }
+
+          if (parsed.action === 'delete_debt') {
+            if (!parsed.debt_id) {
+              return NextResponse.json({ text: `❌ Gagal menghapus: AI nggak nemu ID hutangnya di database.` });
+            }
+            
+            const { error } = await supabase.from('debts').delete().eq('id', parsed.debt_id);
+            if (error) {
+              return NextResponse.json({ text: `❌ Gagal menghapus dari database: ${error.message}` });
+            }
+            return NextResponse.json({ text: `🤖 *BERES!* Hutang tersebut sudah gue hapus dari buku catatan ya bos!` });
+          }
+
         } catch (e) {
           console.error("Failed to parse AI JSON", e);
-          // fall through to return text
         }
       }
 
