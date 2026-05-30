@@ -581,7 +581,7 @@ async function processQueueItem(item) {
             return optName;
           });
 
-          const poll = new Poll(`Pilih pesananmu (Bagian ${idx+1}/${chunks.length}):`, uniqueOptions, { selectableCount: 0 });
+          const poll = new Poll(`Pilih pesananmu (Bagian ${idx+1}/${chunks.length}):`, uniqueOptions, { allowMultipleAnswers: true });
           const pollMsg = await client.sendMessage(targetGroup, poll);
           pollMessageIds.push(pollMsg.id._serialized);
           await sleep(1000);
