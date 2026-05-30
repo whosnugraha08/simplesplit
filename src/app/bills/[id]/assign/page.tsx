@@ -211,6 +211,36 @@ export default function AssignPage() {
     }
   }
 
+  async function handleCreatePoll() {
+    if (!bill) return;
+    setSaving(true);
+    try {
+      await supabase.from('bills').update({ status: 'polling' }).eq('id', billId);
+      
+      const { data: billFull } = await supabase
+        .from('bills')
+        .select('*, paid_by_friend:paid_by(id,name,whatsapp_number)')
+        .eq('id', billId)
+        .single();
+
+      if (billFull) {
+        fetch('/api/webhook-wa', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'create_poll', bill: billFull, items: items })
+        }).catch(console.error);
+      }
+      
+      showToast('Polling berhasil dikirim ke grup WA! 📲', 'success');
+      router.push(`/debts`);
+    } catch (err) {
+      console.error('Error creating poll:', err);
+      showToast('Gagal membuat polling', 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   if (loading) {
     return (
       <div className="content-padding pt-6">
@@ -445,13 +475,22 @@ export default function AssignPage() {
       )}
 
       {/* Save Button */}
-      <button
-        onClick={handleSave}
-        disabled={saving || !allAssigned}
-        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
-      >
-        {saving ? 'Menyimpan...' : !allAssigned ? 'Assign semua item dulu' : '✓ Simpan Pembagian'}
-      </button>
+      <div className="flex gap-3">
+        <button
+          onClick={handleCreatePoll}
+          disabled={saving}
+          className="flex-[2] py-3.5 rounded-xl bg-[#25D366] text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
+        >
+          <span>💬</span> Polling Grup WA
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={saving || !allAssigned}
+          className="flex-[3] py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
+        >
+          {saving ? 'Menyimpan...' : !allAssigned ? 'Assign semua dulu' : '✓ Simpan Manual'}
+        </button>
+      </div>
 
       {!allAssigned && (
         <p className="text-xs text-warning text-center mt-2">

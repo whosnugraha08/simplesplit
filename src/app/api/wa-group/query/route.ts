@@ -24,12 +24,107 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({
         text:
           `*SimpleSplit Bot — Perintah Grup*\n\n` +
+          `!bot [pesan] — ngobrol atau catat hutang otomatis pakai AI\n` +
           `!hutang @nama — hutang aktif seseorang\n` +
           `!ringkasan — semua hutang aktif\n` +
           `!history @nama — history bulan ini\n` +
           `!lunas @nama Rp[X] — tandai lunas (perlu konfirmasi)\n` +
           `!bantuan — tampilkan daftar ini`,
       });
+    }
+
+    if (cmd === 'bot') {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) return NextResponse.json({ text: '⚠️ Gemini API Key belum dikonfigurasi di server.' });
+
+      const promptText = args.join(' ');
+      if (!promptText) return NextResponse.json({ text: '🤖 Ya bos? Ketik pesanmu setelah !bot.' });
+
+      const { data: debts } = await supabase
+        .from('debts')
+        .select('id, amount, status, notes, debtor:debtor_id(id, name), creditor:creditor_id(id, name), bill:bill_id(title)')
+        .eq('status', 'unpaid');
+        
+      const { data: friends } = await supabase.from('friends').select('id, name');
+
+      const systemPrompt = `Kamu adalah bot asisten keuangan WhatsApp "SimpleSplit" yang super pintar. Bahasamu gaul, asik, tapi tetap sopan.
+
+TUGAS UTAMAMU:
+1. Jika user bertanya data hutang/ringkasan, jawablah berdasarkan DATA HUTANG.
+2. Jika user MEMINTA UNTUK MENCATAT HUTANG/TAGIHAN BARU (misal: "tolong catatin Budi ngutang ke aku 50rb buat parkir"), kamu HARUS mengembalikan format JSON murni agar sistem bisa memprosesnya, BUKAN teks biasa.
+
+ATURAN OUTPUT JSON UNTUK MENCATAT HUTANG:
+Keluarkan STRICT JSON (tanpa markdown backtick, tanpa sapaan):
+{
+  "action": "create_debt",
+  "debtor_name": "Nama teman yang berhutang (sesuaikan dengan DATA TEMAN jika ada)",
+  "creditor_name": "Nama teman yang memberi hutangan (siapa yang mengetik chat tersebut)",
+  "amount": 50000,
+  "notes": "Alasan/Catatan singkat"
+}
+
+Jika kamu mengeluarkan JSON di atas, JANGAN tambahkan teks sapaan apapun.
+Jika user BUKAN meminta mencatat hutang (hanya bertanya/ngobrol/minta ringkasan), jawablah dengan TEKS GAUL biasa (gunakan *asterisk* untuk bold).
+
+DATA HUTANG AKTIF SAAT INI:
+${JSON.stringify(debts, null, 2)}
+DATA TEMAN:
+${JSON.stringify(friends, null, 2)}`;
+
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nChat dari user: ' + promptText }] }]
+        })
+      });
+
+      const aiData = await response.json();
+      let aiText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+      if (!aiText) {
+        return NextResponse.json({ text: 'Waduh, otak gue lagi nge-blank nih bro. Coba tanya lagi nanti ya.' });
+      }
+
+      // Cek apakah AI membalas dengan JSON create_debt
+      if (aiText.startsWith('{') && aiText.includes('create_debt')) {
+        try {
+          const parsed = JSON.parse(aiText);
+          if (parsed.action === 'create_debt') {
+            const debtor = friends?.find(f => f.name.toLowerCase().includes(String(parsed.debtor_name).toLowerCase()));
+            const creditor = friends?.find(f => f.name.toLowerCase().includes(String(parsed.creditor_name).toLowerCase()));
+            
+            if (!debtor || !creditor) {
+              return NextResponse.json({ text: `❌ Gagal mencatat otomatis: Gak nemu nama teman yang cocok untuk ${parsed.debtor_name} atau ${parsed.creditor_name}. Coba cek ejaan namanya!` });
+            }
+
+            // Create invisible bill
+            const { data: bill } = await supabase
+              .from('bills')
+              .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'active' })
+              .select().single();
+
+            if (bill) {
+              await supabase.from('debts').insert({
+                bill_id: bill.id,
+                debtor_id: debtor.id,
+                creditor_id: creditor.id,
+                amount: parsed.amount,
+                status: 'unpaid',
+                notes: `[AI] ${parsed.notes}`
+              });
+
+              return NextResponse.json({ text: `🤖 *SIAP BOS!* Hutang sukses dicatat.\n\n👤 *${debtor.name}* berhutang *${formatRupiah(parsed.amount)}* ke *${creditor.name}*.\n📝 Catatan: ${parsed.notes}` });
+            }
+          }
+        } catch (e) {
+          console.error("Failed to parse AI JSON", e);
+          // fall through to return text
+        }
+      }
+
+      return NextResponse.json({ text: aiText });
     }
 
     if (cmd === 'ringkasan') {

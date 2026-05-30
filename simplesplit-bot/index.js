@@ -4,10 +4,13 @@
 // ============================================================
 
 require('dotenv').config();
-const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia, Poll } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 
 // ── Configuration ───────────────────────────────────────────
+const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
+const POLL_INTERVAL = 3000; // Poll every 3 seconds
+const activePolls = {}; // Store active WA polls state
 const APP_URL = process.env.APP_URL || 'https://simplesplit-gasgasaja.vercel.app';
 const POLL_INTERVAL = 3000; // Poll every 3 seconds
 
@@ -85,6 +88,26 @@ client.on('disconnected', (reason) => {
     console.log('🔄 Mencoba reconnect...');
     client.initialize().catch(console.error);
   }, 5000);
+});
+
+// ── Vote Update Listener (Smart Polling) ───────────────────
+client.on('vote_update', async (vote) => {
+  try {
+    const pollId = vote.parentMessage.id._serialized;
+    const voter = vote.voter;
+    const selectedNames = vote.selectedOptions.map(opt => opt.name);
+
+    // Cari poll ini milik billId yang mana
+    for (const billId in activePolls) {
+      if (activePolls[billId].pollMessageIds.includes(pollId)) {
+        if (!activePolls[billId].votes[pollId]) activePolls[billId].votes[pollId] = {};
+        activePolls[billId].votes[pollId][voter] = selectedNames;
+        break;
+      }
+    }
+  } catch (err) {
+    console.error('Error handling vote_update:', err);
+  }
 });
 
 // ── Message Templates ───────────────────────────────────────
@@ -261,6 +284,117 @@ async function handleGroupCommand(message) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
 
+  if (command === 'selesai') {
+    const billIdPartial = args[0];
+    let billId = null;
+    if (billIdPartial) {
+      billId = Object.keys(activePolls).find(k => k.startsWith(billIdPartial));
+    } else {
+      billId = Object.keys(activePolls)[0];
+    }
+
+    if (!billId || !activePolls[billId]) {
+      return message.reply('⚠️ Tidak ada polling yang aktif saat ini.');
+    }
+
+    const pollData = activePolls[billId];
+    const itemVotes = {};
+    for (const item of pollData.items) {
+      itemVotes[item.id] = new Set();
+    }
+
+    for (const pId in pollData.votes) {
+      const votesForPoll = pollData.votes[pId];
+      for (const voter in votesForPoll) {
+        const selected = votesForPoll[voter];
+        for (const selName of selected) {
+          const matchedItem = pollData.items.find(i => i.poll_option_name === selName);
+          if (matchedItem) itemVotes[matchedItem.id].add(voter);
+        }
+      }
+    }
+
+    const votesArray = Object.keys(itemVotes).map(itemId => ({
+      bill_item_id: itemId,
+      assignee_names: Array.from(itemVotes[itemId])
+    })).filter(v => v.assignee_names.length > 0);
+
+    if (votesArray.length === 0) {
+      return message.reply('⚠️ Belum ada yang milih item satupun! Masa mau diselesaikan?');
+    }
+
+    await message.reply('⏳ Sedang menghitung dan membagi tagihan...');
+
+    try {
+      const res = await fetch(`${APP_URL}/api/debts/poll-submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': process.env.WEBHOOK_SECRET || 'super-secret-key-123' },
+        body: JSON.stringify({ billId, votes: votesArray })
+      });
+      const result = await res.json();
+      if (result.success) {
+        delete activePolls[billId];
+      } else {
+        await message.reply('⚠️ Gagal memproses: ' + (result.error || 'Unknown error'));
+      }
+    } catch(e) {
+      await message.reply('⚠️ Server error: ' + e.message);
+    }
+    return;
+  }
+
+  if (command === 'scan') {
+    if (!message.hasMedia) {
+      return message.reply('⚠️ Lampirkan foto struk dan beri caption !scan, atau reply foto struk dengan pesan !scan.');
+    }
+    await message.reply('⏳ Sedang menerawang strukmu menggunakan AI Gemini...');
+    
+    try {
+      const media = await message.downloadMedia();
+      const apiKey = process.env.GEMINI_API_KEY;
+      if(!apiKey) return message.reply('⚠️ Gemini API key tidak dikonfigurasi.');
+
+      const systemPrompt = `Kamu adalah AI ahli membaca nota Indonesia. Extract SEMUA item dan harga. Kembalikan JSON persis format ini tanpa spasi berlebih:
+{"title":"Nama Toko/Resto","tax":0,"serviceCharge":0,"rounding":0,"totalOnReceipt":0,"items":[{"name":"Es Teh","price":5000,"quantity":2}]}`;
+
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [
+            { text: systemPrompt },
+            { inline_data: { mime_type: media.mimetype, data: media.data } }
+          ]}]
+        })
+      });
+      
+      const aiData = await res.json();
+      let aiText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
+
+      const parsed = JSON.parse(aiText);
+      if(!parsed.items || parsed.items.length === 0) return message.reply('⚠️ Gagal mendeteksi item di struk.');
+
+      await message.reply(`✅ Berhasil mendeteksi *${parsed.items.length} item* dari ${parsed.title || 'Struk'}.\nMengirim polling ke grup...`);
+
+      const resWeb = await fetch(`${APP_URL}/api/debts/scan-submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sender_number: message.author || message.from,
+          scanData: parsed
+        })
+      });
+      const webData = await resWeb.json();
+      if (!webData.success) {
+        await message.reply('⚠️ Gagal bikin bill: ' + (webData.error || 'Unknown'));
+      }
+    } catch (e) {
+      await message.reply('⚠️ Gagal scan: ' + e.message);
+    }
+    return;
+  }
+
   try {
     const res = await fetch(`${APP_URL}/api/wa-group/query`, {
       method: 'POST',
@@ -369,13 +503,52 @@ async function processQueueItem(item) {
     return result.success;
   }
 
-  if (!bill || !debts || debts.length === 0) return false;
+  if (!bill || !debts || debts.length === 0) {
+    if (type !== 'create_poll') return false;
+  }
 
-  console.log(`\n📨 Memproses pesan antrean — type: ${type || 'tagihan'}, debts: ${debts.length}`);
+  console.log(`\n📨 Memproses pesan antrean — type: ${type || 'tagihan'}, items/debts count: ${debts?.length || items?.length}`);
 
   try {
+    // ── CREATE POLL ───────────────────────────────────────
+    if (type === 'create_poll') {
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
+        const payer = bill.paid_by_friend?.name || 'Seseorang';
+        await sendToGroup(targetGroup, `*[SIMPLESPLIT]*\n💬 *POLLING TAGIHAN BARU*\n\n${payer} telah menalangi *${bill.title}* sebesar ${formatRupiah(bill.total_amount)}.\n\nSilakan klik makanan/minuman yang kamu pesan di bawah ini.\n\n_(Pesan otomatis dari SimpleSplit)_`);
+        
+        const chunks = [];
+        for(let i=0; i<items.length; i+=10) {
+          chunks.push(items.slice(i, i+10));
+        }
+        
+        const pollMessageIds = [];
+        for (let idx = 0; idx < chunks.length; idx++) {
+          const chunk = chunks[idx];
+          const uniqueOptions = chunk.map((c, i) => {
+            const optName = `${c.item_name} (#${idx*10 + i + 1})`;
+            c.poll_option_name = optName;
+            return optName;
+          });
+
+          const poll = new Poll(`Pilih pesananmu (Bagian ${idx+1}/${chunks.length}):`, uniqueOptions, { selectableCount: 0 });
+          const pollMsg = await client.sendMessage(targetGroup, poll);
+          pollMessageIds.push(pollMsg.id._serialized);
+          await sleep(1000);
+        }
+        
+        activePolls[bill.id] = {
+          groupJid: targetGroup,
+          pollMessageIds,
+          items: items, 
+          votes: {},
+        };
+        
+        await sendToGroup(targetGroup, `Jika semua orang sudah milih, ketik *!selesai ${bill.id.substring(0,5)}* (atau balas pesan ini dengan *!selesai*) untuk langsung membagi tagihan!`);
+      }
+    }
     // Also notify linked group on new bills
-    if ((type === 'tagihan' || !type) && (groupJid || linkedGroupJid)) {
+    else if ((type === 'tagihan' || !type) && (groupJid || linkedGroupJid)) {
       const targetGroup = groupJid || linkedGroupJid;
       const groupMsg = buildGroupBillMessage(bill, items, debts);
       await sendToGroup(targetGroup, groupMsg);
@@ -425,12 +598,25 @@ async function processQueueItem(item) {
     }
     // ── REMIND ────────────────────────────────────────────
     else if (type === 'remind') {
-      for (const debt of debts) {
-        const phone = debt.debtor?.whatsapp_number;
-        if (phone) {
-          const msg = buildRemindMessage(bill, debt);
-          await sendWhatsApp(phone, msg);
-          if (debts.length > 1) await sleep(1500);
+      const targetGroup = groupJid || linkedGroupJid;
+      if (targetGroup) {
+        let msg = `*[SIMPLESPLIT]*\n🔔 *PENGINGAT TAGIHAN*\n\n`;
+        const payerTag = bill.paid_by_friend ? getTag(bill.paid_by_friend) : 'Seseorang';
+        msg += `Halo teman-teman, ini reminder dari ${payerTag} untuk tagihan *${bill.title || 'Bill'}*:\n\n`;
+        for (const debt of debts) {
+           msg += `├ ${getTag(debt.debtor)}: ${formatRupiah(debt.amount)}\n`;
+        }
+        msg += `\nMohon segera dilunasi ya! 🙏\n🔗 Link Bayar: ${APP_URL}/debts\n`;
+        msg += `\n_(Pesan otomatis dari SimpleSplit)_`;
+        await sendToGroup(targetGroup, msg);
+      } else {
+        for (const debt of debts) {
+          const phone = debt.debtor?.whatsapp_number;
+          if (phone) {
+            const msg = buildRemindMessage(bill, debt);
+            await sendWhatsApp(phone, msg);
+            if (debts.length > 1) await sleep(1500);
+          }
         }
       }
     }

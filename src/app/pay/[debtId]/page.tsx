@@ -23,6 +23,7 @@ export default function PayPage() {
   const [markingPaid, setMarkingPaid] = useState(false);
   const [showQris, setShowQris] = useState(false);
   const [expandNotes, setExpandNotes] = useState(false);
+  const [isCash, setIsCash] = useState(false);
 
   // Payment proof
   const [proofFile, setProofFile] = useState<File | null>(null);
@@ -89,13 +90,39 @@ export default function PayPage() {
   }
 
   async function handleMarkPaid() {
-    if (!proofFile) {
+    if (!isCash && !proofFile) {
       showToast('Upload bukti pembayaran dulu ya!', 'error');
       return;
     }
     setMarkingPaid(true);
+    
     // Upload proof image
-    const proofUrl = await uploadProof();
+    let proofUrl = isCash ? 'CASH' : await uploadProof();
+    
+    // Verifikasi AI (jika bukan cash)
+    if (!isCash && proofUrl && proofUrl !== 'CASH') {
+      try {
+        const verifyRes = await fetch('/api/verify-proof', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            proofUrl,
+            expectedAmount: Number(debt?.amount || 0),
+            expectedCreditor: debt?.creditor?.name || ''
+          })
+        });
+        const verifyData = await verifyRes.json();
+        
+        if (!verifyData.valid) {
+          showToast(`❌ Bukti ditolak AI: ${verifyData.reason || 'Gambar tidak valid'}`, 'error');
+          setMarkingPaid(false);
+          return;
+        }
+      } catch (e) {
+        console.error('Verify error', e);
+      }
+    }
+
     // Step 1: Mark as paid (must succeed)
     await supabase.from('debts').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', debtId);
     // Step 2: Try to save proof URL (may fail if column doesn't exist yet)
@@ -268,11 +295,26 @@ export default function PayPage() {
         </div>
       ) : null}
 
-      {/* Proof Upload */}
+      {/* Proof Upload / Cash Toggle */}
       <div className="glass-card p-5 mb-4">
-        <h2 className="text-sm font-semibold text-warm-muted mb-1">📸 Bukti Pembayaran</h2>
-        <p className="text-[11px] text-warm-muted mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan dikirim otomatis ke penagih via WhatsApp.</p>
-        <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-semibold text-warm-muted">📸 Bukti Pembayaran</h2>
+          <label className="flex items-center gap-2 cursor-pointer bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
+            <input type="checkbox" checked={isCash} onChange={e => setIsCash(e.target.checked)} className="rounded text-amber-500 focus:ring-amber-500 w-3.5 h-3.5" />
+            <span className="text-[11px] font-semibold text-amber-500">Bayar Cash (Tunai)</span>
+          </label>
+        </div>
+        
+        {isCash ? (
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
+            <p className="text-2xl mb-1">💵</p>
+            <p className="text-xs text-emerald-400 font-medium">Pembayaran Tunai</p>
+            <p className="text-[10px] text-warm-muted mt-1">Tidak perlu upload bukti transfer. Otomatis diteruskan sebagai Cash.</p>
+          </div>
+        ) : (
+          <>
+            <p className="text-[11px] text-warm-muted mb-3">Screenshot bukti transfer kamu setelah pembayaran berhasil. Bukti ini akan diverifikasi oleh AI secara otomatis.</p>
+            <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) handleProofFile(f); }} className="hidden" id="proof-upload" />
         {proofPreview ? (
           <div className="relative">
             <button onClick={() => setShowProofFull(true)} className="w-full">
@@ -290,16 +332,18 @@ export default function PayPage() {
             <span className="block text-[11px] text-warm-muted mt-1">Tap untuk foto atau pilih dari galeri</span>
           </label>
         )}
+        </>
+        )}
       </div>
 
       {/* Action */}
-      <button onClick={handleMarkPaid} disabled={markingPaid || !proofFile}
+      <button onClick={handleMarkPaid} disabled={markingPaid || (!isCash && !proofFile)}
         className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition shadow-lg ${
-          proofFile
+          (isCash || proofFile)
             ? 'bg-emerald-600 text-white shadow-emerald-500/20'
             : 'bg-white/10 text-warm-muted cursor-not-allowed shadow-none'
         } disabled:opacity-50`}>
-        {markingPaid ? 'Mengunggah & Memproses...' : proofFile ? '✓ Kirim Bukti & Tandai Lunas' : '📷 Upload bukti dulu'}
+        {markingPaid ? 'Memproses...' : isCash ? '✓ Konfirmasi Bayar Cash' : proofFile ? '✓ Kirim Bukti & Tandai Lunas' : '📷 Upload bukti dulu'}
       </button>
 
       {/* QRIS Fullscreen */}
