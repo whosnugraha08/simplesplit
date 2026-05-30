@@ -378,13 +378,19 @@ async function handleGroupCommand(message) {
   }
 
   if (command === 'scan') {
-    if (!message.hasMedia) {
+    let targetMsg = message;
+    if (message.hasQuotedMsg) {
+      const quoted = await message.getQuotedMessage();
+      if (quoted.hasMedia) targetMsg = quoted;
+    }
+
+    if (!targetMsg.hasMedia) {
       return message.reply('⚠️ Lampirkan foto struk dan beri caption !scan, atau reply foto struk dengan pesan !scan.');
     }
     const statusMsg = await message.reply('⏳ Sedang menerawang strukmu menggunakan AI Gemini...');
     
     try {
-      const media = await message.downloadMedia();
+      const media = await targetMsg.downloadMedia();
       const apiKey = process.env.GEMINI_API_KEY;
       if(!apiKey) return statusMsg.edit('⚠️ Gemini API key tidak dikonfigurasi.');
 
@@ -434,7 +440,7 @@ async function handleGroupCommand(message) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-webhook-secret': WEBHOOK_SECRET,
+        'x-webhook-secret': process.env.WEBHOOK_SECRET || 'super-secret-key-123',
       },
       body: JSON.stringify({ command, args }),
     });
