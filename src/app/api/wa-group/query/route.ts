@@ -46,13 +46,15 @@ export async function POST(req: NextRequest) {
         .eq('status', 'unpaid');
         
       const { data: friends } = await supabase.from('friends').select('id, name');
+      const { data: bills } = await supabase.from('bills').select('id, title, status, total_amount, created_at, paid_by(name)').order('created_at', { ascending: false }).limit(10);
 
       const systemPrompt = `Kamu adalah bot asisten keuangan WhatsApp "SimpleSplit" yang super pintar. Bahasamu gaul, asik, tapi tetap sopan.
 
 TUGAS UTAMAMU:
 1. Jika user bertanya data hutang/ringkasan, jawablah berdasarkan DATA HUTANG.
-2. Jika user MEMINTA UNTUK MENCATAT HUTANG/TAGIHAN BARU (misal: "tolong catatin Budi ngutang ke aku 50rb buat parkir"), kamu HARUS mengembalikan JSON create_debt.
-3. Jika user MEMINTA MENGHAPUS HUTANG (misal: "tolong hapus tagihan bensin faiz" atau "batalkan hutang sate"), kamu HARUS mencari ID hutang di DATA HUTANG lalu mengembalikan JSON delete_debt.
+2. Jika user MEMINTA UNTUK MENCATAT HUTANG BARU (misal: "catatin Budi ngutang ke aku 50rb"), kembalikan JSON create_debt.
+3. Jika user MEMINTA MENGHAPUS HUTANG SESEORANG (misal: "hapus tagihan bensin faiz" atau "batalkan hutang sate"), cari ID hutang di DATA HUTANG lalu kembalikan JSON delete_debt.
+4. Jika user MEMINTA MENGHAPUS TAGIHAN SECARA KESELURUHAN (misal: "hapus bill kisah manis huis" atau "hapus tagihan kisah manis huis"), cari ID tagihan di DATA TAGIHAN KESELURUHAN lalu kembalikan JSON delete_bill.
 
 ATURAN OUTPUT JSON UNTUK MENCATAT HUTANG:
 {
@@ -69,11 +71,19 @@ ATURAN OUTPUT JSON UNTUK MENGHAPUS HUTANG:
   "debt_id": "masukkan ID hutang dari DATA HUTANG yang paling cocok"
 }
 
+ATURAN OUTPUT JSON UNTUK MENGHAPUS TAGIHAN KESELURUHAN (BILL):
+{
+  "action": "delete_bill",
+  "bill_id": "masukkan ID tagihan (id) dari DATA TAGIHAN KESELURUHAN yang paling cocok"
+}
+
 Jika kamu mengeluarkan JSON di atas, JANGAN tambahkan teks sapaan apapun.
-Jika user BUKAN meminta mencatat/menghapus hutang, jawablah dengan TEKS GAUL biasa (gunakan *asterisk* untuk bold).
+Jika user BUKAN meminta mencatat/menghapus hutang/tagihan, jawablah dengan TEKS GAUL biasa (gunakan *asterisk* untuk bold).
 
 DATA HUTANG AKTIF SAAT INI:
 ${JSON.stringify(debts, null, 2)}
+DATA TAGIHAN KESELURUHAN:
+${JSON.stringify(bills, null, 2)}
 DATA TEMAN:
 ${JSON.stringify(friends, null, 2)}`;
 
@@ -147,6 +157,17 @@ ${JSON.stringify(friends, null, 2)}`;
             }
 
             return NextResponse.json({ text: `🤖 *BERES!* Hutang tersebut sudah gue hapus dari buku catatan ya bos!` });
+          }
+
+          if (parsed.action === 'delete_bill') {
+            if (!parsed.bill_id) {
+              return NextResponse.json({ text: `❌ Gagal menghapus: AI nggak nemu ID tagihannya di database.` });
+            }
+            const { error } = await supabase.from('bills').delete().eq('id', parsed.bill_id);
+            if (error) {
+              return NextResponse.json({ text: `❌ Gagal menghapus tagihan dari database: ${error.message}` });
+            }
+            return NextResponse.json({ text: `🤖 *BERES!* Tagihan utuh tersebut beserta seluruh utangnya sudah gue sapu bersih bos! 🧹` });
           }
 
         } catch (e) {
