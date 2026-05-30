@@ -350,10 +350,28 @@ async function handleGroupCommand(message) {
       }
     }
 
-    const votesArray = Object.keys(itemVotes).map(itemId => ({
-      bill_item_id: itemId,
-      assignee_names: Array.from(itemVotes[itemId])
-    })).filter(v => v.assignee_names.length > 0);
+    const votesArray = [];
+    for (const itemId of Object.keys(itemVotes)) {
+      const jids = Array.from(itemVotes[itemId]);
+      if (jids.length === 0) continue;
+      
+      const names = [];
+      for (const jid of jids) {
+        try {
+          const contact = await client.getContactById(jid);
+          // Prioritaskan pushname (nama WA user), lalu name (kontak), lalu nomor
+          const name = contact.pushname || contact.name || contact.shortName || contact.number || jid;
+          names.push(name);
+        } catch (e) {
+          console.error(`Gagal resolve kontak untuk ${jid}:`, e.message);
+          names.push(jid);
+        }
+      }
+      votesArray.push({
+        bill_item_id: itemId,
+        assignee_names: names
+      });
+    }
 
     if (votesArray.length === 0) {
       return message.reply('⚠️ Belum ada yang milih item satupun! Masa mau diselesaikan?');
