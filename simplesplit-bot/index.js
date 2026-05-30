@@ -299,12 +299,31 @@ async function handleGroupCommand(message, isAdmin, chat) {
       const ping = Date.now() - start;
       const apiOk = res.ok ? `AMAN (Ping: ${ping}ms)` : `ERROR (${res.status})`;
 
-      // Check Gemini Config
-      const geminiOk = process.env.GEMINI_API_KEY ? 'SIAP TEMPUR' : 'BELUM DIKONFIGURASI';
+      // Check Gemini Limit
+      let geminiStatus = 'BELUM DIKONFIGURASI';
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (apiKey) {
+        try {
+          const aiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'hi' }] }] })
+          });
+          if (aiRes.ok) {
+            geminiStatus = '🟢 AMAN (Tidak kena limit)';
+          } else if (aiRes.status === 429) {
+            geminiStatus = '🔴 KENA LIMIT (429) - Tunggu sebentar';
+          } else {
+            geminiStatus = `🔴 ERROR (${aiRes.status})`;
+          }
+        } catch (e) {
+          geminiStatus = `🔴 GAGAL KONEKSI (${e.message})`;
+        }
+      }
 
-      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n✅ Vercel Backend: ${apiOk}\n✅ Gemini AI: ${geminiOk}`);
+      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n✅ Vercel Backend: ${apiOk}\n🤖 Gemini AI: ${geminiStatus}`);
     } catch (e) {
-      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n❌ Vercel Backend: OFFLINE / GAGAL (${e.message})\n✅ Gemini AI: ?`);
+      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n❌ Vercel Backend: OFFLINE / GAGAL (${e.message})\n🤖 Gemini AI: ?`);
     }
     return;
   }
