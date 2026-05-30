@@ -370,12 +370,16 @@ async function handleGroupCommand(message) {
       const result = await res.json();
       if (result.success) {
         delete activePolls[billId];
-        await statusMsg.edit('✅ Berhasil dihitung! Menutup polling...');
+        try { await statusMsg.edit('✅ Berhasil dihitung! Menutup polling...'); } 
+        catch(e) { await message.reply('✅ Berhasil dihitung! Menutup polling...'); }
       } else {
-        await statusMsg.edit('⚠️ Gagal memproses: ' + (result.error || 'Unknown error'));
+        const errMsg = '⚠️ Gagal memproses: ' + (result.error || 'Unknown error');
+        try { await statusMsg.edit(errMsg); } 
+        catch(e) { await message.reply(errMsg); }
       }
     } catch(e) {
-      await statusMsg.edit('⚠️ Server error: ' + e.message);
+      try { await statusMsg.edit('⚠️ Server error: ' + e.message); } 
+      catch(e2) { await message.reply('⚠️ Server error: ' + e.message); }
     }
     return;
   }
@@ -403,19 +407,48 @@ async function handleGroupCommand(message) {
 {"title":"Nama Toko/Resto","tax":0,"serviceCharge":0,"rounding":0,"totalOnReceipt":0,"items":[{"name":"Es Teh","price":5000,"quantity":2}]}`;
 
       console.log('[DEBUG] Calling Gemini API...');
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [
-            { text: systemPrompt },
-            { inline_data: { mime_type: media.mimetype, data: media.data } }
-          ]}]
-        })
-      });
-      console.log('[DEBUG] Gemini API responded with status:', res.status);
+      const promptData = {
+        contents: [{ role: 'user', parts: [
+          { text: systemPrompt },
+          { inline_data: { mime_type: media.mimetype, data: media.data } }
+        ]}]
+      };
+
+      const models = [
+        'gemini-3.5-flash',
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-pro',
+        'gemini-3.0-flash',
+        'gemini-2.5-flash',
+        'gemini-2.5-pro',
+        'gemini-2.5-flash-lite',
+        'gemini-2.0-flash',
+        'gemini-1.5-flash',
+        'gemini-1.5-pro'
+      ];
+      let response;
       
-      const aiData = await res.json();
+      for (const model of models) {
+        response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(promptData)
+        });
+        
+        console.log(`[DEBUG] Gemini API (${model}) responded with status:`, response.status);
+        if (response.status !== 429) break;
+        console.log(`[DEBUG] Model ${model} kena limit (429), mencoba model selanjutnya...`);
+      }
+
+      if (response.status === 429) {
+        return statusMsg.edit('⚠️ Server AI sedang sibuk (semua model kena limit). Mohon tunggu 1 menit lalu coba lagi.');
+      }
+
+      const aiData = await response.json();
+      if (!aiData.candidates || aiData.candidates.length === 0) {
+        return statusMsg.edit('⚠️ Gagal membaca struk. AI tidak mengembalikan hasil. Coba foto yang lebih jelas.');
+      }
+      
       let aiText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
 
