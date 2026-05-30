@@ -429,6 +429,7 @@ async function handleGroupCommand(message) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sender_number: message.author || message.from,
+          payer_name: args.length > 0 ? args.join(' ') : null,
           scanData: parsed
         })
       });

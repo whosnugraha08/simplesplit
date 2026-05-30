@@ -3,19 +3,28 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin';
 
 export async function POST(req: NextRequest) {
   try {
-    const { sender_number, scanData } = await req.json();
+    const { sender_number, payer_name, scanData } = await req.json();
 
     const supabase = getSupabaseAdmin();
     if (!supabase) return NextResponse.json({ error: 'Supabase Error' }, { status: 500 });
 
-    // Match sender to friend
-    let num = sender_number.split('@')[0];
-    let last8 = num.length > 8 ? num.slice(-8) : num;
     const { data: friends } = await supabase.from('friends').select('*');
-    const sender = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
+    let sender;
 
-    if (!sender) {
-      return NextResponse.json({ error: `Gagal mencari teman dengan nomor WA berakhiran "${last8}". Pastikan nomor WA kamu tersimpan di web.` }, { status: 404 });
+    if (payer_name) {
+      const nameQuery = payer_name.replace('@', '').toLowerCase();
+      sender = friends?.find(f => f.name.toLowerCase().includes(nameQuery));
+      if (!sender) {
+        return NextResponse.json({ error: `Gagal mencari teman dengan nama "${payer_name}". Pastikan namanya benar!` }, { status: 404 });
+      }
+    } else {
+      let num = sender_number.split('@')[0];
+      let last8 = num.length > 8 ? num.slice(-8) : num;
+      sender = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
+
+      if (!sender) {
+        return NextResponse.json({ error: `Gagal mencari teman dengan nomor WA berakhiran "${last8}". Pastikan nomor WA kamu tersimpan di web.` }, { status: 404 });
+      }
     }
 
     const subtotal = scanData.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
