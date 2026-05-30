@@ -65,7 +65,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (assignmentsToInsert.length === 0) {
-      return NextResponse.json({ error: 'Tidak ada satupun vote yang cocok dengan kontak di database! Pastikan nomor WA kamu sudah terdaftar di menu Teman.' }, { status: 400 });
+      const allVoters = votes.flatMap((v: any) => v.assignee_names).join(', ');
+      return NextResponse.json({ error: `Tidak ada satupun vote yang cocok dengan kontak di database! Voter yang terdeteksi: ${allVoters}. Pastikan nomor ini terdaftar di menu Teman.` }, { status: 400 });
     }
 
     if (assignmentsToInsert.length > 0) {
