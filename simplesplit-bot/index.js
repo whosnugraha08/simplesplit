@@ -301,12 +301,12 @@ async function handleGroupCommand(message) {
       });
       const data = await res.json();
       if (data.success) {
-        await statusMsg.edit(`✅ Sukses! WhatsApp kamu berhasil dihubungkan ke teman bernama *${data.matchedName}*. Sekarang kamu bisa bebas vote!`);
+        await message.reply(`✅ Sukses! WhatsApp kamu berhasil dihubungkan ke teman bernama *${data.matchedName}*. Sekarang kamu bisa bebas vote!`);
       } else {
-        await statusMsg.edit('⚠️ Gagal menghubungkan: ' + (data.error || 'Unknown error'));
+        await message.reply('⚠️ Gagal menghubungkan: ' + (data.error || 'Unknown error'));
       }
     } catch(e) {
-      await statusMsg.edit('⚠️ Server error: ' + e.message);
+      await message.reply('⚠️ Server error: ' + e.message);
     }
     return;
   }
