@@ -447,6 +447,12 @@ async function handleGroupCommand(message, isAdmin, chat) {
       });
       const result = await res.json();
       if (result.success) {
+        // Hapus pesan polling
+        if (pollData.pollMessages) {
+          for (const msgObj of pollData.pollMessages) {
+            try { await msgObj.delete(true); } catch(e) { console.error('Gagal hapus poll:', e.message); }
+          }
+        }
         delete activePolls[billId];
         try { await statusMsg.edit('✅ Berhasil dihitung! Menutup polling...'); } 
         catch(e) { await message.reply('✅ Berhasil dihitung! Menutup polling...'); }
@@ -701,6 +707,7 @@ async function processQueueItem(item) {
         }
         
         const pollMessageIds = [];
+        const pollMessages = [];
         for (let idx = 0; idx < chunks.length; idx++) {
           const chunk = chunks[idx];
           const uniqueOptions = chunk.map((c, i) => {
@@ -712,12 +719,14 @@ async function processQueueItem(item) {
           const poll = new Poll(`Pilih pesananmu (Bagian ${idx+1}/${chunks.length}):`, uniqueOptions, { allowMultipleAnswers: true });
           const pollMsg = await client.sendMessage(targetGroup, poll);
           pollMessageIds.push(pollMsg.id._serialized);
+          pollMessages.push(pollMsg);
           await sleep(1000);
         }
         
         activePolls[bill.id] = {
           groupJid: targetGroup,
           pollMessageIds,
+          pollMessages,
           items: items, 
           votes: {},
         };
