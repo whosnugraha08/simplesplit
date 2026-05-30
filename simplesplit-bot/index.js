@@ -284,6 +284,39 @@ async function handleGroupCommand(message) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
 
+  if (command === 'batal') {
+    const billIdPartial = args[0];
+    let billId = null;
+    if (billIdPartial) {
+      billId = Object.keys(activePolls).find(k => k.startsWith(billIdPartial));
+    } else {
+      billId = Object.keys(activePolls)[0];
+    }
+
+    if (!billId || !activePolls[billId]) {
+      return message.reply('⚠️ Tidak ada polling yang aktif saat ini untuk dibatalkan.');
+    }
+
+    const statusMsg = await message.reply('⏳ Membatalkan tagihan...');
+    try {
+      const res = await fetch(`${APP_URL}/api/debts/poll-cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': process.env.WEBHOOK_SECRET || 'super-secret-key-123' },
+        body: JSON.stringify({ billId })
+      });
+      const result = await res.json();
+      if (result.success) {
+        delete activePolls[billId];
+        await statusMsg.edit('✅ Polling berhasil dibatalkan dan tagihan telah dihapus.');
+      } else {
+        await statusMsg.edit('⚠️ Gagal membatalkan: ' + (result.error || 'Unknown error'));
+      }
+    } catch(e) {
+      await statusMsg.edit('⚠️ Server error: ' + e.message);
+    }
+    return;
+  }
+
   if (command === 'selesai') {
     const billIdPartial = args[0];
     let billId = null;
