@@ -424,15 +424,8 @@ async function handleGroupCommand(message, isAdmin, chat) {
       
       const names = [];
       for (const jid of jids) {
-        try {
-          const contact = await client.getContactById(jid);
-          // Prioritaskan pushname (nama WA user), lalu name (kontak), lalu nomor
-          const name = contact.pushname || contact.name || contact.shortName || contact.number || jid;
-          names.push(name);
-        } catch (e) {
-          console.error(`Gagal resolve kontak untuk ${jid}:`, e.message);
-          names.push(jid);
-        }
+        // Langsung kirim JID ke backend, karena backend sekarang ngecek wa_lid dan whatsapp_number dari JID
+        names.push(jid);
       }
       votesArray.push({
         bill_item_id: itemId,

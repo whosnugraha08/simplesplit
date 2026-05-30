@@ -34,9 +34,12 @@ export async function POST(req: NextRequest) {
       // Cari friend_id dari nama atau nomor WA
       const assignedFriends = (vote.assignee_names as string[])
         .map(voter => {
-          const num = voter.split('@')[0]; // "62812345678"
+          // format voter yang dikirim bot sekarang adalah JID, misal "60142544502993@lid" atau "6281214019594@c.us"
+          // atau nama jika gagal resolve
+          const num = voter.split('@')[0];
           const last8 = num.length > 8 ? num.slice(-8) : num;
           const found = friends?.find(f => {
+            if (f.wa_lid === voter) return true;
             if (f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8)) return true;
             return f.name.toLowerCase() === voter.toLowerCase();
           });
