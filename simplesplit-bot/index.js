@@ -397,7 +397,7 @@ async function handleGroupCommand(message) {
       const systemPrompt = `Kamu adalah AI ahli membaca nota Indonesia. Extract SEMUA item dan harga. Kembalikan JSON persis format ini tanpa spasi berlebih:
 {"title":"Nama Toko/Resto","tax":0,"serviceCharge":0,"rounding":0,"totalOnReceipt":0,"items":[{"name":"Es Teh","price":5000,"quantity":2}]}`;
 
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
