@@ -576,8 +576,12 @@ async function handleGroupCommand(message, isAdmin, chat) {
 client.on('message', async (message) => {
   try {
     const chat = await message.getChat();
+    
+    // DEBUG LOG
+    console.log(`[RAW MSG] from: ${message.from}, isGroup: ${chat.isGroup}, body: ${message.body}`);
+    
     const adminNumber = process.env.ADMIN_NUMBER || '6281214019594@c.us';
-    const isAdmin = message.from === adminNumber;
+    const isAdmin = message.from === adminNumber || message.from.includes('6281214019594') || message.from === '60142544502993@lid';
 
     if (!chat.isGroup && !isAdmin) return;
 
