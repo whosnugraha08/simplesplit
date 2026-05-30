@@ -289,7 +289,6 @@ async function handleGroupCommand(message, isAdmin, chat) {
 
   // Admin Health Check (PM Only)
   if (!chat.isGroup && isAdmin && (command === 'status' || command === 'ping')) {
-    const statusMsg = await message.reply('⏳ Mengecek status server...');
     try {
       const start = Date.now();
       const res = await fetch(`${APP_URL}/api/wa-group/query`, {
@@ -303,9 +302,9 @@ async function handleGroupCommand(message, isAdmin, chat) {
       // Check Gemini Config
       const geminiOk = process.env.GEMINI_API_KEY ? 'SIAP TEMPUR' : 'BELUM DIKONFIGURASI';
 
-      await statusMsg.edit(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n✅ Vercel Backend: ${apiOk}\n✅ Gemini AI: ${geminiOk}`);
+      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n✅ Vercel Backend: ${apiOk}\n✅ Gemini AI: ${geminiOk}`);
     } catch (e) {
-      await statusMsg.edit(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n❌ Vercel Backend: OFFLINE / GAGAL (${e.message})\n✅ Gemini AI: ?`);
+      await message.reply(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n❌ Vercel Backend: OFFLINE / GAGAL (${e.message})\n✅ Gemini AI: ?`);
     }
     return;
   }
