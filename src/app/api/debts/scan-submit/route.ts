@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const sender = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
 
     if (!sender) {
-      return NextResponse.json({ error: 'Gagal mencari data kamu di database teman. Pastikan nomor WA tersimpan.' }, { status: 404 });
+      return NextResponse.json({ error: `Gagal mencari teman dengan nomor WA berakhiran "${last8}". Pastikan nomor WA kamu tersimpan di web.` }, { status: 404 });
     }
 
     const subtotal = scanData.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
