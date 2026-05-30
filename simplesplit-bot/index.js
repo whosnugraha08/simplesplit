@@ -390,13 +390,16 @@ async function handleGroupCommand(message) {
     const statusMsg = await message.reply('⏳ Sedang menerawang strukmu menggunakan AI Gemini...');
     
     try {
+      console.log('[DEBUG] Starting downloadMedia()');
       const media = await targetMsg.downloadMedia();
+      console.log('[DEBUG] downloadMedia() finished. Media size:', media?.data?.length);
       const apiKey = process.env.GEMINI_API_KEY;
       if(!apiKey) return statusMsg.edit('⚠️ Gemini API key tidak dikonfigurasi.');
 
       const systemPrompt = `Kamu adalah AI ahli membaca nota Indonesia. Extract SEMUA item dan harga. Kembalikan JSON persis format ini tanpa spasi berlebih:
 {"title":"Nama Toko/Resto","tax":0,"serviceCharge":0,"rounding":0,"totalOnReceipt":0,"items":[{"name":"Es Teh","price":5000,"quantity":2}]}`;
 
+      console.log('[DEBUG] Calling Gemini API...');
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -407,16 +410,20 @@ async function handleGroupCommand(message) {
           ]}]
         })
       });
+      console.log('[DEBUG] Gemini API responded with status:', res.status);
       
       const aiData = await res.json();
       let aiText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
 
       const parsed = JSON.parse(aiText);
+      console.log('[DEBUG] Gemini parsed output:', parsed.title, parsed.items?.length, 'items');
+
       if(!parsed.items || parsed.items.length === 0) return statusMsg.edit('⚠️ Gagal mendeteksi item di struk.');
 
       await statusMsg.edit(`✅ Berhasil mendeteksi *${parsed.items.length} item* dari ${parsed.title || 'Struk'}.\nMengirim polling ke grup...`);
 
+      console.log('[DEBUG] Sending scan-submit to Vercel...');
       const resWeb = await fetch(`${APP_URL}/api/debts/scan-submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -425,11 +432,13 @@ async function handleGroupCommand(message) {
           scanData: parsed
         })
       });
+      console.log('[DEBUG] scan-submit response status:', resWeb.status);
       const webData = await resWeb.json();
       if (!webData.success) {
         await statusMsg.edit('⚠️ Gagal bikin bill: ' + (webData.error || 'Unknown'));
       }
     } catch (e) {
+      console.error('[DEBUG] Scan error:', e.message);
       await statusMsg.edit('⚠️ Gagal scan: ' + e.message);
     }
     return;
