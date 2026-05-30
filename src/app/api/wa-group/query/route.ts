@@ -108,7 +108,7 @@ ${JSON.stringify(friends, null, 2)}`;
 
             const { data: bill } = await supabase
               .from('bills')
-              .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'draft' })
+              .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'assigned' })
               .select().single();
 
             if (bill) {
@@ -130,10 +130,22 @@ ${JSON.stringify(friends, null, 2)}`;
               return NextResponse.json({ text: `❌ Gagal menghapus: AI nggak nemu ID hutangnya di database.` });
             }
             
+            // Get bill ID before deleting
+            const { data: debtToDelete } = await supabase.from('debts').select('bill_id, bill:bills(title)').eq('id', parsed.debt_id).maybeSingle();
+
             const { error } = await supabase.from('debts').delete().eq('id', parsed.debt_id);
             if (error) {
               return NextResponse.json({ text: `❌ Gagal menghapus dari database: ${error.message}` });
             }
+
+            // Cleanup empty AI bills
+            if (debtToDelete?.bill_id) {
+              const { count } = await supabase.from('debts').select('*', { count: 'exact', head: true }).eq('bill_id', debtToDelete.bill_id);
+              if (count === 0 && (debtToDelete.bill as any)?.title === 'Tagihan Manual via AI') {
+                await supabase.from('bills').delete().eq('id', debtToDelete.bill_id);
+              }
+            }
+
             return NextResponse.json({ text: `🤖 *BERES!* Hutang tersebut sudah gue hapus dari buku catatan ya bos!` });
           }
 
