@@ -277,7 +277,7 @@ function buildGroupBillMessage(bill, items, debts) {
   return msg;
 }
 
-async function handleGroupCommand(message) {
+async function handleGroupCommand(message, isAdmin, chat) {
   const body = message.body.trim();
   if (!body.startsWith('!')) return;
 
@@ -285,7 +285,32 @@ async function handleGroupCommand(message) {
   const command = parts[0].toLowerCase();
   const args = parts.slice(1);
 
-  console.log(`[DEBUG] handleGroupCommand received: body="${body}", command="${command}"`);
+  console.log(`[DEBUG] handleGroupCommand received: body="${body}", command="${command}", isAdmin=${isAdmin}`);
+
+  // Admin Health Check (PM Only)
+  if (!chat.isGroup && isAdmin && (command === 'status' || command === 'ping')) {
+    const statusMsg = await message.reply('⏳ Mengecek status server...');
+    try {
+      const start = Date.now();
+      const res = await fetch(`${APP_URL}/api/wa-group/query`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-webhook-secret': process.env.WEBHOOK_SECRET || 'super-secret-key-123' },
+        body: JSON.stringify({ command: 'help' }) // dummy ping
+      });
+      const ping = Date.now() - start;
+      const apiOk = res.ok ? `AMAN (Ping: ${ping}ms)` : `ERROR (${res.status})`;
+
+      // Check Gemini Config
+      const geminiOk = process.env.GEMINI_API_KEY ? 'SIAP TEMPUR' : 'BELUM DIKONFIGURASI';
+
+      await statusMsg.edit(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n✅ Vercel Backend: ${apiOk}\n✅ Gemini AI: ${geminiOk}`);
+    } catch (e) {
+      await statusMsg.edit(`📊 *Status Bot SimpleSplit*\n\n✅ Koneksi WhatsApp: AMAN\n❌ Vercel Backend: OFFLINE / GAGAL (${e.message})\n✅ Gemini AI: ?`);
+    }
+    return;
+  }
+
+  if (!chat.isGroup) return; // Command di bawah ini khusus grup
 
   if (command === 'idku' || command === 'link') {
     const friendName = args.join(' ');
@@ -551,17 +576,21 @@ async function handleGroupCommand(message) {
 client.on('message', async (message) => {
   try {
     const chat = await message.getChat();
-    if (!chat.isGroup) return;
+    const adminNumber = process.env.ADMIN_NUMBER || '6281214019594@c.us';
+    const isAdmin = message.from === adminNumber;
+
+    if (!chat.isGroup && !isAdmin) return;
 
     // Helper command to get group ID easily
-    if (message.body.trim().toLowerCase() === '!id') {
+    if (chat.isGroup && message.body.trim().toLowerCase() === '!id') {
       console.log(`\n📌 ID Grup: ${chat.id._serialized}\n`);
       await message.reply(`*ID GRUP INI:*\n${chat.id._serialized}\n\n_Silakan salin ID di atas dan masukkan ke menu Hubungkan Grup WA di web._`);
       return;
     }
 
-    if (linkedGroupJid && chat.id._serialized !== linkedGroupJid) return;
-    await handleGroupCommand(message);
+    if (chat.isGroup && linkedGroupJid && chat.id._serialized !== linkedGroupJid) return;
+    
+    await handleGroupCommand(message, isAdmin, chat);
   } catch (err) {
     console.error('Message handler error:', err.message);
   }
