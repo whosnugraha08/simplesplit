@@ -323,7 +323,7 @@ async function handleGroupCommand(message) {
       return message.reply('⚠️ Belum ada yang milih item satupun! Masa mau diselesaikan?');
     }
 
-    await message.reply('⏳ Sedang menghitung dan membagi tagihan...');
+    const statusMsg = await message.reply('⏳ Sedang menghitung dan membagi tagihan...');
 
     try {
       const res = await fetch(`${APP_URL}/api/debts/poll-submit`, {
@@ -334,11 +334,12 @@ async function handleGroupCommand(message) {
       const result = await res.json();
       if (result.success) {
         delete activePolls[billId];
+        await statusMsg.edit('✅ Berhasil dihitung! Menutup polling...');
       } else {
-        await message.reply('⚠️ Gagal memproses: ' + (result.error || 'Unknown error'));
+        await statusMsg.edit('⚠️ Gagal memproses: ' + (result.error || 'Unknown error'));
       }
     } catch(e) {
-      await message.reply('⚠️ Server error: ' + e.message);
+      await statusMsg.edit('⚠️ Server error: ' + e.message);
     }
     return;
   }
@@ -347,12 +348,12 @@ async function handleGroupCommand(message) {
     if (!message.hasMedia) {
       return message.reply('⚠️ Lampirkan foto struk dan beri caption !scan, atau reply foto struk dengan pesan !scan.');
     }
-    await message.reply('⏳ Sedang menerawang strukmu menggunakan AI Gemini...');
+    const statusMsg = await message.reply('⏳ Sedang menerawang strukmu menggunakan AI Gemini...');
     
     try {
       const media = await message.downloadMedia();
       const apiKey = process.env.GEMINI_API_KEY;
-      if(!apiKey) return message.reply('⚠️ Gemini API key tidak dikonfigurasi.');
+      if(!apiKey) return statusMsg.edit('⚠️ Gemini API key tidak dikonfigurasi.');
 
       const systemPrompt = `Kamu adalah AI ahli membaca nota Indonesia. Extract SEMUA item dan harga. Kembalikan JSON persis format ini tanpa spasi berlebih:
 {"title":"Nama Toko/Resto","tax":0,"serviceCharge":0,"rounding":0,"totalOnReceipt":0,"items":[{"name":"Es Teh","price":5000,"quantity":2}]}`;
@@ -373,9 +374,9 @@ async function handleGroupCommand(message) {
       aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
 
       const parsed = JSON.parse(aiText);
-      if(!parsed.items || parsed.items.length === 0) return message.reply('⚠️ Gagal mendeteksi item di struk.');
+      if(!parsed.items || parsed.items.length === 0) return statusMsg.edit('⚠️ Gagal mendeteksi item di struk.');
 
-      await message.reply(`✅ Berhasil mendeteksi *${parsed.items.length} item* dari ${parsed.title || 'Struk'}.\nMengirim polling ke grup...`);
+      await statusMsg.edit(`✅ Berhasil mendeteksi *${parsed.items.length} item* dari ${parsed.title || 'Struk'}.\nMengirim polling ke grup...`);
 
       const resWeb = await fetch(`${APP_URL}/api/debts/scan-submit`, {
         method: 'POST',
@@ -387,10 +388,10 @@ async function handleGroupCommand(message) {
       });
       const webData = await resWeb.json();
       if (!webData.success) {
-        await message.reply('⚠️ Gagal bikin bill: ' + (webData.error || 'Unknown'));
+        await statusMsg.edit('⚠️ Gagal bikin bill: ' + (webData.error || 'Unknown'));
       }
     } catch (e) {
-      await message.reply('⚠️ Gagal scan: ' + e.message);
+      await statusMsg.edit('⚠️ Gagal scan: ' + e.message);
     }
     return;
   }
