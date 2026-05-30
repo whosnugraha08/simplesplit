@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       await supabase.from('debts').insert(debtsToInsert);
     }
 
-    await supabase.from('bills').update({ status: 'active' }).eq('id', billId);
+    await supabase.from('bills').update({ status: 'assigned' }).eq('id', billId);
 
     // Ambil ulang data debt untuk notif
     const { data: insertedDebts } = await supabase

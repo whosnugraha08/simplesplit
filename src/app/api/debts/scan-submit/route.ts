@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       tax_amount: scanData.tax || 0,
       service_charge_amount: scanData.serviceCharge || 0,
       total_amount: grandTotal,
-      status: 'active',
+      status: 'draft',
       category: 'makanan'
     }).select('*, paid_by_friend:paid_by(*)').single();
 

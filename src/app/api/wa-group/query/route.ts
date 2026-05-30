@@ -102,7 +102,7 @@ ${JSON.stringify(friends, null, 2)}`;
             // Create invisible bill
             const { data: bill } = await supabase
               .from('bills')
-              .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'active' })
+              .insert({ title: 'Tagihan Manual via AI', total_amount: parsed.amount, paid_by: creditor.id, status: 'draft' })
               .select().single();
 
             if (bill) {
