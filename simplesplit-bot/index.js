@@ -478,11 +478,17 @@ async function handleGroupCommand(message) {
         });
         
         console.log(`[DEBUG] Gemini API (${model}) responded with status:`, response.status);
-        if (response.status !== 429) break;
-        console.log(`[DEBUG] Model ${model} kena limit (429), mencoba model selanjutnya...`);
+        if (!response.ok) {
+          if ([429, 403, 404, 500, 503].includes(response.status)) {
+            console.log(`[DEBUG] Model ${model} gagal (Status: ${response.status}). Mencoba model selanjutnya...`);
+            continue;
+          }
+          throw new Error(`Status ${response.status}`);
+        }
+        break;
       }
 
-      if (response.status === 429) {
+      if (!response.ok) {
         return statusMsg.edit('⚠️ Server AI sedang sibuk (semua model kena limit). Mohon tunggu 1 menit lalu coba lagi.');
       }
 
