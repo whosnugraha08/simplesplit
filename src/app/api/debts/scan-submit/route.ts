@@ -54,16 +54,14 @@ export async function POST(req: NextRequest) {
     if (itemsErr || !items) throw new Error('Gagal bikin items: ' + (itemsErr?.message || 'Unknown Error'));
 
     // Minta bot bikin polling
-    const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || 'http://203.175.125.37:8803/webhook';
-    const pingBot = await fetch(BOT_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'create_poll', bill, items })
-    });
+    let payload: any = { type: 'create_poll', bill, items };
+    try {
+      const { data: groupSettings } = await supabase.from('wa_group_settings').select('group_jid').eq('is_active', true).maybeSingle();
+      if (groupSettings?.group_jid) payload.groupJid = groupSettings.group_jid;
+    } catch (e) {}
 
-    if (!pingBot.ok) {
-       console.error('[scan-submit] Gagal ping bot VPS:', pingBot.status);
-    }
+    const { error: qErr } = await supabase.from('bot_queue').insert({ payload });
+    if (qErr) console.error('[scan-submit] Gagal queue bot message:', qErr);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

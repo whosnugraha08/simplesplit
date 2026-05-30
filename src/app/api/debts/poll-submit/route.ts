@@ -100,14 +100,15 @@ export async function POST(req: NextRequest) {
       .select('*, debtor:debtor_id(id,name,whatsapp_number), creditor:creditor_id(id,name,whatsapp_number)')
       .eq('bill_id', billId);
 
-    // Kirim webhook notifikasi (group_notify)
-    const BOT_WEBHOOK_URL = process.env.BOT_WEBHOOK_URL || 'http://203.175.125.37:8803/webhook';
-    fetch(BOT_WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'group_notify', bill: bill, items: billItems, debts: insertedDebts })
-    }).catch(console.error);
+    // Minta bot kirim notifikasi tagihan ke grup
+    let payload: any = { type: 'notify_debts', debts: insertedDebts, bill };
+    try {
+      const { data: groupSettings } = await supabase.from('wa_group_settings').select('group_jid').eq('is_active', true).maybeSingle();
+      if (groupSettings?.group_jid) payload.groupJid = groupSettings.group_jid;
+    } catch (e) {}
 
+    const { error: qErr } = await supabase.from('bot_queue').insert({ payload });
+    if (qErr) console.error('[poll-submit] Gagal queue bot message:', qErr);
     return NextResponse.json({ success: true, debtsCount: debtsToInsert.length });
   } catch (err: any) {
     console.error('Poll submit error:', err);
