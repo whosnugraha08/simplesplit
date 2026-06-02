@@ -272,12 +272,20 @@ async function sendToGroup(groupJid, message, imageUrl) {
 }
 
 function buildGroupBillMessage(bill, items, debts) {
-  let msg = `*[SIMPLESPLIT]*\n🧾 *Bill baru!*\n\n`;
-  msg += `🏷️ *${bill.title || 'Bill'}* — Total ${formatRupiah(bill.total_amount || 0)}\n`;
-  debts.forEach(d => {
-    msg += `├ ${getTag(d.debtor)}: ${formatRupiah(d.amount)}\n`;
-  });
-  msg += `\n_(Notifikasi grup SimpleSplit)_`;
+  const payerTag = bill.paid_by_friend ? getTag(bill.paid_by_friend) : (bill.paid_by?.name ? `*${bill.paid_by.name}*` : 'Seseorang');
+  let msg = `*[SIMPLESPLIT]*\n🧾 *Tagihan Baru!*\n\n`;
+  msg += `🏷️ *${bill.title || 'Bill'}*\n`;
+  msg += `💰 Total: *${formatRupiah(bill.total_amount || 0)}*\n`;
+  msg += `👤 Ditalangi: ${payerTag}\n\n`;
+  if (debts && debts.length > 0) {
+    msg += `📋 *Rincian Hutang:*\n`;
+    debts.forEach(d => {
+      const debtorTag = d.debtor ? getTag(d.debtor) : '*?*';
+      msg += `├ ${debtorTag}: ${formatRupiah(d.amount)}\n`;
+    });
+  }
+  msg += `\n🔗 Bayar: ${APP_URL}/debts\n`;
+  msg += `_(Notifikasi grup SimpleSplit)_`;
   return msg;
 }
 
