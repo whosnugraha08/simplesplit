@@ -60,12 +60,13 @@ RESPOND HANYA dengan JSON valid (tanpa markdown, tanpa backtick, tanpa penjelasa
   "totalOnReceipt": 0
 }`;
 
-    // List of fallback models based on Free Tier availability
+    // Model fallback — sesuai yang tersedia di Free Tier
     const FALLBACK_MODELS = [
-      'gemini-2.5-flash',
-      'gemini-3.1-flash-lite',
-      'gemini-3-flash',
-      'gemini-2.5-flash-lite'
+      'gemini-2.5-flash',       // 5 RPM, 20 RPD
+      'gemini-3.5-flash',       // 5 RPM, 20 RPD
+      'gemini-3-flash',         // 5 RPM, 20 RPD
+      'gemini-3.1-flash-lite',  // 15 RPM, 500 RPD (safety net)
+      'gemini-2.5-flash-lite',  // 10 RPM, 20 RPD
     ];
 
     let lastErrorStatus = 502;

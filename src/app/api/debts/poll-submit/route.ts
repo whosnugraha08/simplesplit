@@ -31,19 +31,21 @@ export async function POST(req: NextRequest) {
       const item = billItems.find(i => i.id === vote.bill_item_id);
       if (!item) continue;
 
-      // Cari friend_id dari nama atau nomor WA
+      // Cari friend_id dari JID voter
+      // Bot mengirim raw JID (misal "60142544502993@lid" atau "6281214019594@c.us")
       const assignedFriends = (vote.assignee_names as string[])
         .map(voter => {
-          // format voter yang dikirim bot sekarang adalah JID, misal "60142544502993@lid" atau "6281214019594@c.us"
-          // atau nama jika gagal resolve
-          const num = voter.split('@')[0];
-          const last8 = num.length > 8 ? num.slice(-8) : num;
-          const found = friends?.find(f => {
-            if (f.wa_lid === voter) return true;
-            if (f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8)) return true;
-            return f.name.toLowerCase() === voter.toLowerCase();
-          });
-          console.log(`[poll-submit] mapping ${voter} -> last8: ${last8} -> found: ${found?.name || 'NONE'}`);
+          // Prioritas: 1. Cocokkan wa_lid, 2. Cocokkan whatsapp_number, 3. Cocokkan nama
+          let found = friends?.find(f => f.wa_lid === voter);
+          if (!found) {
+            const num = voter.split('@')[0];
+            const last8 = num.length > 8 ? num.slice(-8) : num;
+            found = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
+            if (!found) {
+              found = friends?.find(f => f.name.toLowerCase() === voter.toLowerCase());
+            }
+          }
+          console.log(`[poll-submit] mapping ${voter} -> found: ${found?.name || 'NONE'}`);
           return found?.id;
         })
         .filter(Boolean) as string[];
@@ -111,7 +113,7 @@ export async function POST(req: NextRequest) {
       .eq('bill_id', billId);
 
     // Minta bot kirim notifikasi tagihan ke grup
-    let payload: any = { type: 'notify_debts', debts: insertedDebts, bill };
+    let payload: any = { type: 'group_notify', debts: insertedDebts, bill };
     try {
       const { data: groupSettings } = await supabase.from('wa_group_settings').select('group_jid').eq('is_active', true).maybeSingle();
       if (groupSettings?.group_jid) payload.groupJid = groupSettings.group_jid;

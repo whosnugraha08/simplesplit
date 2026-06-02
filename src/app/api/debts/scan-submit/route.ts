@@ -12,18 +12,25 @@ export async function POST(req: NextRequest) {
     let sender;
 
     if (payer_name) {
+      // Cari berdasarkan nama yang diberikan user (!scan NamaOrang)
       const nameQuery = payer_name.replace('@', '').toLowerCase();
       sender = friends?.find(f => f.name.toLowerCase().includes(nameQuery));
       if (!sender) {
         return NextResponse.json({ error: `Gagal mencari teman dengan nama "${payer_name}". Pastikan namanya benar!` }, { status: 404 });
       }
     } else {
-      let num = sender_number.split('@')[0];
-      let last8 = num.length > 8 ? num.slice(-8) : num;
-      sender = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
+      // Auto-detect payer dari sender_number (bisa berupa LID atau nomor HP)
+      // Prioritas: 1. Cocokkan wa_lid langsung, 2. Cocokkan whatsapp_number
+      sender = friends?.find(f => f.wa_lid === sender_number);
 
       if (!sender) {
-        return NextResponse.json({ error: `Gagal mencari teman dengan nomor WA berakhiran "${last8}". Pastikan nomor WA kamu tersimpan di web.` }, { status: 404 });
+        const num = sender_number.split('@')[0];
+        const last8 = num.length > 8 ? num.slice(-8) : num;
+        sender = friends?.find(f => f.whatsapp_number && f.whatsapp_number.replace(/[^0-9]/g, '').endsWith(last8));
+      }
+
+      if (!sender) {
+        return NextResponse.json({ error: `Gagal mencari teman. Coba ketik: !scan NamaKamu (contoh: !scan AL)` }, { status: 404 });
       }
     }
 

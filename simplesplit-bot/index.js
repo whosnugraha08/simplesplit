@@ -119,10 +119,14 @@ function formatRupiah(num) {
 
 function getTag(person) {
   if (!person) return 'Seseorang';
+  // Selalu pakai whatsapp_number (nomor HP) untuk tag, BUKAN wa_lid
   if (person.whatsapp_number) {
     let num = person.whatsapp_number.replace(/[^0-9]/g, '');
-    if (num.startsWith('0')) num = '62' + num.substring(1);
-    return `@${num}`;
+    // Hanya proses jika ini benar-benar nomor HP (bukan LID)
+    if (num.length >= 10 && num.length <= 15) {
+      if (num.startsWith('0')) num = '62' + num.substring(1);
+      return `@${num}`;
+    }
   }
   return `*${person.name}*`;
 }
@@ -376,13 +380,22 @@ async function handleGroupCommand(message, isAdmin, chat) {
       });
       const result = await res.json();
       if (result.success) {
+        // Hapus pesan polling jika ada
+        if (activePolls[billId]?.pollMessages) {
+          for (const msgObj of activePolls[billId].pollMessages) {
+            try { await msgObj.delete(true); } catch(e) { console.error('Gagal hapus poll:', e.message); }
+          }
+        }
         delete activePolls[billId];
-        await statusMsg.edit('✅ Polling berhasil dibatalkan dan tagihan telah dihapus.');
+        try { await statusMsg.edit('✅ Polling berhasil dibatalkan dan tagihan telah dihapus.'); }
+        catch(e) { await message.reply('✅ Polling berhasil dibatalkan dan tagihan telah dihapus.'); }
       } else {
-        await statusMsg.edit('⚠️ Gagal membatalkan: ' + (result.error || 'Unknown error'));
+        try { await statusMsg.edit('⚠️ Gagal membatalkan: ' + (result.error || 'Unknown error')); }
+        catch(e) { await message.reply('⚠️ Gagal membatalkan: ' + (result.error || 'Unknown error')); }
       }
     } catch(e) {
-      await statusMsg.edit('⚠️ Server error: ' + e.message);
+      try { await statusMsg.edit('⚠️ Server error: ' + e.message); }
+      catch(e2) { await message.reply('⚠️ Server error: ' + e.message); }
     }
     return;
   }
@@ -498,17 +511,13 @@ async function handleGroupCommand(message, isAdmin, chat) {
         ]}]
       };
 
+      // Model fallback — sesuai yang tersedia di Free Tier API
       const models = [
-        'gemini-3.5-flash',
-        'gemini-3.1-flash-lite',
-        'gemini-3.1-pro',
-        'gemini-3.0-flash',
-        'gemini-2.5-flash',
-        'gemini-2.5-pro',
-        'gemini-2.5-flash-lite',
-        'gemini-2.0-flash',
-        'gemini-1.5-flash',
-        'gemini-1.5-pro'
+        'gemini-2.5-flash',       // 5 RPM, 20 RPD
+        'gemini-3.5-flash',       // 5 RPM, 20 RPD
+        'gemini-3-flash',         // 5 RPM, 20 RPD
+        'gemini-3.1-flash-lite',  // 15 RPM, 500 RPD (safety net)
+        'gemini-2.5-flash-lite',  // 10 RPM, 20 RPD
       ];
       let response;
       

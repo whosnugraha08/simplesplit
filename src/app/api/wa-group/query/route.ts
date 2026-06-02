@@ -87,15 +87,41 @@ ${JSON.stringify(bills, null, 2)}
 DATA TEMAN:
 ${JSON.stringify(friends, null, 2)}`;
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nChat dari user: ' + promptText }] }]
-        })
-      });
+      // Multi-model fallback (urutkan: model terbaik dulu, volume tinggi di akhir sebagai safety net)
+      const AI_MODELS = [
+        'gemini-2.5-flash',
+        'gemini-3.5-flash',
+        'gemini-3-flash',
+        'gemini-3.1-flash-lite',  // 500 RPD, safety net
+        'gemini-2.5-flash-lite',
+      ];
 
-      const aiData = await response.json();
+      let aiData: any = null;
+      for (const model of AI_MODELS) {
+        try {
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\nChat dari user: ' + promptText }] }]
+            })
+          });
+
+          if (response.ok) {
+            aiData = await response.json();
+            console.log(`[bot] AI model ${model} berhasil.`);
+            break;
+          }
+          console.warn(`[bot] Model ${model} gagal (${response.status}), coba model selanjutnya...`);
+        } catch (e: any) {
+          console.warn(`[bot] Model ${model} error: ${e.message}`);
+        }
+      }
+
+      if (!aiData) {
+        return NextResponse.json({ text: '⚠️ Semua model AI sedang sibuk/kena limit. Coba lagi nanti ya bos!' });
+      }
+
       let aiText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
       aiText = aiText.replace(/```json/g, '').replace(/```/g, '').trim();
 
