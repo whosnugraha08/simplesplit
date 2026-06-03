@@ -33,10 +33,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     }, 3000);
   }, []);
 
-  const styles: Record<Toast['type'], string> = {
-    success: 'bg-forest text-white border-forest/30',
-    error: 'bg-ruby text-white border-ruby/30',
-    info: 'bg-espresso text-cream border-espresso/30',
+  const styles: Record<Toast['type'], React.CSSProperties> = {
+    success: { background: 'var(--lime)', color: '#000', border: '2px solid var(--lime)' },
+    error: { background: 'var(--error-container)', color: 'var(--on-error-container)', border: '2px solid var(--red)' },
+    info: { background: 'var(--surface-container-highest)', color: 'var(--on-surface)', border: '2px solid var(--outline-variant)' },
   };
 
   return (
@@ -46,7 +46,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map(toast => (
           <div
             key={toast.id}
-            className={`pointer-events-auto px-4 py-3 rounded-card shadow-warm text-sm font-medium animate-toast-in border ${styles[toast.type]}`}
+            className="pointer-events-auto px-4 py-3 rounded-xl text-sm font-bold animate-toast-in"
+            style={styles[toast.type]}
           >
             <span className="mr-2">
               {toast.type === 'success' ? '✓' : toast.type === 'error' ? '✕' : 'ℹ'}

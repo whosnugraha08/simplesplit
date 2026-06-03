@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRouter } from 'next/navigation';
 
@@ -19,15 +19,15 @@ export function PageHeader({ title, subtitle, back, action }: PageHeaderProps) {
           <button
             type="button"
             onClick={() => router.back()}
-            className="text-xl text-warm-muted p-1 shrink-0 btn-press"
+            className="text-xl text-[var(--outline)] p-1 shrink-0 btn-press"
             aria-label="Kembali"
           >
             ←
           </button>
         )}
         <div className="min-w-0">
-          <h1 className="font-display text-xl md:text-2xl font-bold text-espresso truncate">{title}</h1>
-          {subtitle && <p className="text-sm text-warm-muted">{subtitle}</p>}
+          <h1 className="font-display text-xl md:text-2xl font-bold text-[var(--on-surface)] truncate">{title}</h1>
+          {subtitle && <p className="text-sm text-[var(--outline)]">{subtitle}</p>}
         </div>
       </div>
       {action && <div className="shrink-0">{action}</div>}

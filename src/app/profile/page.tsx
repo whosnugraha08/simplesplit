@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -226,13 +226,13 @@ export default function ProfilePage() {
           style={{ backgroundColor: getAvatarColor(displayName || 'U') }}>
           {getInitials(displayName || 'User')}
         </div>
-        <h1 className="font-display text-xl font-bold mt-3 text-espresso">{displayName}</h1>
-        <p className="text-xs text-warm-muted">@{user?.username}</p>
+        <h1 className="font-display text-xl font-bold mt-3 text-[var(--on-surface)]">{displayName}</h1>
+        <p className="text-xs text-[var(--outline)]">@{user?.username}</p>
       </div>
 
       <div className="warm-card p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-warm-muted">Informasi Profil</h2>
+          <h2 className="text-sm font-semibold text-[var(--outline)]">Informasi Profil</h2>
           {!editMode && (
             <button onClick={() => setEditMode(true)} className="text-xs text-primary font-semibold">
               ✏️ Edit
@@ -243,12 +243,12 @@ export default function ProfilePage() {
         {editMode ? (
           <div className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1">Nama</label>
+              <label className="block text-xs font-medium text-[var(--outline)] mb-1">Nama</label>
               <input type="text" value={displayName} onChange={e => setDisplayName(e.target.value)}
                 className="warm-input w-full px-4 py-3 text-sm" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1">No. WhatsApp</label>
+              <label className="block text-xs font-medium text-[var(--outline)] mb-1">No. WhatsApp</label>
               <input type="tel" value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="081234567890"
                 className="warm-input w-full px-4 py-3 text-sm" />
             </div>
@@ -256,18 +256,18 @@ export default function ProfilePage() {
         ) : (
           <div className="space-y-3">
             <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-warm-muted">Nama</span>
+              <span className="text-xs text-[var(--outline)]">Nama</span>
               <span className="text-sm font-medium">{displayName}</span>
             </div>
-            <div className="border-t border-warm-border" />
+            <div className="border-t border-[var(--outline-variant)]" />
             <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-warm-muted">WhatsApp</span>
-              <span className="text-sm font-medium">{whatsappNumber || <span className="text-warm-muted italic">Belum diisi</span>}</span>
+              <span className="text-xs text-[var(--outline)]">WhatsApp</span>
+              <span className="text-sm font-medium">{whatsappNumber || <span className="text-[var(--outline)] italic">Belum diisi</span>}</span>
             </div>
-            <div className="border-t border-warm-border" />
+            <div className="border-t border-[var(--outline-variant)]" />
             <div className="flex items-center justify-between py-2">
-              <span className="text-xs text-warm-muted">Username</span>
-              <span className="text-sm font-medium text-warm-muted">@{user?.username}</span>
+              <span className="text-xs text-[var(--outline)]">Username</span>
+              <span className="text-sm font-medium text-[var(--outline)]">@{user?.username}</span>
             </div>
           </div>
         )}
@@ -276,7 +276,7 @@ export default function ProfilePage() {
       {/* Payment Methods */}
       <div className="warm-card p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-semibold text-warm-muted">💳 Rekening / E-Wallet</h2>
+          <h2 className="text-sm font-semibold text-[var(--outline)]">💳 Rekening / E-Wallet</h2>
           <button type="button" onClick={addPaymentMethod} className="text-xs text-primary font-semibold">
             + Tambah
           </button>
@@ -284,7 +284,7 @@ export default function ProfilePage() {
 
         {activePMs.length === 0 ? (
           <button type="button" onClick={addPaymentMethod}
-            className="w-full py-6 rounded-xl border-2 border-dashed border-warm-border hover:border-amber-500/30 transition-colors text-warm-muted text-sm text-center">
+            className="w-full py-6 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-sm text-center">
             💳 Tambah rekening / e-wallet
           </button>
         ) : (
@@ -294,7 +294,7 @@ export default function ProfilePage() {
               return (
                 <div key={idx} className="bg-blush/40 rounded-xl p-3 space-y-2 relative animate-fade-in">
                   {editMode && (
-                    <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-warm-muted hover:text-danger text-sm p-1">✕</button>
+                    <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-[var(--outline)] hover:text-danger text-sm p-1">✕</button>
                   )}
                   {editMode ? (
                     <>
@@ -310,13 +310,13 @@ export default function ProfilePage() {
                         <input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) handleQrisFile(idx, file); }} className="hidden" id={`qris-profile-${idx}`} />
                         {pm.qris_image_url ? (
                           <div className="relative">
-                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-warm-border bg-white" />
+                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-[var(--outline-variant)] bg-white" />
                             <button type="button" onClick={() => { const updated = [...paymentMethods]; updated[idx].qris_image_url = null; updated[idx].qris_file = null; setPaymentMethods(updated); }}
                               className="absolute top-1 right-1 bg-blush/40 rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
                           </div>
                         ) : (
                           <label htmlFor={`qris-profile-${idx}`}
-                            className="block w-full py-3 rounded-lg border border-dashed border-warm-border hover:border-amber-500/30 transition-colors text-warm-muted text-xs text-center cursor-pointer">
+                            className="block w-full py-3 rounded-lg border border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-xs text-center cursor-pointer">
                             📷 Upload QRIS (opsional)
                           </label>
                         )}
@@ -327,7 +327,7 @@ export default function ProfilePage() {
                       <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-lg shrink-0">🏦</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold truncate">{pm.label || pm.bank_name}</p>
-                        {pm.account_number && <p className="text-xs text-warm-muted">{pm.bank_name} • {pm.account_number}</p>}
+                        {pm.account_number && <p className="text-xs text-[var(--outline)]">{pm.bank_name} • {pm.account_number}</p>}
                         {pm.qris_image_url && <p className="text-[10px] text-emerald-400 font-medium">✓ QRIS tersedia</p>}
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export default function ProfilePage() {
       {editMode && (
         <div className="flex gap-3 mb-4">
           <button onClick={() => { setEditMode(false); loadProfile(); }}
-            className="flex-1 py-3 rounded-xl border border-warm-border font-semibold text-sm">
+            className="flex-1 py-3 rounded-xl border border-[var(--outline-variant)] font-semibold text-sm">
             Batal
           </button>
           <button onClick={handleSave} disabled={saving || !displayName.trim()}
@@ -355,10 +355,10 @@ export default function ProfilePage() {
 
       {/* Settings v2 */}
       <div className="warm-card p-5 mb-4">
-        <h2 className="text-sm font-semibold text-warm-muted mb-4">⚙️ Pengaturan</h2>
+        <h2 className="text-sm font-semibold text-[var(--outline)] mb-4">⚙️ Pengaturan</h2>
 
         <label className="flex items-center justify-between py-2 mb-3">
-          <span className="text-sm text-espresso">Suara Interaksi</span>
+          <span className="text-sm text-[var(--on-surface)]">Suara Interaksi</span>
           <input
             type="checkbox"
             checked={soundOn}
@@ -369,8 +369,8 @@ export default function ProfilePage() {
           />
         </label>
 
-        <div className="border-t border-warm-border pt-4">
-          <p className="text-sm font-semibold text-espresso mb-1">Hubungkan Grup WA</p>
+        <div className="border-t border-[var(--outline-variant)] pt-4">
+          <p className="text-sm font-semibold text-[var(--on-surface)] mb-1">Hubungkan Grup WA</p>
           <FormHelper text="Scan QR bot di VPS, lalu salin Group JID dari log bot saat bot join grup." />
           <input
             type="text"
@@ -412,7 +412,7 @@ export default function ProfilePage() {
         <Link href="/friends"
           className="flex items-center justify-between w-full py-3.5 px-4 rounded-card warm-card text-sm font-semibold mb-3 card-hover">
           <span>👥 Kelola Teman</span>
-          <span className="text-warm-muted">→</span>
+          <span className="text-[var(--outline)]">→</span>
         </Link>
       )}
 
@@ -425,11 +425,11 @@ export default function ProfilePage() {
       {/* Logout Confirm */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowLogoutConfirm(false)}>
-          <div className="bg-white border border-warm-border w-full max-w-sm rounded-modal p-6 animate-slide-up shadow-warm-lg" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold text-espresso mb-2">Keluar?</h3>
-            <p className="text-sm text-warm-muted mb-6">Kamu akan keluar dari akun SimpleSplit ini.</p>
+          <div className="bg-white border border-[var(--outline-variant)] w-full max-w-sm rounded-modal p-6 animate-slide-up -lg" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-[var(--on-surface)] mb-2">Keluar?</h3>
+            <p className="text-sm text-[var(--outline)] mb-6">Kamu akan keluar dari akun SimpleSplit ini.</p>
             <div className="flex gap-3">
-              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl border border-warm-border font-semibold text-sm">Batal</button>
+              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 py-3 rounded-xl border border-[var(--outline-variant)] font-semibold text-sm">Batal</button>
               <button onClick={logout} className="flex-1 py-3 rounded-xl bg-danger text-white font-semibold text-sm">Ya, Keluar</button>
             </div>
           </div>

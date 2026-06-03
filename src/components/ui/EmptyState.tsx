@@ -7,13 +7,16 @@ interface EmptyStateProps {
 
 export function EmptyState({ emoji = '🍞', title, description, action }: EmptyStateProps) {
   return (
-    <div className="warm-card p-8 text-center animate-fade-in">
-      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-blush flex items-center justify-center text-3xl">
+    <div className="neo-card p-8 text-center animate-fade-in">
+      <div
+        className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-3xl rotate-neg"
+        style={{ background: 'var(--surface-container-high)', border: '2px solid var(--outline-variant)' }}
+      >
         {emoji}
       </div>
-      <p className="font-display text-lg font-semibold text-espresso">{title}</p>
+      <p className="text-lg font-semibold" style={{ fontFamily: 'var(--font-headline)', color: 'var(--on-surface)' }}>{title}</p>
       {description && (
-        <p className="text-sm text-warm-muted mt-2 max-w-xs mx-auto">{description}</p>
+        <p className="text-sm mt-2 max-w-xs mx-auto" style={{ color: 'var(--outline)' }}>{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
     </div>

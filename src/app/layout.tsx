@@ -4,7 +4,7 @@ import { ClientLayout } from './client-layout';
 
 export const metadata: Metadata = {
   title: 'SimpleSplit — Split Bill & Debt Tracker',
-  description: 'Aplikasi split bill dan pelacak hutang personal. Warm, cozy, 100% gratis.',
+  description: 'Aplikasi split bill dan pelacak hutang personal. Neo-Fin, modern, 100% gratis.',
   keywords: ['split bill', 'bagi tagihan', 'hutang', 'debt tracker'],
 };
 
@@ -13,7 +13,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#FDF6F0',
+  themeColor: '#15121b',
 };
 
 export default function RootLayout({
@@ -22,14 +22,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id">
+    <html lang="id" className="dark">
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-screen bg-cream text-espresso font-sans antialiased">
+      <body className="min-h-screen font-sans antialiased" style={{ background: 'var(--bg)', color: 'var(--on-surface)' }}>
         <ClientLayout>{children}</ClientLayout>
       </body>
     </html>

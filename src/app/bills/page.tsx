@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -60,7 +60,7 @@ export default function BillsPage() {
   }
 
   const statusLabel: Record<string, { text: string; className: string }> = {
-    draft: { text: 'Draft', className: 'bg-blush text-espresso/70' },
+    draft: { text: 'Draft', className: 'bg-blush text-[var(--on-surface)]/70' },
     assigned: { text: 'Dibagi', className: 'bg-primary/15 text-primary' },
     settled: { text: 'Selesai', className: 'bg-forest-light text-forest' },
   };
@@ -114,16 +114,16 @@ export default function BillsPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                       <span className="text-sm">{CATEGORY_EMOJI[cat] || '📦'}</span>
-                      <p className="font-semibold text-espresso truncate">{bill.title}</p>
+                      <p className="font-semibold text-[var(--on-surface)] truncate">{bill.title}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${status.className}`}>
                         {status.text}
                       </span>
                     </div>
-                    <p className="text-xs text-warm-muted">
+                    <p className="text-xs text-[var(--outline)]">
                       Ditalangi {bill.paid_by_friend?.name} • {formatDate(bill.bill_date)}
                     </p>
                   </div>
-                  <p className="money text-base text-espresso shrink-0">
+                  <p className="money text-base text-[var(--on-surface)] shrink-0">
                     {formatRupiah(Number(bill.total_amount))}
                   </p>
                 </div>

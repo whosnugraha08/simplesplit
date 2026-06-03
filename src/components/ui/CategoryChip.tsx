@@ -1,4 +1,4 @@
-const CATEGORIES = [
+﻿const CATEGORIES = [
   { id: 'makan', label: 'Makan', emoji: '🍜' },
   { id: 'bensin', label: 'Bensin', emoji: '⛽' },
   { id: 'liburan', label: 'Liburan', emoji: '✈️' },
@@ -22,8 +22,8 @@ export function CategoryChips({ value, onChange }: CategoryChipProps) {
           onClick={() => onChange(cat.id)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all btn-press ${
             value === cat.id
-              ? 'bg-primary text-white shadow-warm'
-              : 'bg-blush/60 text-espresso hover:bg-blush'
+              ? 'bg-primary text-white '
+              : 'bg-blush/60 text-[var(--on-surface)] hover:bg-blush'
           }`}
         >
           <span>{cat.emoji}</span>

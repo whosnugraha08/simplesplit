@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -234,10 +234,10 @@ export default function NewBillPage() {
     <div className="content-padding pt-6 pb-4 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-xl text-warm-muted p-1 btn-press">←</button>
+        <button onClick={() => router.back()} className="text-xl text-[var(--outline)] p-1 btn-press">←</button>
         <div>
-          <h1 className="font-display text-xl font-bold text-espresso">Bill Baru</h1>
-          <p className="text-xs text-warm-muted">
+          <h1 className="font-display text-xl font-bold text-[var(--on-surface)]">Bill Baru</h1>
+          <p className="text-xs text-[var(--outline)]">
             {step === 'upload' && 'Upload foto nota'}
             {step === 'scanning' && 'Memproses nota...'}
             {step === 'edit' && 'Review & edit item'}
@@ -257,12 +257,12 @@ export default function NewBillPage() {
             <button onClick={() => fileInputRef.current?.click()}
               className="w-full aspect-[3/4] rounded-card border-2 border-dashed border-primary/30 hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-blush/30 btn-press">
               <span className="text-5xl">📸</span>
-              <span className="text-sm font-semibold text-espresso">Ambil Foto Nota</span>
-              <span className="text-xs text-warm-muted">atau pilih dari galeri</span>
+              <span className="text-sm font-semibold text-[var(--on-surface)]">Ambil Foto Nota</span>
+              <span className="text-xs text-[var(--outline)]">atau pilih dari galeri</span>
             </button>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-2xl overflow-hidden border border-warm-border bg-black/30">
+              <div className="relative rounded-2xl overflow-hidden border border-[var(--outline-variant)] bg-black/30">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
                   className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
@@ -274,7 +274,7 @@ export default function NewBillPage() {
           )}
           {scanError && <div className="mt-4 bg-ruby-light text-ruby rounded-card p-3 text-sm animate-shake">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
-            <div className="flex-1 h-px bg-warm-border" /><span className="text-xs text-warm-muted">atau</span><div className="flex-1 h-px bg-warm-border" />
+            <div className="flex-1 h-px bg-warm-border" /><span className="text-xs text-[var(--outline)]">atau</span><div className="flex-1 h-px bg-warm-border" />
           </div>
           <button onClick={handleManualInput} className="w-full mt-4 py-3.5 btn-secondary text-sm">
             ✍️ Input Manual
@@ -286,15 +286,15 @@ export default function NewBillPage() {
       {step === 'scanning' && (
         <div className="animate-fade-in flex flex-col items-center justify-center py-16">
           <div className="w-16 h-16 border-4 border-blush border-t-primary rounded-full animate-spin mb-6" />
-          <p className="text-lg font-semibold text-espresso mb-2">Membaca Nota...</p>
+          <p className="text-lg font-semibold text-[var(--on-surface)] mb-2">Membaca Nota...</p>
           <p className="text-sm pb-1 font-medium text-primary">
             {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
           </p>
-          <p className="text-xs text-warm-muted mb-2">Sedang membaca nota... biasanya 5–15 detik</p>
+          <p className="text-xs text-[var(--outline)] mb-2">Sedang membaca nota... biasanya 5–15 detik</p>
           <div className="w-48 h-2 bg-blush rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
           </div>
-          <p className="text-xs text-warm-muted mt-2">{Math.round(scanProgress)}%</p>
+          <p className="text-xs text-[var(--outline)] mt-2">{Math.round(scanProgress)}%</p>
         </div>
       )}
 
@@ -303,7 +303,7 @@ export default function NewBillPage() {
         <div className="animate-fade-in space-y-4">
           {scanSource && (
             <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
-              <span className="text-xs text-warm-muted font-medium">Scan:</span>
+              <span className="text-xs text-[var(--outline)] font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
               </span>
@@ -311,28 +311,28 @@ export default function NewBillPage() {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-warm-muted mb-1.5">Judul Bill</label>
+              <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">Judul Bill</label>
               <input type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Contoh: Makan di Warung Pak Joko"
                 className="warm-input w-full px-4 py-3 text-sm" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-warm-muted mb-1.5">Tanggal</label>
+              <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">Tanggal</label>
               <input type="date" value={billDate} onChange={e => setBillDate(e.target.value)}
                 className="warm-input w-full px-4 py-3 text-sm" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-warm-muted mb-2">Kategori</label>
+            <label className="block text-sm font-medium text-[var(--outline)] mb-2">Kategori</label>
             <CategoryChips value={category} onChange={setCategory} />
           </div>
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-sm font-medium text-warm-muted">Daftar Item</label>
+              <label className="text-sm font-medium text-[var(--outline)]">Daftar Item</label>
               <button onClick={addItem} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
             </div>
             <div className="space-y-2">
               {items.map((item, idx) => (
-                <div key={idx} className="bg-blush/40 rounded-xl border border-warm-border p-3 animate-fade-in">
+                <div key={idx} className="bg-blush/40 rounded-xl border border-[var(--outline-variant)] p-3 animate-fade-in">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
                       <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
@@ -348,10 +348,10 @@ export default function NewBillPage() {
                         </div>
                       </div>
                     </div>
-                    <button onClick={() => removeItem(idx)} className="p-2 text-warm-muted hover:text-danger transition-colors shrink-0">🗑️</button>
+                    <button onClick={() => removeItem(idx)} className="p-2 text-[var(--outline)] hover:text-danger transition-colors shrink-0">🗑️</button>
                   </div>
                   {item.price > 0 && item.quantity > 1 && (
-                    <p className="text-xs text-warm-muted mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
+                    <p className="text-xs text-[var(--outline)] mt-1.5 text-right">= {formatRupiah(item.price * item.quantity)}</p>
                   )}
                 </div>
               ))}
@@ -364,24 +364,24 @@ export default function NewBillPage() {
                 className="warm-input w-full px-3 py-2.5 text-sm tabular-nums mt-1" />
             </div>
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1">Service</label>
+              <label className="block text-xs font-medium text-[var(--outline)] mb-1">Service</label>
               <input type="number" value={serviceCharge || ''} onChange={e => setServiceCharge(parseFloat(e.target.value) || 0)} placeholder="0"
                 className="warm-input w-full px-3 py-2.5 text-sm tabular-nums" />
               <FormHelper text="Service charge dari resto, biasanya 5–10%." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1">Pembulatan</label>
+              <label className="block text-xs font-medium text-[var(--outline)] mb-1">Pembulatan</label>
               <input type="number" value={rounding || ''} onChange={e => setRounding(parseFloat(e.target.value) || 0)} placeholder="0"
                 className="warm-input w-full px-3 py-2.5 text-sm tabular-nums" />
             </div>
           </div>
           <div className="glass-card p-4">
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-warm-muted">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
-              {tax > 0 && <div className="flex justify-between"><span className="text-warm-muted">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
-              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-warm-muted">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
-              {rounding !== 0 && <div className="flex justify-between"><span className="text-warm-muted">Pembulatan</span><span className="money">{formatRupiah(rounding)}</span></div>}
-              <div className="border-t border-warm-border pt-2 flex justify-between">
+              <div className="flex justify-between"><span className="text-[var(--outline)]">Subtotal ({items.length} item)</span><span className="money">{formatRupiah(subtotal)}</span></div>
+              {tax > 0 && <div className="flex justify-between"><span className="text-[var(--outline)]">Pajak</span><span className="money">{formatRupiah(tax)}</span></div>}
+              {serviceCharge > 0 && <div className="flex justify-between"><span className="text-[var(--outline)]">Service</span><span className="money">{formatRupiah(serviceCharge)}</span></div>}
+              {rounding !== 0 && <div className="flex justify-between"><span className="text-[var(--outline)]">Pembulatan</span><span className="money">{formatRupiah(rounding)}</span></div>}
+              <div className="border-t border-[var(--outline-variant)] pt-2 flex justify-between">
                 <span className="font-semibold">Total</span><span className="money text-lg">{formatRupiah(grandTotal)}</span>
               </div>
               {totalOnReceipt > 0 && (
@@ -405,7 +405,7 @@ export default function NewBillPage() {
       {/* Step: Select Payer */}
       {step === 'payer' && (
         <div className="animate-fade-in">
-          <p className="text-sm text-warm-muted mb-4">Siapa yang menalangi (membayar) bill ini?</p>
+          <p className="text-sm text-[var(--outline)] mb-4">Siapa yang menalangi (membayar) bill ini?</p>
           <div className="space-y-2 mb-6">
             {friends.map(friend => (
               <button
@@ -414,7 +414,7 @@ export default function NewBillPage() {
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
                     ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
-                    : 'border-warm-border bg-blush/40 hover:border-amber-500/30'
+                    : 'border-[var(--outline-variant)] bg-blush/40 hover:border-amber-500/30'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -430,17 +430,17 @@ export default function NewBillPage() {
             ))}
           </div>
           {friends.length === 0 && (
-            <div className="text-center py-8 text-sm text-warm-muted">
+            <div className="text-center py-8 text-sm text-[var(--outline)]">
               Belum ada teman. <a href="/friends" className="text-amber-400 font-semibold">Tambah dulu →</a>
             </div>
           )}
           <div className="glass-card p-4 mb-4">
-            <p className="text-xs text-warm-muted mb-1">{title}</p>
+            <p className="text-xs text-[var(--outline)] mb-1">{title}</p>
             <p className="money text-xl">{formatRupiah(grandTotal)}</p>
-            <p className="text-xs text-warm-muted mt-1">{items.length} item</p>
+            <p className="text-xs text-[var(--outline)] mt-1">{items.length} item</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-warm-border bg-blush/40 font-semibold text-sm">← Kembali</button>
+            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-[var(--outline-variant)] bg-blush/40 font-semibold text-sm">← Kembali</button>
             <button onClick={handleSave} disabled={!selectedPayer || saving}
               className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}

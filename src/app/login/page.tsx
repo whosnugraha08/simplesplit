@@ -42,31 +42,38 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-cream relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden" style={{ background: 'var(--bg)' }}>
+      {/* Background decorations */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-blush/60 blur-3xl" />
-        <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full blur-3xl" style={{ background: 'rgba(108,63,212,0.15)' }} />
+        <div className="absolute -bottom-32 -left-32 w-72 h-72 rounded-full blur-3xl" style={{ background: 'rgba(200,241,53,0.08)' }} />
       </div>
 
       <div className="relative w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-card bg-gradient-to-br from-primary to-accent shadow-warm mb-4">
-            <span className="text-3xl">🍞</span>
+          <div
+            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 rotate-neg"
+            style={{ background: 'var(--lime)', border: '2px solid var(--navy)' }}
+          >
+            <span className="material-symbols-outlined text-3xl" style={{ color: '#000', fontVariationSettings: "'FILL' 1" }}>payments</span>
           </div>
-          <h1 className="font-display text-3xl font-bold text-espresso">SimpleSplit</h1>
-          <p className="text-warm-muted text-sm mt-1">Split bill, hangat & tanpa ribet.</p>
+          <h1 style={{ fontFamily: 'var(--font-headline)', fontSize: '32px', fontWeight: 800, color: 'var(--lime)' }}>SimpleSplit</h1>
+          <p className="text-sm mt-1" style={{ color: 'var(--outline)' }}>Split bill, cepat & tanpa ribet.</p>
         </div>
 
-        <div className="warm-card p-6 shadow-warm-lg animate-slide-up">
-          <div className="flex gap-1 bg-blush/50 rounded-card p-1 mb-6">
+        <div className="neo-card p-6 animate-slide-up" style={{ borderColor: 'var(--lime)', borderWidth: '2px' }}>
+          {/* Tab switcher */}
+          <div className="flex gap-1 rounded-xl p-1 mb-6" style={{ background: 'var(--surface-container)' }}>
             {(['login', 'register'] as const).map(m => (
               <button
                 key={m}
                 type="button"
                 onClick={() => { setMode(m); setError(null); }}
-                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all btn-press ${
-                  mode === m ? 'btn-primary text-white' : 'text-warm-muted'
-                }`}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all btn-press`}
+                style={{
+                  background: mode === m ? 'var(--lime)' : 'transparent',
+                  color: mode === m ? '#000' : 'var(--outline)',
+                }}
               >
                 {m === 'login' ? 'Masuk' : 'Daftar'}
               </button>
@@ -74,7 +81,7 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="bg-ruby-light text-ruby rounded-card px-4 py-3 text-sm mb-4 animate-shake">
+            <div className="rounded-xl px-4 py-3 text-sm mb-4 animate-shake" style={{ background: 'rgba(255,92,92,0.15)', color: 'var(--red)', border: '1px solid var(--red)' }}>
               ⚠️ {error}
             </div>
           )}
@@ -82,45 +89,46 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'register' && (
               <div>
-                <label className="block text-xs font-medium text-warm-muted mb-1.5">Nama Tampilan</label>
+                <label className="block text-xs font-bold mb-1.5 label-caps" style={{ color: 'var(--outline)' }}>Nama Tampilan</label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}
                   placeholder="Nama kamu"
-                  className="warm-input w-full px-4 py-3 text-sm"
+                  className="neo-input w-full px-4 py-3 text-sm"
                   required
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1.5">Username</label>
+              <label className="block text-xs font-bold mb-1.5 label-caps" style={{ color: 'var(--outline)' }}>Username</label>
               <input
                 type="text"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
                 placeholder="contoh: faiz"
-                className="warm-input w-full px-4 py-3 text-sm"
+                className="neo-input w-full px-4 py-3 text-sm"
                 required
                 autoComplete="username"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-warm-muted mb-1.5">PIN</label>
+              <label className="block text-xs font-bold mb-1.5 label-caps" style={{ color: 'var(--outline)' }}>PIN</label>
               <input
                 type="password"
                 value={pin}
                 onChange={e => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 placeholder="4-6 digit angka"
                 inputMode="numeric"
-                className="warm-input w-full px-4 py-3 text-sm tracking-[0.2em] tabular-nums"
+                className="neo-input w-full px-4 py-3 text-sm tracking-[0.2em] tabular-nums"
+                style={{ fontFamily: 'var(--font-mono)' }}
                 required
                 minLength={4}
                 maxLength={6}
               />
-              <p className="text-[10px] text-warm-muted mt-1">Minimal 4 digit, maksimal 6 digit</p>
+              <p className="text-[10px] mt-1" style={{ color: 'var(--outline)' }}>Minimal 4 digit, maksimal 6 digit</p>
             </div>
 
             <button
@@ -133,7 +141,7 @@ export default function LoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-warm-muted text-xs mt-6">SimpleSplit v2.0 • 2026</p>
+        <p className="text-center text-xs mt-6" style={{ color: 'var(--outline)' }}>SimpleSplit v3.0 • Neo-Fin • 2026</p>
       </div>
     </div>
   );

@@ -41,29 +41,33 @@ export function DebtCard({
   const days = daysSince(createdAt);
   const content = (
     <div
-      className={`warm-card p-4 card-hover flex items-center gap-3 transition-all duration-300 ${
+      className={`neo-card p-4 neo-card-hover flex items-center gap-3 transition-all duration-300 ${
         exiting ? 'opacity-0 translate-x-8 scale-95' : 'animate-fade-in'
       } ${className}`}
       onClick={onClick}
     >
       <div
-        className="w-11 h-11 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0 animate-pop-in"
-        style={{ backgroundColor: getAvatarColor(name) }}
+        className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold shrink-0 animate-pop-in"
+        style={{ 
+          backgroundColor: variant === 'owed' ? 'var(--lime)' : 'var(--primary-container)',
+          color: variant === 'owed' ? '#000' : 'var(--on-primary-container)',
+          border: `3px solid ${variant === 'owed' ? 'var(--lime)' : 'var(--primary)'}`,
+        }}
       >
         {getInitials(name)}
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <p className="text-sm font-semibold text-espresso truncate">{name}</p>
+          <p className="text-sm font-semibold truncate" style={{ color: 'var(--on-surface)' }}>{name}</p>
           <StatusBadge status={status} />
           <OverdueBadge days={days} />
         </div>
         {subtitle && (
-          <p className="text-xs text-warm-muted truncate mt-0.5">{subtitle}</p>
+          <p className="text-xs truncate mt-0.5" style={{ color: 'var(--outline)' }}>{subtitle}</p>
         )}
       </div>
-      <p className={`money text-base shrink-0 ${variant === 'owe' ? 'text-ruby' : 'text-forest'}`}>
-        {variant === 'owed' ? '+' : ''}{formatRupiah(amount)}
+      <p className="font-amount money-lg shrink-0" style={{ color: variant === 'owe' ? 'var(--red)' : 'var(--lime)' }}>
+        {variant === 'owed' ? '+' : '-'}{formatRupiah(amount)}
       </p>
     </div>
   );

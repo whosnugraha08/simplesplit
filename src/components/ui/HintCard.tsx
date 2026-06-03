@@ -18,16 +18,14 @@ export function HintCard({ hintKey, children }: HintCardProps) {
   if (!visible) return null;
 
   return (
-    <div className="mb-4 p-3 rounded-card bg-blush/50 border border-primary/15 flex gap-3 animate-fade-in">
+    <div className="mb-4 p-3 rounded-xl flex gap-3 animate-fade-in" style={{ background: 'var(--surface-container)', border: '1px solid var(--outline-variant)' }}>
       <span className="text-lg shrink-0">💡</span>
-      <div className="flex-1 text-sm text-espresso/80">{children}</div>
+      <div className="flex-1 text-sm" style={{ color: 'var(--on-surface-variant)' }}>{children}</div>
       <button
         type="button"
-        onClick={() => {
-          dismissHint(hintKey);
-          setVisible(false);
-        }}
-        className="text-warm-muted hover:text-espresso text-xs shrink-0"
+        onClick={() => { dismissHint(hintKey); setVisible(false); }}
+        className="text-xs shrink-0 btn-press"
+        style={{ color: 'var(--outline)' }}
       >
         ✕
       </button>

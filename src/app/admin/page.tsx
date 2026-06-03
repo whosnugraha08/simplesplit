@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -106,7 +106,7 @@ export default function AdminPage() {
       <div className="content-padding pt-6 text-center py-16">
         <p className="text-4xl mb-3">🔒</p>
         <p className="text-lg font-bold mb-2">Akses Ditolak</p>
-        <p className="text-warm-muted text-sm mb-4">Halaman ini hanya untuk Admin.</p>
+        <p className="text-[var(--outline)] text-sm mb-4">Halaman ini hanya untuk Admin.</p>
         <Link href="/" className="text-amber-400 font-semibold text-sm">← Kembali ke Beranda</Link>
       </div>
     );
@@ -128,19 +128,19 @@ export default function AdminPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>
-          <h1 className="text-2xl font-bold text-espresso">Admin Panel</h1>
+          <h1 className="text-2xl font-bold text-[var(--on-surface)]">Admin Panel</h1>
         </div>
-        <p className="text-sm text-warm-muted">Kelola semua data SimpleSplit</p>
+        <p className="text-sm text-[var(--outline)]">Kelola semua data SimpleSplit</p>
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-warm-border mb-6 overflow-x-auto scrollbar-hide shadow-sm">
+      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-[var(--outline-variant)] mb-6 overflow-x-auto scrollbar-hide shadow-sm">
         {sections.map(s => (
           <button
             key={s.key}
             onClick={() => setActiveSection(s.key)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap px-3 ${
-              activeSection === s.key ? 'bg-primary text-white shadow-sm' : 'text-warm-muted hover:text-espresso'
+              activeSection === s.key ? 'bg-primary text-white shadow-sm' : 'text-[var(--outline)] hover:text-[var(--on-surface)]'
             }`}
           >
             {s.label}
@@ -154,31 +154,31 @@ export default function AdminPage() {
           {/* Stats Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="glass-card p-4">
-              <p className="text-[10px] text-warm-muted font-semibold uppercase tracking-wider">Total Users</p>
+              <p className="text-[10px] text-[var(--outline)] font-semibold uppercase tracking-wider">Total Users</p>
               <p className="text-2xl font-bold mt-1">{users.length}</p>
             </div>
             <div className="glass-card p-4">
-              <p className="text-[10px] text-warm-muted font-semibold uppercase tracking-wider">Total Bills</p>
+              <p className="text-[10px] text-[var(--outline)] font-semibold uppercase tracking-wider">Total Bills</p>
               <p className="text-2xl font-bold mt-1">{allBills.length}</p>
             </div>
             <div className="glass-card p-4">
-              <p className="text-[10px] text-warm-muted font-semibold uppercase tracking-wider">Belum Lunas</p>
+              <p className="text-[10px] text-[var(--outline)] font-semibold uppercase tracking-wider">Belum Lunas</p>
               <p className="text-2xl font-bold text-danger mt-1">{formatRupiah(totalUnpaid)}</p>
-              <p className="text-[10px] text-warm-muted">{allDebts.filter(d => d.status === 'unpaid').length} transaksi</p>
+              <p className="text-[10px] text-[var(--outline)]">{allDebts.filter(d => d.status === 'unpaid').length} transaksi</p>
             </div>
             <div className="glass-card p-4">
-              <p className="text-[10px] text-warm-muted font-semibold uppercase tracking-wider">Sudah Lunas</p>
+              <p className="text-[10px] text-[var(--outline)] font-semibold uppercase tracking-wider">Sudah Lunas</p>
               <p className="text-2xl font-bold text-success mt-1">{formatRupiah(totalPaid)}</p>
-              <p className="text-[10px] text-warm-muted">{allDebts.filter(d => d.status === 'paid').length} transaksi</p>
+              <p className="text-[10px] text-[var(--outline)]">{allDebts.filter(d => d.status === 'paid').length} transaksi</p>
             </div>
           </div>
 
           {/* Recent Activity */}
           <div>
-            <h2 className="text-sm font-semibold text-warm-muted mb-2">Hutang Terbaru (Belum Lunas)</h2>
+            <h2 className="text-sm font-semibold text-[var(--outline)] mb-2">Hutang Terbaru (Belum Lunas)</h2>
             <div className="space-y-2">
               {allDebts.filter(d => d.status === 'unpaid').slice(0, 5).map(debt => (
-                <div key={debt.id} className="bg-blush/40 rounded-xl border border-warm-border p-3">
+                <div key={debt.id} className="bg-blush/40 rounded-xl border border-[var(--outline-variant)] p-3">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
                       style={{ backgroundColor: getAvatarColor(debt.debtor?.name || '') }}>
@@ -188,14 +188,14 @@ export default function AdminPage() {
                       <p className="text-xs font-semibold truncate">
                         {debt.debtor?.name} → {debt.creditor?.name}
                       </p>
-                      <p className="text-[10px] text-warm-muted truncate">{debt.bill?.title}</p>
+                      <p className="text-[10px] text-[var(--outline)] truncate">{debt.bill?.title}</p>
                     </div>
                     <p className="money text-sm text-danger shrink-0">{formatRupiah(Number(debt.amount))}</p>
                   </div>
                 </div>
               ))}
               {allDebts.filter(d => d.status === 'unpaid').length === 0 && (
-                <p className="text-center text-warm-muted text-sm py-4">Semua lunas! 🎉</p>
+                <p className="text-center text-[var(--outline)] text-sm py-4">Semua lunas! 🎉</p>
               )}
             </div>
           </div>
@@ -205,7 +205,7 @@ export default function AdminPage() {
       {/* USERS */}
       {activeSection === 'users' && (
         <div className="space-y-3 animate-fade-in">
-          <p className="text-xs text-warm-muted mb-2">{users.length} user terdaftar</p>
+          <p className="text-xs text-[var(--outline)] mb-2">{users.length} user terdaftar</p>
           {users.map((u, idx) => {
             const friend = friends.find(f => f.user_id === u.id);
             return (
@@ -219,8 +219,8 @@ export default function AdminPage() {
                       <p className="font-semibold truncate">{u.display_name}</p>
                       {friend?.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                     </div>
-                    <p className="text-xs text-warm-muted">@{u.username}</p>
-                    <p className="text-[10px] text-warm-muted">Bergabung {formatDate(u.created_at)}</p>
+                    <p className="text-xs text-[var(--outline)]">@{u.username}</p>
+                    <p className="text-[10px] text-[var(--outline)]">Bergabung {formatDate(u.created_at)}</p>
                   </div>
                   <button
                     onClick={() => resetPin(u.id, u.username)}
@@ -239,7 +239,7 @@ export default function AdminPage() {
       {activeSection === 'debts' && (
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-warm-muted">{allDebts.length} total hutang</p>
+            <p className="text-xs text-[var(--outline)]">{allDebts.length} total hutang</p>
           </div>
           {allDebts.map((debt, idx) => (
             <div key={debt.id} className="glass-card p-4 animate-fade-in" style={{ animationDelay: `${idx * 20}ms` }}>
@@ -249,7 +249,7 @@ export default function AdminPage() {
                     style={{ backgroundColor: getAvatarColor(debt.debtor?.name || '') }}>
                     {getInitials(debt.debtor?.name || '?')}
                   </div>
-                  <span className="text-[10px] text-warm-muted">→</span>
+                  <span className="text-[10px] text-[var(--outline)]">→</span>
                   <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold"
                     style={{ backgroundColor: getAvatarColor(debt.creditor?.name || '') }}>
                     {getInitials(debt.creditor?.name || '?')}
@@ -259,15 +259,15 @@ export default function AdminPage() {
                   <p className="text-sm font-semibold truncate">
                     {debt.debtor?.name} → {debt.creditor?.name}
                   </p>
-                  <p className="text-xs text-warm-muted truncate">
+                  <p className="text-xs text-[var(--outline)] truncate">
                     {debt.bill?.title} • {formatDate(debt.bill?.bill_date || debt.created_at)}
                   </p>
                   {debt.notes && (
                     <div className="mt-1.5 bg-blush/40 rounded-lg p-2">
                       {debt.notes.split('\n').slice(0, 3).map((line, i) => (
-                        <p key={i} className="text-[10px] text-warm-muted">{line}</p>
+                        <p key={i} className="text-[10px] text-[var(--outline)]">{line}</p>
                       ))}
-                      {debt.notes.split('\n').length > 3 && <p className="text-[10px] text-warm-muted">...</p>}
+                      {debt.notes.split('\n').length > 3 && <p className="text-[10px] text-[var(--outline)]">...</p>}
                     </div>
                   )}
                 </div>
@@ -300,7 +300,7 @@ export default function AdminPage() {
       {/* ALL BILLS */}
       {activeSection === 'bills' && (
         <div className="space-y-3 animate-fade-in">
-          <p className="text-xs text-warm-muted mb-2">{allBills.length} total bills</p>
+          <p className="text-xs text-[var(--outline)] mb-2">{allBills.length} total bills</p>
           {allBills.map((bill, idx) => {
             const statusLabel: Record<string, { text: string; color: string }> = {
               draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
@@ -323,7 +323,7 @@ export default function AdminPage() {
                       <p className="font-semibold truncate">{bill.title}</p>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${status.color}`}>{status.text}</span>
                     </div>
-                    <p className="text-xs text-warm-muted">
+                    <p className="text-xs text-[var(--outline)]">
                       Ditalangi {bill.paid_by_friend?.name} • {formatDate(bill.bill_date)}
                     </p>
                   </div>

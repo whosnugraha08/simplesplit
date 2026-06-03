@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Google Fonts ──────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
 /* ─── Base ─────────────────────────────────────────────── */
 html {
   -webkit-tap-highlight-color: transparent;
@@ -16,108 +19,263 @@ html {
   }
 }
 
+/* ─── Neo-Fin Color Tokens (CSS Variables) ──────────────── */
+:root {
+  --bg: #15121b;
+  --surface: #15121b;
+  --surface-dim: #15121b;
+  --surface-bright: #3b3841;
+  --surface-container-lowest: #0f0d15;
+  --surface-container-low: #1d1a23;
+  --surface-container: #211e27;
+  --surface-container-high: #2b2832;
+  --surface-container-highest: #36333d;
+
+  --on-surface: #e7e0ed;
+  --on-surface-variant: #cbc3d6;
+  --outline: #948ea0;
+  --outline-variant: #494454;
+
+  --primary: #cfbcff;
+  --primary-container: #6c3fd4;
+  --on-primary: #3a0092;
+  --on-primary-container: #e1d3ff;
+  --inverse-primary: #6b3ed3;
+
+  --secondary: #c6c4df;
+  --secondary-container: #47475d;
+  --on-secondary: #2f2e43;
+
+  --tertiary: #ffb781;
+  --tertiary-container: #944c00;
+  --on-tertiary: #4e2500;
+
+  --error: #ffb4ab;
+  --error-container: #93000a;
+  --on-error: #690005;
+
+  --lime: #C8F135;
+  --navy: #1A1A2E;
+  --purple: #6C3FD4;
+  --red: #FF5C5C;
+
+  --font-headline: 'Syne', sans-serif;
+  --font-body: 'Plus Jakarta Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
 body {
-  background-color: #FDF6F0;
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(196, 98, 45, 0.06), transparent),
-    radial-gradient(ellipse 50% 40% at 100% 80%, rgba(232, 149, 109, 0.08), transparent);
-  color: #2C1810;
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--on-surface);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* ─── Typography (sans-serif, warm) ─────────────────────── */
+/* ─── Typography ────────────────────────────────────────── */
 h1, h2, h3, h4, h5, h6,
 .font-display {
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', system-ui, sans-serif;
-  font-weight: 700;
+  font-family: var(--font-headline);
+  font-weight: 800;
   letter-spacing: -0.02em;
+  color: var(--on-surface);
 }
 
-/* ─── Money Display ────────────────────────────────────── */
-.money {
-  font-family: 'Plus Jakarta Sans', 'Segoe UI', sans-serif;
+.text-display-lg { font-size: 48px; line-height: 1.1; font-weight: 800; }
+.text-display-mobile { font-size: 36px; line-height: 1.1; font-weight: 800; }
+.text-headline { font-size: 24px; line-height: 1.2; font-weight: 700; }
+
+/* ─── Money Display (JetBrains Mono) ────────────────────── */
+.money, .font-amount {
+  font-family: var(--font-mono);
   font-weight: 700;
-  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
+.money-lg { font-size: 20px; line-height: 1; }
+.money-sm { font-size: 14px; line-height: 1; font-weight: 600; }
 
-/* ─── Legacy aliases (halaman lama → tema warm) ─────────── */
-.glass-card {
-  background: #fff;
-  border: 1px solid rgba(196, 98, 45, 0.12);
+/* ─── Labels (uppercase) ────────────────────────────────── */
+.label-caps {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ─── Neo-Brutalist Cards ───────────────────────────────── */
+.neo-card {
+  background: var(--navy);
+  border: 2px solid var(--outline-variant);
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(196, 98, 45, 0.08);
-  color: #2C1810;
+  padding: 16px;
+  color: var(--on-surface);
+  transition: border-color 200ms ease, transform 150ms ease;
 }
-
-.glass-input {
-  background: #fff;
-  border: 1px solid rgba(196, 98, 45, 0.2);
-  color: #2C1810;
-  border-radius: 12px;
+.neo-card:hover {
+  border-color: var(--lime);
 }
-.glass-input:focus {
-  outline: none;
-  border-color: #C4622D;
-  box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.15);
-}
-.glass-input::placeholder {
-  color: rgba(44, 24, 16, 0.35);
-}
-
-/* Tab / chip tidak aktif */
-.chip-inactive {
-  background: #fff;
-  color: rgba(44, 24, 16, 0.55);
-  border: 1px solid rgba(196, 98, 45, 0.15);
-}
-.chip-inactive:hover {
-  color: #2C1810;
-  border-color: rgba(196, 98, 45, 0.25);
-}
-
-/* ─── Cards ────────────────────────────────────────────── */
-.warm-card {
-  background: #fff;
-  border: 1px solid rgba(196, 98, 45, 0.12);
-  border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(196, 98, 45, 0.08);
-}
-
-.card-hover {
-  transition: transform 150ms ease, box-shadow 150ms ease, border-color 200ms ease;
-}
-.card-hover:hover {
+.neo-card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 32px rgba(196, 98, 45, 0.14);
-  border-color: rgba(196, 98, 45, 0.22);
+  border-color: var(--lime);
 }
-.card-hover:active {
+.neo-card-hover:active {
   transform: scale(0.98);
 }
+
+/* Primary container card (purple) */
+.neo-card-primary {
+  background: var(--primary-container);
+  border: 2px solid var(--lime);
+  border-radius: 20px;
+  padding: 24px;
+  color: var(--on-primary-container);
+}
+
+/* Legacy alias */
+.glass-card { 
+  background: var(--navy);
+  border: 2px solid var(--outline-variant);
+  border-radius: 16px;
+  box-shadow: none;
+  color: var(--on-surface);
+}
+
+/* ─── Inputs ────────────────────────────────────────────── */
+.neo-input, .glass-input, .warm-input {
+  background: var(--surface-container);
+  border: 2px solid var(--outline-variant);
+  color: var(--on-surface);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  transition: all 200ms ease;
+}
+.neo-input:focus, .glass-input:focus, .warm-input:focus {
+  outline: none;
+  border-color: var(--lime);
+  box-shadow: 0 0 0 3px rgba(200, 241, 53, 0.15);
+}
+.neo-input::placeholder, .glass-input::placeholder, .warm-input::placeholder {
+  color: var(--outline);
+}
+
+/* ─── Chips ─────────────────────────────────────────────── */
+.chip-inactive {
+  background: var(--surface-container);
+  color: var(--outline);
+  border: 2px solid var(--outline-variant);
+  border-radius: 999px;
+}
+.chip-inactive:hover {
+  color: var(--on-surface);
+  border-color: var(--lime);
+}
+
+.chip-lunas {
+  background: rgba(200, 241, 53, 0.15);
+  color: var(--lime);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.chip-hutang {
+  background: rgba(255, 92, 92, 0.15);
+  color: var(--red);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--red);
+}
+
+/* ─── Buttons ──────────────────────────────────────────── */
+.btn-primary {
+  background: var(--lime);
+  color: #000;
+  font-family: var(--font-body);
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 12px 24px;
+  transition: all 200ms ease;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0 var(--navy);
+}
+.btn-primary:active { transform: scale(0.96); }
+
+.btn-secondary {
+  background: var(--surface-container);
+  color: var(--on-surface);
+  font-weight: 700;
+  border-radius: 999px;
+  border: 2px solid var(--outline-variant);
+  padding: 10px 20px;
+  cursor: pointer;
+}
+.btn-secondary:hover { border-color: var(--lime); }
 
 .btn-press:active {
   transform: scale(0.96);
 }
 
+/* ─── Gradient Text (lime) ─────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--lime), #A8D800);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Neo-brutalist decorative elements ─────────────────── */
+.neo-border { border: 2px solid var(--lime); }
+.neo-border-dark { border: 2px solid var(--navy); }
+.rotate-pos { transform: rotate(0.5deg); }
+.rotate-neg { transform: rotate(-0.5deg); }
+.neo-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--lime);
+  display: inline-block;
+}
+
+/* ─── Color utilities ──────────────────────────────────── */
+.text-lime { color: var(--lime); }
+.text-red { color: var(--red); }
+.text-purple { color: var(--primary); }
+.text-muted, .text-warm-muted { color: var(--outline); }
+.bg-navy { background: var(--navy); }
+.bg-purple { background: var(--primary-container); }
+.border-lime { border-color: var(--lime); }
+.border-outline { border-color: var(--outline-variant); }
+
 /* ─── Scrollbar ────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(196, 98, 45, 0.25); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: var(--outline-variant); border-radius: 999px; }
 
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
-/* ─── Warm Skeleton ─────────────────────────────────────── */
-@keyframes shimmer-warm {
+/* ─── Skeleton (dark) ──────────────────────────────────── */
+@keyframes shimmer-dark {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .skeleton {
-  background: linear-gradient(90deg, #F5D4C1 25%, #FDF6F0 50%, #F5D4C1 75%);
+  background: linear-gradient(90deg, var(--surface-container) 25%, var(--surface-container-high) 50%, var(--surface-container) 75%);
   background-size: 200% 100%;
-  animation: shimmer-warm 1.5s infinite;
+  animation: shimmer-dark 1.5s infinite;
   border-radius: 12px;
 }
 
@@ -159,67 +317,16 @@ h1, h2, h3, h4, h5, h6,
 }
 .animate-toast-in { animation: toastIn 300ms cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-@keyframes checkSweep {
-  from { stroke-dashoffset: 24; }
-  to { stroke-dashoffset: 0; }
-}
-
-/* ─── Overlays ─────────────────────────────────────────── */
+/* ─── Overlay ─────────────────────────────────────────── */
 .overlay {
-  background: rgba(44, 24, 16, 0.45);
+  background: rgba(15, 13, 21, 0.7);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
 
-/* ─── Form inputs ──────────────────────────────────────── */
-.warm-input {
-  background: #fff;
-  border: 1px solid rgba(196, 98, 45, 0.2);
-  color: #2C1810;
-  border-radius: 12px;
-  transition: all 200ms ease;
-}
-.warm-input:focus {
-  outline: none;
-  border-color: #C4622D;
-  box-shadow: 0 0 0 3px rgba(196, 98, 45, 0.15);
-}
-.warm-input::placeholder { color: rgba(44, 24, 16, 0.35); }
-
-/* ─── Buttons ──────────────────────────────────────────── */
-.btn-primary {
-  background: linear-gradient(135deg, #C4622D, #E8956D);
-  color: #fff;
-  font-weight: 700;
-  border-radius: 12px;
-  transition: all 200ms ease;
-  box-shadow: 0 4px 16px rgba(196, 98, 45, 0.25);
-}
-.btn-primary:hover {
-  box-shadow: 0 6px 24px rgba(196, 98, 45, 0.35);
-  transform: translateY(-1px);
-}
-.btn-primary:active { transform: scale(0.96); }
-
-.btn-secondary {
-  background: #F5D4C1;
-  color: #2C1810;
-  font-weight: 600;
-  border-radius: 12px;
-  border: 1px solid rgba(196, 98, 45, 0.15);
-}
-.btn-secondary:hover { background: #edd0bc; }
-
-/* ─── Gradient Text ────────────────────────────────────── */
-.gradient-text {
-  background: linear-gradient(135deg, #C4622D, #E8956D);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
+/* ─── Form elements ────────────────────────────────────── */
 input[type="checkbox"] {
-  accent-color: #C4622D;
+  accent-color: var(--lime);
   width: 1.25rem;
   height: 1.25rem;
   border-radius: 0.25rem;
@@ -238,6 +345,7 @@ input[type="number"] { -moz-appearance: textfield; }
   .content-padding { padding-left: 2rem; padding-right: 2rem; }
 }
 
+/* ─── Qty Buttons ──────────────────────────────────────── */
 .qty-btn {
   display: inline-flex;
   align-items: center;
@@ -253,9 +361,10 @@ input[type="number"] { -moz-appearance: textfield; }
   flex-shrink: 0;
 }
 .qty-btn:active { transform: scale(0.9); }
-.qty-btn-minus { background: rgba(192, 57, 43, 0.12); color: #C0392B; }
-.qty-btn-plus { background: rgba(196, 98, 45, 0.12); color: #C4622D; }
+.qty-btn-minus { background: rgba(255, 92, 92, 0.15); color: var(--red); }
+.qty-btn-plus { background: rgba(200, 241, 53, 0.15); color: var(--lime); }
 
+/* ─── Responsive Grid ─────────────────────────────────── */
 @media (min-width: 768px) {
   .responsive-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
 }
@@ -263,5 +372,22 @@ input[type="number"] { -moz-appearance: textfield; }
   .responsive-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
 }
 
-/* Debt swipe actions */
 .debt-swipe-container { touch-action: pan-y; }
+
+/* ─── Warm-to-Neo compatibility aliases ────────────────── */
+.warm-card {
+  background: var(--navy);
+  border: 2px solid var(--outline-variant);
+  border-radius: 16px;
+  box-shadow: none;
+}
+.card-hover {
+  transition: transform 150ms ease, border-color 200ms ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  border-color: var(--lime);
+}
+.card-hover:active {
+  transform: scale(0.98);
+}
