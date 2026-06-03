@@ -171,7 +171,7 @@ export default function HomePage() {
             Hutangku
           </h3>
           <div className="flex-1" />
-          <Link href="/debts" className="text-sm font-medium" style={{ color: 'var(--tertiary)' }}>
+          <Link href="/debts" className="text-sm font-medium" style={{ color: 'var(--lime)' }}>
             Lihat semua →
           </Link>
         </div>
@@ -235,12 +235,12 @@ export default function HomePage() {
 
       {/* Friends */}
       <div className="neo-card p-4 flex items-center gap-3">
-        <span className="material-symbols-outlined text-2xl" style={{ color: 'var(--tertiary)' }}>group</span>
+        <span className="material-symbols-outlined text-2xl" style={{ color: 'var(--lime)' }}>group</span>
         <div className="flex-1">
           <p className="text-sm font-semibold">{friendCount} Teman</p>
           <p className="text-xs" style={{ color: 'var(--outline)' }}>di sirkel kamu</p>
         </div>
-        <Link href="/friends" className="text-sm font-medium" style={{ color: 'var(--tertiary)' }}>
+        <Link href="/friends" className="text-sm font-medium" style={{ color: 'var(--lime)' }}>
           Kelola →
         </Link>
       </div>

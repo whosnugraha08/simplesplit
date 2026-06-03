@@ -291,7 +291,7 @@ export default function AssignPage() {
 
       {/* Quick Actions */}
       <div className="flex gap-2 mb-4">
-        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">
+        <button onClick={assignAllEqual} className="px-3 py-1.5 rounded-lg bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-xs font-semibold">
           Semua bagi rata
         </button>
         <button onClick={resetAll} className="px-3 py-1.5 rounded-lg bg-[var(--surface-container)] text-[var(--outline)] text-xs font-semibold border border-[var(--outline-variant)]">
@@ -367,7 +367,7 @@ export default function AssignPage() {
                           >
                             −
                           </button>
-                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-amber-400' : 'text-[var(--outline)]'}`}>
+                          <span className={`w-8 text-center text-sm font-bold ${qty > 0 ? 'text-[var(--lime)]' : 'text-[var(--outline)]'}`}>
                             {qty}
                           </span>
                           <button
@@ -401,7 +401,7 @@ export default function AssignPage() {
                         className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
                           isAssigned
                             ? 'bg-[var(--primary-container)] text-white '
-                            : 'bg-[var(--surface-container)] text-[var(--outline)] hover:bg-blue-500/10 hover:text-amber-400'
+                            : 'bg-[var(--surface-container)] text-[var(--outline)] hover:bg-blue-500/10 hover:text-[var(--lime)]'
                         }`}
                       >
                         <div
@@ -449,7 +449,7 @@ export default function AssignPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">
                         {b.friend.name}
-                        {isPayer && <span className="text-amber-400 text-[10px] font-bold ml-1">PAYER</span>}
+                        {isPayer && <span className="text-[var(--lime)] text-[10px] font-bold ml-1">PAYER</span>}
                       </p>
                       <p className="text-[10px] text-[var(--outline)]">
                         {b.item_details.map(d => `${d.itemName} x${d.qty}`).join(', ')}
@@ -479,14 +479,14 @@ export default function AssignPage() {
         <button
           onClick={handleCreatePoll}
           disabled={saving}
-          className="flex-[2] py-3.5 rounded-xl bg-[#25D366] text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-[#25D366]/20 flex items-center justify-center gap-2"
+          className="flex-[2] py-3.5 rounded-xl bg-[#25D366] text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition  shadow-[#25D366]/20 flex items-center justify-center gap-2"
         >
           <span>💬</span> Polling Grup WA
         </button>
         <button
           onClick={handleSave}
           disabled={saving || !allAssigned}
-          className="flex-[3] py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
+          className="flex-[3] py-3.5 rounded-xl btn-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition  shadow-none"
         >
           {saving ? 'Menyimpan...' : !allAssigned ? 'Assign semua dulu' : '✓ Simpan Manual'}
         </button>

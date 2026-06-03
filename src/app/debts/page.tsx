@@ -304,7 +304,7 @@ export default function DebtsPage() {
 
       {/* Summary */}
       {statusFilter === 'unpaid' && debts.length > 0 && (
-        <div className={`rounded-2xl p-4 mb-4 text-white ${tab === 'my-debts' ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-emerald-500 to-teal-600'}`}>
+        <div className={`rounded-2xl p-4 mb-4 text-white ${tab === 'my-debts' ? 'bg-[var(--red)] text-white' : 'bg-[var(--primary-container)] text-[var(--on-primary-container)]'}`}>
           <p className="text-white/70 text-xs font-medium mb-0.5">
             {tab === 'my-debts' ? 'Total yang aku hutang' : 'Total yang orang hutang ke aku'}
           </p>
@@ -319,13 +319,13 @@ export default function DebtsPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <span className="text-base">🔄</span>
-              <p className="text-xs font-bold text-amber-400">Ada Hutang yang Bisa Di-offset!</p>
+              <p className="text-xs font-bold text-[var(--lime)]">Ada Hutang yang Bisa Di-offset!</p>
             </div>
             {nettingPairs.length > 1 && (
               <button
                 onClick={handleProcessAllNetting}
                 disabled={processingNetting}
-                className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold disabled:opacity-50 active:scale-[0.98] transition"
+                className="px-3 py-1.5 rounded-lg bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-[10px] font-semibold disabled:opacity-50 active:scale-[0.98] transition"
               >
                 {processingNetting ? '⏳ Proses...' : '🔄 Offset Semua'}
               </button>
@@ -359,7 +359,7 @@ export default function DebtsPage() {
               const isExpanded = expandedNetting === pairKey;
 
               return (
-                <div key={idx} className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 border border-amber-500/20 rounded-2xl p-4 animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
+                <div key={idx} className="bg-[var(--surface-container)] border border-[rgba(200,241,53,0.2)] rounded-2xl p-4 animate-fade-in" style={{ animationDelay: `${idx * 50}ms` }}>
                   {/* Header */}
                   <div className="flex items-center gap-3 mb-3">
                     <div className="relative">
@@ -367,7 +367,7 @@ export default function DebtsPage() {
                         style={{ backgroundColor: getAvatarColor(me.name) }}>
                         {getInitials(me.name)}
                       </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px]">🔄</div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-[var(--lime)] text-black flex items-center justify-center text-[8px]">🔄</div>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-[var(--outline)] text-lg">⇄</span>
@@ -395,7 +395,7 @@ export default function DebtsPage() {
                     <div className="border-t border-[var(--outline-variant)] pt-2">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-[var(--outline)]">🔄 Di-offset (saling dikurangi)</span>
-                        <span className="money text-xs text-amber-400 font-bold">-{formatRupiah(pair.offsetAmount)}</span>
+                        <span className="money text-xs text-[var(--lime)] font-bold">-{formatRupiah(pair.offsetAmount)}</span>
                       </div>
                     </div>
                   </div>
@@ -430,7 +430,7 @@ export default function DebtsPage() {
 
                   {/* Detail toggle */}
                   <button onClick={() => setExpandedNetting(isExpanded ? null : pairKey)}
-                    className="w-full text-[11px] text-amber-400 font-medium mb-2">
+                    className="w-full text-[11px] text-[var(--lime)] font-medium mb-2">
                     {isExpanded ? '▲ Sembunyikan detail asal hutang' : '▼ Lihat detail asal hutang'}
                   </button>
 
@@ -459,7 +459,7 @@ export default function DebtsPage() {
                   <button
                     onClick={() => handleProcessNetting(pair)}
                     disabled={processingNetting}
-                    className="w-full py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
+                    className="w-full py-2.5 rounded-xl bg-[var(--lime)] text-black text-white text-xs font-bold disabled:opacity-50 active:scale-[0.98] transition  shadow-none"
                   >
                     {processingNetting ? '⏳ Memproses...' : '🔄 Proses Offset Sekarang'}
                   </button>
@@ -611,7 +611,7 @@ export default function DebtsPage() {
                         {!isExpanded && noteItems.length > 2 && (
                           <button
                             onClick={() => setExpandedDebt(debt.id)}
-                            className="text-[11px] text-amber-400 font-medium mt-1 w-full text-left"
+                            className="text-[11px] text-[var(--lime)] font-medium mt-1 w-full text-left"
                           >
                             ... dan {noteItems.length - 2} item lainnya ▼
                           </button>
@@ -619,7 +619,7 @@ export default function DebtsPage() {
                         {isExpanded && noteItems.length > 2 && (
                           <button
                             onClick={() => setExpandedDebt(null)}
-                            className="text-[11px] text-amber-400 font-medium mt-1 w-full text-left"
+                            className="text-[11px] text-[var(--lime)] font-medium mt-1 w-full text-left"
                           >
                             Sembunyikan ▲
                           </button>
@@ -630,7 +630,7 @@ export default function DebtsPage() {
 
                   {/* No notes — show bill link */}
                   {noteItems.length === 0 && (
-                    <Link href={`/bills/${debt.bill_id}`} className="mt-2 inline-block text-xs text-amber-400 font-medium">
+                    <Link href={`/bills/${debt.bill_id}`} className="mt-2 inline-block text-xs text-[var(--lime)] font-medium">
                       📋 Lihat detail bill →
                     </Link>
                   )}
@@ -642,7 +642,7 @@ export default function DebtsPage() {
                         {isMyDebt && (
                           <Link
                             href={`/pay/${debt.id}`}
-                            className="flex-1 py-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold text-center"
+                            className="flex-1 py-2.5 rounded-xl bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-xs font-semibold text-center"
                           >
                             💳 Bayar
                           </Link>
@@ -681,7 +681,7 @@ export default function DebtsPage() {
               <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-[var(--outline)] text-xl p-1 hover:text-[var(--on-surface)]">✕</button>
             </div>
 
-            <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 mb-4 text-white text-center">
+            <div className="btn-primary rounded-xl p-4 mb-4 text-white text-center">
               <p className="text-blue-100 text-xs mb-0.5">Total ke {payAllConfirm.creditor}</p>
               <p className="money text-2xl text-white">{formatRupiah(payAllConfirm.total)}</p>
               <p className="text-blue-200 text-[10px] mt-1">{payAllConfirm.count} transaksi</p>
@@ -710,7 +710,7 @@ export default function DebtsPage() {
                         <div className="flex items-center justify-between">
                           <p className="money text-base">{selectedPM.account_number}</p>
                           <button onClick={() => { navigator.clipboard.writeText(selectedPM.account_number || ''); showToast('Nomor rekening disalin!', 'success'); }}
-                            className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">📋 Salin</button>
+                            className="px-2 py-1 rounded-md bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-[10px] font-semibold">📋 Salin</button>
                         </div>
                       </div>
                     )}
@@ -725,7 +725,7 @@ export default function DebtsPage() {
                           <button onClick={() => setShowQris(true)} className="w-full">
                             <img src={qrisMode === 'dynamic' && dynamicQris ? dynamicQris : selectedPM.qris_image_url} alt="QRIS"
                               className="w-full max-h-40 object-contain rounded-lg border border-[var(--outline-variant)] bg-[var(--navy)]" />
-                            <p className="text-[10px] text-amber-400 font-medium mt-1">Tap untuk perbesar</p>
+                            <p className="text-[10px] text-[var(--lime)] font-medium mt-1">Tap untuk perbesar</p>
                           </button>
                         )}
                       </div>
@@ -753,9 +753,9 @@ export default function DebtsPage() {
                 </div>
               ) : (
                 <label htmlFor="proof-payall-upload"
-                  className="block w-full py-6 rounded-xl border-2 border-dashed border-amber-500/20 hover:border-amber-500/30 bg-blue-500/10/50 transition-colors cursor-pointer text-center">
+                  className="block w-full py-6 rounded-xl border-2 border-dashed border-[rgba(200,241,53,0.2)] hover:border-[rgba(200,241,53,0.3)] bg-blue-500/10/50 transition-colors cursor-pointer text-center">
                   <span className="text-2xl block mb-1">📷</span>
-                  <span className="text-xs text-amber-400 font-semibold">Upload Bukti Transfer</span>
+                  <span className="text-xs text-[var(--lime)] font-semibold">Upload Bukti Transfer</span>
                 </label>
               )}
             </div>
@@ -790,8 +790,8 @@ export default function DebtsPage() {
               <button onClick={() => !submittingProof && setProofModal(null)} className="text-[var(--outline)] hover:text-[var(--on-surface)] text-xl p-1">✕</button>
             </div>
 
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 mb-4">
-              <p className="text-xs text-amber-700">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
+            <div className="bg-[rgba(200,241,53,0.05)] rounded-xl border border-[rgba(200,241,53,0.3)] p-3 mb-4">
+              <p className="text-xs text-[var(--lime)]">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
             </div>
 
             <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
@@ -805,9 +805,9 @@ export default function DebtsPage() {
               </div>
             ) : (
               <label htmlFor="proof-debt-upload"
-                className="block w-full py-8 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-orange-500 bg-orange-50/50 transition-colors cursor-pointer text-center mb-4">
+                className="block w-full py-8 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-[var(--lime)] bg-[rgba(200,241,53,0.05)] transition-colors cursor-pointer text-center mb-4">
                 <span className="text-3xl block mb-2">📷</span>
-                <span className="text-sm text-orange-600 font-semibold">Upload Bukti Transfer</span>
+                <span className="text-sm text-[var(--lime)] font-semibold">Upload Bukti Transfer</span>
                 <span className="block text-[11px] text-[var(--outline)] mt-1">Tap untuk foto atau pilih dari galeri</span>
               </label>
             )}

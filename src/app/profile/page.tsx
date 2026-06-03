@@ -222,7 +222,7 @@ export default function ProfilePage() {
     <div className="content-padding pt-6 pb-4">
       {/* Header with avatar */}
       <div className="text-center mb-6">
-        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold shadow-lg"
+        <div className="w-20 h-20 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold "
           style={{ backgroundColor: getAvatarColor(displayName || 'U') }}>
           {getInitials(displayName || 'User')}
         </div>
@@ -284,7 +284,7 @@ export default function ProfilePage() {
 
         {activePMs.length === 0 ? (
           <button type="button" onClick={addPaymentMethod}
-            className="w-full py-6 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-sm text-center">
+            className="w-full py-6 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-[rgba(200,241,53,0.3)] transition-colors text-[var(--outline)] text-sm text-center">
             💳 Tambah rekening / e-wallet
           </button>
         ) : (
@@ -316,7 +316,7 @@ export default function ProfilePage() {
                           </div>
                         ) : (
                           <label htmlFor={`qris-profile-${idx}`}
-                            className="block w-full py-3 rounded-lg border border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-xs text-center cursor-pointer">
+                            className="block w-full py-3 rounded-lg border border-dashed border-[var(--outline-variant)] hover:border-[rgba(200,241,53,0.3)] transition-colors text-[var(--outline)] text-xs text-center cursor-pointer">
                             📷 Upload QRIS (opsional)
                           </label>
                         )}
@@ -347,7 +347,7 @@ export default function ProfilePage() {
             Batal
           </button>
           <button onClick={handleSave} disabled={saving || !displayName.trim()}
-            className="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
+            className="flex-1 py-3 rounded-xl btn-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition  shadow-none">
             {saving ? 'Menyimpan...' : '✓ Simpan'}
           </button>
         </div>

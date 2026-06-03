@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -302,7 +302,7 @@ export default function NewBillPage() {
       {step === 'edit' && (
         <div className="animate-fade-in space-y-4">
           {scanSource && (
-            <div className="flex justify-between items-center bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+            <div className="flex justify-between items-center bg-[rgba(200,241,53,0.1)] border border-[rgba(200,241,53,0.2)] rounded-xl p-3">
               <span className="text-xs text-[var(--outline)] font-medium">Scan:</span>
               <span className="text-xs font-bold gradient-text">
                 {scanSource === 'gemini' ? '✨ Gemini AI' : '📸 Tesseract.js'}
@@ -328,7 +328,7 @@ export default function NewBillPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-[var(--outline)]">Daftar Item</label>
-              <button onClick={addItem} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
+              <button onClick={addItem} className="text-sm text-[var(--lime)] font-semibold">+ Tambah</button>
             </div>
             <div className="space-y-2">
               {items.map((item, idx) => (
@@ -336,15 +336,15 @@ export default function NewBillPage() {
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
                       <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
-                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <input type="number" value={item.price || ''} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="Harga"
-                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                         </div>
                         <div className="w-16">
                           <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} min="1"
-                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm text-center focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                         </div>
                       </div>
                     </div>
@@ -396,7 +396,7 @@ export default function NewBillPage() {
             </div>
           </div>
           <button onClick={() => setStep('payer')} disabled={items.length === 0 || subtotal <= 0}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
+            className="w-full py-3.5 rounded-xl btn-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition  shadow-none">
             Lanjut — Pilih Payer →
           </button>
         </div>
@@ -413,8 +413,8 @@ export default function NewBillPage() {
                 onClick={() => setSelectedPayer(friend.id)}
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
-                    ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
-                    : 'border-[var(--outline-variant)] bg-[var(--surface-container)] hover:border-amber-500/30'
+                    ? 'border-[var(--lime)] bg-[rgba(200,241,53,0.1)] ring-2 ring-[rgba(200,241,53,0.3)]'
+                    : 'border-[var(--outline-variant)] bg-[var(--surface-container)] hover:border-[rgba(200,241,53,0.3)]'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -423,15 +423,15 @@ export default function NewBillPage() {
                 </div>
                 <div className="flex-1">
                   <p className="font-semibold text-sm">{friend.name}</p>
-                  {friend.id === user?.friend_id && <p className="text-[10px] text-amber-400 font-bold">KAMU</p>}
+                  {friend.id === user?.friend_id && <p className="text-[10px] text-[var(--lime)] font-bold">KAMU</p>}
                 </div>
-                {selectedPayer === friend.id && <span className="text-amber-400 text-lg">✓</span>}
+                {selectedPayer === friend.id && <span className="text-[var(--lime)] text-lg">✓</span>}
               </button>
             ))}
           </div>
           {friends.length === 0 && (
             <div className="text-center py-8 text-sm text-[var(--outline)]">
-              Belum ada teman. <a href="/friends" className="text-amber-400 font-semibold">Tambah dulu →</a>
+              Belum ada teman. <a href="/friends" className="text-[var(--lime)] font-semibold">Tambah dulu →</a>
             </div>
           )}
           <div className="glass-card p-4 mb-4">
@@ -442,7 +442,7 @@ export default function NewBillPage() {
           <div className="flex gap-3">
             <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] font-semibold text-sm">← Kembali</button>
             <button onClick={handleSave} disabled={!selectedPayer || saving}
-              className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
+              className="flex-1 py-3.5 rounded-xl btn-primary text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition  shadow-none">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}
             </button>
           </div>

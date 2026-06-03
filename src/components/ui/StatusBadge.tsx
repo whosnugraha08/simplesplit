@@ -7,7 +7,7 @@ const config: Record<DebtStatus, { label: string; style: React.CSSProperties }> 
   },
   pending: {
     label: 'Menunggu',
-    style: { background: 'rgba(255,183,129,0.15)', color: 'var(--tertiary)', border: '1px solid var(--tertiary)' }
+    style: { background: 'rgba(255,183,129,0.15)', color: 'var(--lime)', border: '1px solid var(--tertiary)' }
   },
   paid: {
     label: '✅ Lunas',

@@ -105,7 +105,7 @@ export default function BillDetailPage() {
   }
 
   const statusLabel: Record<string, { text: string; color: string }> = {
-    draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
+    draft: { text: 'Draft', color: 'bg-[rgba(200,241,53,0.1)] text-[var(--lime)]' },
     assigned: { text: 'Dibagi', color: 'bg-blue-500/10 text-blue-400' },
     settled: { text: 'Selesai', color: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
   };
@@ -140,7 +140,7 @@ export default function BillDetailPage() {
       </div>
 
       {/* Amount Summary */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 mb-4 text-white">
+      <div className="btn-primary rounded-2xl p-4 mb-4 text-white">
         <div className="space-y-1.5 text-sm">
           <div className="flex justify-between"><span className="text-blue-100">Subtotal</span><span className="money">{formatRupiah(Number(bill.subtotal))}</span></div>
           {Number(bill.tax_amount) > 0 && <div className="flex justify-between"><span className="text-blue-100">Pajak</span><span className="money">{formatRupiah(Number(bill.tax_amount))}</span></div>}
@@ -192,12 +192,12 @@ export default function BillDetailPage() {
                       <div className="flex items-center gap-2">
                         {debt.status !== 'paid' && bill.status !== 'draft' && (
                           <button onClick={() => handleRemind(debt)} disabled={sendingRemind === debt.id}
-                            className="p-1 rounded-md bg-amber-500/10 hover:bg-[rgba(255,183,129,0.15)] text-amber-400 transition active:scale-95 disabled:opacity-50"
+                            className="p-1 rounded-md bg-[rgba(200,241,53,0.1)] hover:bg-[rgba(255,183,129,0.15)] text-[var(--lime)] transition active:scale-95 disabled:opacity-50"
                             title="Kirim Pengingat">
                             {sendingRemind === debt.id ? '⏳' : '🔔'}
                           </button>
                         )}
-                        <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-amber-400'}`}>
+                        <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-[var(--lime)]'}`}>
                           {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM LUNAS'}
                         </span>
                       </div>
@@ -208,7 +208,7 @@ export default function BillDetailPage() {
                   {debt.notes && (
                     <>
                       <button onClick={() => setExpandedDebt(isExpanded ? null : debt.id)}
-                        className="mt-2 text-[10px] text-amber-400 font-medium">
+                        className="mt-2 text-[10px] text-[var(--lime)] font-medium">
                         {isExpanded ? '▲ Sembunyikan' : '▼ Lihat detail'}
                       </button>
                       {isExpanded && (
@@ -230,7 +230,7 @@ export default function BillDetailPage() {
       {/* Actions */}
       <div className="space-y-2">
         {bill.status === 'draft' && (
-          <Link href={`/bills/${billId}/assign`} className="block w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm text-center shadow-lg shadow-amber-500/20">
+          <Link href={`/bills/${billId}/assign`} className="block w-full py-3.5 rounded-xl btn-primary text-white font-semibold text-sm text-center  shadow-none">
             Bagi Item ke Teman →
           </Link>
         )}

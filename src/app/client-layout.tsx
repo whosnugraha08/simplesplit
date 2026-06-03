@@ -158,7 +158,7 @@ function MobileBottomNav() {
     { href: '/debts', icon: 'account_balance_wallet', label: 'Hutang' },
     { href: '/bills/new', icon: 'add_box', label: 'Add', isCenter: true },
     ...(user?.is_admin ? [{ href: '/friends', icon: 'group', label: 'Teman' }] : [{ href: '/bills', icon: 'receipt_long', label: 'Bills' }]),
-    { href: '/profile', icon: 'person', label: 'Profil' },
+    ...(user?.is_admin ? [{ href: '/admin', icon: 'admin_panel_settings', label: 'Admin' }] : [{ href: '/profile', icon: 'person', label: 'Profil' }]),
   ];
 
   return (
@@ -166,7 +166,7 @@ function MobileBottomNav() {
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 safe-bottom"
       style={{ 
         background: 'var(--surface-container-lowest)', 
-        borderTop: '2px solid var(--tertiary)',
+        borderTop: '2px solid var(--outline-variant)',
         borderRadius: '16px 16px 0 0'
       }}
     >

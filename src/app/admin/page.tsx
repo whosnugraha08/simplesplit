@@ -107,7 +107,7 @@ export default function AdminPage() {
         <p className="text-4xl mb-3">🔒</p>
         <p className="text-lg font-bold mb-2">Akses Ditolak</p>
         <p className="text-[var(--outline)] text-sm mb-4">Halaman ini hanya untuk Admin.</p>
-        <Link href="/" className="text-amber-400 font-semibold text-sm">← Kembali ke Beranda</Link>
+        <Link href="/" className="text-[var(--lime)] font-semibold text-sm">← Kembali ke Beranda</Link>
       </div>
     );
   }
@@ -127,7 +127,7 @@ export default function AdminPage() {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>
+          <span className="bg-[rgba(200,241,53,0.1)] text-[var(--lime)] text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>
           <h1 className="text-2xl font-bold text-[var(--on-surface)]">Admin Panel</h1>
         </div>
         <p className="text-sm text-[var(--outline)]">Kelola semua data SimpleSplit</p>
@@ -211,20 +211,20 @@ export default function AdminPage() {
             return (
               <div key={u.id} className="glass-card p-4 animate-fade-in" style={{ animationDelay: `${idx * 30}ms` }}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--lime)] to-[var(--lime)] flex items-center justify-center text-white text-sm font-bold shrink-0">
                     {u.display_name.slice(0, 2).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold truncate">{u.display_name}</p>
-                      {friend?.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+                      {friend?.is_admin && <span className="bg-[rgba(200,241,53,0.1)] text-[var(--lime)] text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                     </div>
                     <p className="text-xs text-[var(--outline)]">@{u.username}</p>
                     <p className="text-[10px] text-[var(--outline)]">Bergabung {formatDate(u.created_at)}</p>
                   </div>
                   <button
                     onClick={() => resetPin(u.id, u.username)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-semibold hover:bg-[rgba(255,183,129,0.15)] transition shrink-0"
+                    className="px-3 py-1.5 rounded-lg bg-[rgba(200,241,53,0.1)] text-[var(--lime)] text-[10px] font-semibold hover:bg-[rgba(255,183,129,0.15)] transition shrink-0"
                   >
                     🔑 Reset PIN
                   </button>
@@ -275,7 +275,7 @@ export default function AdminPage() {
                   <p className={`money text-sm ${debt.status === 'paid' ? 'text-success' : 'text-danger'}`}>
                     {formatRupiah(Number(debt.amount))}
                   </p>
-                  <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-amber-400'}`}>
+                  <span className={`text-[10px] font-bold ${debt.status === 'paid' ? 'text-success' : 'text-[var(--lime)]'}`}>
                     {debt.status === 'paid' ? '✓ LUNAS' : 'BELUM'}
                   </span>
                 </div>
@@ -283,7 +283,7 @@ export default function AdminPage() {
               <div className="flex gap-2 mt-3 justify-end">
                 <button onClick={() => toggleDebtStatus(debt)}
                   className={`px-3 py-1.5 rounded-lg text-[10px] font-semibold transition ${
-                    debt.status === 'paid' ? 'bg-amber-500/10 text-amber-400' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    debt.status === 'paid' ? 'bg-[rgba(200,241,53,0.1)] text-[var(--lime)]' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
                   }`}>
                   {debt.status === 'paid' ? '↩ Batalkan' : '✓ Lunaskan'}
                 </button>
@@ -303,7 +303,7 @@ export default function AdminPage() {
           <p className="text-xs text-[var(--outline)] mb-2">{allBills.length} total bills</p>
           {allBills.map((bill, idx) => {
             const statusLabel: Record<string, { text: string; color: string }> = {
-              draft: { text: 'Draft', color: 'bg-amber-500/10 text-amber-400' },
+              draft: { text: 'Draft', color: 'bg-[rgba(200,241,53,0.1)] text-[var(--lime)]' },
               assigned: { text: 'Dibagi', color: 'bg-blue-500/10 text-blue-400' },
               settled: { text: 'Selesai', color: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' },
             };

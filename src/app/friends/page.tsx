@@ -61,7 +61,7 @@ export default function FriendsPage() {
               <p className="text-sm text-[var(--outline)]">Kelola sirkel kamu</p>
             </div>
             <button onClick={() => { setEditingFriend(null); setShowForm(true); }}
-              className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20 active:scale-95 transition-all">
+              className="btn-primary text-white px-4 py-2.5 rounded-xl text-sm font-semibold  shadow-none active:scale-95 transition-all">
               + Tambah
             </button>
           </div>
@@ -72,7 +72,7 @@ export default function FriendsPage() {
             <div className="glass-card p-10 text-center">
               <p className="text-4xl mb-3">👥</p>
               <p className="text-[var(--outline)] mb-4">Belum ada teman. Tambahkan sirkel kamu!</p>
-              <button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-amber-500/20">
+              <button onClick={() => setShowForm(true)} className="btn-primary text-white px-5 py-2.5 rounded-xl text-sm font-semibold  shadow-none">
                 + Tambah Teman
               </button>
             </div>
@@ -91,8 +91,8 @@ export default function FriendsPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-semibold truncate">{friend.name}</p>
-                          {isMe && <span className="bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
-                          {friend.is_admin && <span className="bg-amber-500/10 text-amber-400 text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
+                          {isMe && <span className="bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-[10px] font-bold px-2 py-0.5 rounded-full">KAMU</span>}
+                          {friend.is_admin && <span className="bg-[rgba(200,241,53,0.1)] text-[var(--lime)] text-[10px] font-bold px-2 py-0.5 rounded-full">ADMIN</span>}
                         </div>
                         {pmCount > 0 ? (
                           <p className="text-xs text-[var(--outline)] mt-0.5">💳 {pmCount} metode pembayaran</p>
@@ -288,12 +288,12 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
           <div>
             <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">Nama *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Contoh: Faiz"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" required />
+              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.4)] focus:border-[rgba(200,241,53,0.3)] transition" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">No. WhatsApp</label>
             <input type="tel" value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="081234567890"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" />
+              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.4)] focus:border-[rgba(200,241,53,0.3)] transition" />
           </div>
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={isAdmin} onChange={e => setIsAdmin(e.target.checked)} />
@@ -304,11 +304,11 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="text-sm font-medium text-[var(--outline)]">Rekening / E-Wallet</label>
-              <button type="button" onClick={addPaymentMethod} className="text-sm text-amber-400 font-semibold">+ Tambah</button>
+              <button type="button" onClick={addPaymentMethod} className="text-sm text-[var(--lime)] font-semibold">+ Tambah</button>
             </div>
             {activePMs.length === 0 ? (
               <button type="button" onClick={addPaymentMethod}
-                className="w-full py-6 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-sm text-center">
+                className="w-full py-6 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-[rgba(200,241,53,0.3)] transition-colors text-[var(--outline)] text-sm text-center">
                 💳 Tambah rekening / e-wallet
               </button>
             ) : (
@@ -319,12 +319,12 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
                     <div key={idx} className="bg-[var(--surface-container)] rounded-xl p-3 space-y-2 relative animate-fade-in">
                       <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-[var(--outline)] hover:text-danger text-sm p-1">✕</button>
                       <input type="text" value={pm.label} onChange={e => updatePM(idx, 'label', e.target.value)} placeholder="Label (cth: BCA Utama)"
-                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                       <div className="grid grid-cols-2 gap-2">
                         <input type="text" value={pm.bank_name} onChange={e => updatePM(idx, 'bank_name', e.target.value)} placeholder="Bank *"
-                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                         <input type="text" value={pm.account_number} onChange={e => updatePM(idx, 'account_number', e.target.value)} placeholder="No. Rekening"
-                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-[rgba(200,241,53,0.5)]" />
                       </div>
                       <div>
                         <input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) handleQrisFile(idx, file); }} className="hidden" id={`qris-${idx}`} />
@@ -336,7 +336,7 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
                           </div>
                         ) : (
                           <label htmlFor={`qris-${idx}`}
-                            className="block w-full py-3 rounded-lg border border-dashed border-[var(--outline-variant)] hover:border-amber-500/30 transition-colors text-[var(--outline)] text-xs text-center cursor-pointer">
+                            className="block w-full py-3 rounded-lg border border-dashed border-[var(--outline-variant)] hover:border-[rgba(200,241,53,0.3)] transition-colors text-[var(--outline)] text-xs text-center cursor-pointer">
                             📷 Upload QRIS (opsional)
                           </label>
                         )}
@@ -349,7 +349,7 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
           </div>
 
           <button type="submit" disabled={saving || !name.trim()}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 transition-opacity active:scale-[0.98] shadow-lg shadow-amber-500/20">
+            className="w-full py-3.5 rounded-xl btn-primary text-white font-semibold text-sm disabled:opacity-50 transition-opacity active:scale-[0.98]  shadow-none">
             {saving ? 'Menyimpan...' : friend ? 'Simpan Perubahan' : 'Tambah Teman'}
           </button>
         </form>

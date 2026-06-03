@@ -171,7 +171,7 @@ export default function PayPage() {
       </div>
 
       {/* Amount Card */}
-      <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-6 mb-6 text-white text-center">
+      <div className="btn-primary rounded-2xl p-6 mb-6 text-white text-center">
         <p className="text-blue-100 text-sm mb-1">Jumlah yang harus dibayar</p>
         <p className="money text-4xl text-white">{formatRupiah(Number(debt.amount))}</p>
         <div className="mt-4 flex items-center justify-center gap-2 text-sm">
@@ -194,7 +194,7 @@ export default function PayPage() {
         <div className="glass-card p-4 mb-4">
           <button onClick={() => setExpandNotes(!expandNotes)} className="w-full flex items-center justify-between">
             <span className="text-sm font-semibold text-[var(--outline)]">📋 Detail Item</span>
-            <span className="text-xs text-amber-400 font-medium">{expandNotes ? '▲' : '▼'}</span>
+            <span className="text-xs text-[var(--lime)] font-medium">{expandNotes ? '▲' : '▼'}</span>
           </button>
           {expandNotes && (
             <div className="mt-3 bg-[var(--surface-container)] rounded-xl p-3 animate-fade-in">
@@ -243,7 +243,7 @@ export default function PayPage() {
                 <div className="flex items-center justify-between">
                   <p className="money text-xl">{selectedPM.account_number}</p>
                   <button onClick={() => { navigator.clipboard.writeText(selectedPM.account_number || ''); showToast('Nomor rekening disalin!', 'success'); }}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold">📋 Salin</button>
+                    className="px-3 py-1.5 rounded-lg bg-[rgba(200,241,53,0.2)] text-[var(--lime)] border border-[rgba(200,241,53,0.3)] text-xs font-semibold">📋 Salin</button>
                 </div>
                 <p className="text-sm text-[var(--outline)] mt-1">{selectedPM.bank_name}</p>
               </div>
@@ -281,7 +281,7 @@ export default function PayPage() {
               ) : (
                 <button onClick={() => setShowQris(true)} className="w-full">
                   <img src={qrisImageToShow || selectedPM.qris_image_url} alt="QRIS" className="w-full max-h-64 object-contain rounded-xl border border-[var(--outline-variant)]" />
-                  <p className="text-xs text-amber-400 font-medium mt-2">Tap untuk perbesar</p>
+                  <p className="text-xs text-[var(--lime)] font-medium mt-2">Tap untuk perbesar</p>
                 </button>
               )}
             </div>
@@ -291,7 +291,7 @@ export default function PayPage() {
         <div className="glass-card p-8 mb-6 text-center">
           <p className="text-3xl mb-2">⚠️</p>
           <p className="text-sm text-[var(--outline)]">{creditor.name} belum punya metode pembayaran.</p>
-          <a href="/friends" className="text-sm text-amber-400 font-semibold mt-2 inline-block">Tambahkan di Teman →</a>
+          <a href="/friends" className="text-sm text-[var(--lime)] font-semibold mt-2 inline-block">Tambahkan di Teman →</a>
         </div>
       ) : null}
 
@@ -299,9 +299,9 @@ export default function PayPage() {
       <div className="glass-card p-5 mb-4">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-sm font-semibold text-[var(--outline)]">📸 Bukti Pembayaran</h2>
-          <label className="flex items-center gap-2 cursor-pointer bg-amber-500/10 px-3 py-1.5 rounded-lg border border-amber-500/20">
-            <input type="checkbox" checked={isCash} onChange={e => setIsCash(e.target.checked)} className="rounded text-amber-500 focus:ring-amber-500 w-3.5 h-3.5" />
-            <span className="text-[11px] font-semibold text-amber-500">Bayar Cash (Tunai)</span>
+          <label className="flex items-center gap-2 cursor-pointer bg-[rgba(200,241,53,0.1)] px-3 py-1.5 rounded-lg border border-[rgba(200,241,53,0.2)]">
+            <input type="checkbox" checked={isCash} onChange={e => setIsCash(e.target.checked)} className="rounded text-[var(--lime)] focus:ring-[var(--lime)] w-3.5 h-3.5" />
+            <span className="text-[11px] font-semibold text-[var(--lime)]">Bayar Cash (Tunai)</span>
           </label>
         </div>
         
@@ -326,9 +326,9 @@ export default function PayPage() {
           </div>
         ) : (
           <label htmlFor="proof-upload"
-            className="block w-full py-8 rounded-xl border-2 border-dashed border-amber-500/20 hover:border-amber-500/30 bg-blue-500/10/50 transition-colors cursor-pointer text-center">
+            className="block w-full py-8 rounded-xl border-2 border-dashed border-[rgba(200,241,53,0.2)] hover:border-[rgba(200,241,53,0.3)] bg-blue-500/10/50 transition-colors cursor-pointer text-center">
             <span className="text-3xl block mb-2">📷</span>
-            <span className="text-sm text-amber-400 font-semibold">Upload Bukti Transfer</span>
+            <span className="text-sm text-[var(--lime)] font-semibold">Upload Bukti Transfer</span>
             <span className="block text-[11px] text-[var(--outline)] mt-1">Tap untuk foto atau pilih dari galeri</span>
           </label>
         )}
@@ -338,7 +338,7 @@ export default function PayPage() {
 
       {/* Action */}
       <button onClick={handleMarkPaid} disabled={markingPaid || (!isCash && !proofFile)}
-        className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition shadow-lg ${
+        className={`w-full py-3.5 rounded-xl font-semibold text-sm active:scale-[0.98] transition  ${
           (isCash || proofFile)
             ? 'bg-emerald-600 text-white shadow-emerald-500/20'
             : 'bg-[var(--navy)]/10 text-[var(--outline)] cursor-not-allowed shadow-none'
