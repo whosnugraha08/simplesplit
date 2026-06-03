@@ -84,6 +84,7 @@ function DesktopSidebar() {
     ...BASE_NAV_ITEMS,
     ...(user?.is_admin ? [{ href: '/friends', icon: 'group', label: 'Teman' }] : []),
     { href: '/profile', icon: 'person', label: 'Profil' },
+    ...(user?.is_admin ? [{ href: '/admin', icon: 'admin_panel_settings', label: 'Admin' }] : []),
   ];
 
   return (
