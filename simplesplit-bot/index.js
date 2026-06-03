@@ -609,10 +609,15 @@ async function handleGroupCommand(message, isAdmin, chat) {
 
 client.on('message', async (message) => {
   try {
+    // Skip pesan dari newsletter/channel dan status broadcast (bukan kebocoran, ini normal WA)
+    if (message.from.endsWith('@newsletter') || message.from === 'status@broadcast') return;
+
     const chat = await message.getChat();
     
-    // DEBUG LOG
-    console.log(`[RAW MSG] from: ${message.from}, isGroup: ${chat.isGroup}, body: ${message.body}`);
+    // Hanya log pesan dari grup yang terhubung atau admin
+    if (chat.isGroup || message.body.startsWith('!')) {
+      console.log(`[MSG] from: ${message.from}, isGroup: ${chat.isGroup}, body: ${message.body.substring(0, 80)}`);
+    }
     
     const adminNumber = process.env.ADMIN_NUMBER || '6281214019594@c.us';
     const isAdmin = message.from === adminNumber || message.from.includes('6281214019594') || message.from === '60142544502993@lid';
