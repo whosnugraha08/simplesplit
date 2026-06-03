@@ -134,13 +134,13 @@ export default function AdminPage() {
       </div>
 
       {/* Section Tabs */}
-      <div className="flex gap-1 bg-white rounded-2xl p-1 border border-[var(--outline-variant)] mb-6 overflow-x-auto scrollbar-hide shadow-sm">
+      <div className="flex gap-1 bg-[var(--navy)] rounded-2xl p-1 border border-[var(--outline-variant)] mb-6 overflow-x-auto scrollbar-hide ">
         {sections.map(s => (
           <button
             key={s.key}
             onClick={() => setActiveSection(s.key)}
             className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap px-3 ${
-              activeSection === s.key ? 'bg-primary text-white shadow-sm' : 'text-[var(--outline)] hover:text-[var(--on-surface)]'
+              activeSection === s.key ? 'bg-[var(--primary-container)] text-white ' : 'text-[var(--outline)] hover:text-[var(--on-surface)]'
             }`}
           >
             {s.label}
@@ -178,7 +178,7 @@ export default function AdminPage() {
             <h2 className="text-sm font-semibold text-[var(--outline)] mb-2">Hutang Terbaru (Belum Lunas)</h2>
             <div className="space-y-2">
               {allDebts.filter(d => d.status === 'unpaid').slice(0, 5).map(debt => (
-                <div key={debt.id} className="bg-blush/40 rounded-xl border border-[var(--outline-variant)] p-3">
+                <div key={debt.id} className="bg-[var(--surface-container)] rounded-xl border border-[var(--outline-variant)] p-3">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0"
                       style={{ backgroundColor: getAvatarColor(debt.debtor?.name || '') }}>
@@ -224,7 +224,7 @@ export default function AdminPage() {
                   </div>
                   <button
                     onClick={() => resetPin(u.id, u.username)}
-                    className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-semibold hover:bg-amber-100 transition shrink-0"
+                    className="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 text-[10px] font-semibold hover:bg-[rgba(255,183,129,0.15)] transition shrink-0"
                   >
                     🔑 Reset PIN
                   </button>
@@ -263,7 +263,7 @@ export default function AdminPage() {
                     {debt.bill?.title} • {formatDate(debt.bill?.bill_date || debt.created_at)}
                   </p>
                   {debt.notes && (
-                    <div className="mt-1.5 bg-blush/40 rounded-lg p-2">
+                    <div className="mt-1.5 bg-[var(--surface-container)] rounded-lg p-2">
                       {debt.notes.split('\n').slice(0, 3).map((line, i) => (
                         <p key={i} className="text-[10px] text-[var(--outline)]">{line}</p>
                       ))}

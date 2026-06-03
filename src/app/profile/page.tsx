@@ -234,7 +234,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-[var(--outline)]">Informasi Profil</h2>
           {!editMode && (
-            <button onClick={() => setEditMode(true)} className="text-xs text-primary font-semibold">
+            <button onClick={() => setEditMode(true)} className="text-xs text-[var(--lime)] font-semibold">
               ✏️ Edit
             </button>
           )}
@@ -277,7 +277,7 @@ export default function ProfilePage() {
       <div className="warm-card p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-semibold text-[var(--outline)]">💳 Rekening / E-Wallet</h2>
-          <button type="button" onClick={addPaymentMethod} className="text-xs text-primary font-semibold">
+          <button type="button" onClick={addPaymentMethod} className="text-xs text-[var(--lime)] font-semibold">
             + Tambah
           </button>
         </div>
@@ -292,7 +292,7 @@ export default function ProfilePage() {
             {paymentMethods.map((pm, idx) => {
               if (pm._deleted) return null;
               return (
-                <div key={idx} className="bg-blush/40 rounded-xl p-3 space-y-2 relative animate-fade-in">
+                <div key={idx} className="bg-[var(--surface-container)] rounded-xl p-3 space-y-2 relative animate-fade-in">
                   {editMode && (
                     <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-[var(--outline)] hover:text-danger text-sm p-1">✕</button>
                   )}
@@ -310,9 +310,9 @@ export default function ProfilePage() {
                         <input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) handleQrisFile(idx, file); }} className="hidden" id={`qris-profile-${idx}`} />
                         {pm.qris_image_url ? (
                           <div className="relative">
-                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-[var(--outline-variant)] bg-white" />
+                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-[var(--outline-variant)] bg-[var(--navy)]" />
                             <button type="button" onClick={() => { const updated = [...paymentMethods]; updated[idx].qris_image_url = null; updated[idx].qris_file = null; setPaymentMethods(updated); }}
-                              className="absolute top-1 right-1 bg-blush/40 rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
+                              className="absolute top-1 right-1 bg-[var(--surface-container)] rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
                           </div>
                         ) : (
                           <label htmlFor={`qris-profile-${idx}`}
@@ -410,7 +410,7 @@ export default function ProfilePage() {
 
       {user?.is_admin && (
         <Link href="/friends"
-          className="flex items-center justify-between w-full py-3.5 px-4 rounded-card warm-card text-sm font-semibold mb-3 card-hover">
+          className="flex items-center justify-between w-full py-3.5 px-4 rounded-xl warm-card text-sm font-semibold mb-3 card-hover">
           <span>👥 Kelola Teman</span>
           <span className="text-[var(--outline)]">→</span>
         </Link>
@@ -425,7 +425,7 @@ export default function ProfilePage() {
       {/* Logout Confirm */}
       {showLogoutConfirm && (
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => setShowLogoutConfirm(false)}>
-          <div className="bg-white border border-[var(--outline-variant)] w-full max-w-sm rounded-modal p-6 animate-slide-up -lg" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--navy)] border border-[var(--outline-variant)] w-full max-w-sm rounded-modal p-6 animate-slide-up -lg" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-bold text-[var(--on-surface)] mb-2">Keluar?</h3>
             <p className="text-sm text-[var(--outline)] mb-6">Kamu akan keluar dari akun SimpleSplit ini.</p>
             <div className="flex gap-3">

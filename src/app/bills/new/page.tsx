@@ -255,7 +255,7 @@ export default function NewBillPage() {
           <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
           {!imagePreview ? (
             <button onClick={() => fileInputRef.current?.click()}
-              className="w-full aspect-[3/4] rounded-card border-2 border-dashed border-primary/30 hover:border-primary transition-colors flex flex-col items-center justify-center gap-3 bg-blush/30 btn-press">
+              className="w-full aspect-[3/4] rounded-xl border-2 border-dashed border-[rgba(200,241,53,0.3)] hover:border-[var(--lime)] transition-colors flex flex-col items-center justify-center gap-3 bg-[var(--surface-container)] btn-press">
               <span className="text-5xl">📸</span>
               <span className="text-sm font-semibold text-[var(--on-surface)]">Ambil Foto Nota</span>
               <span className="text-xs text-[var(--outline)]">atau pilih dari galeri</span>
@@ -265,14 +265,14 @@ export default function NewBillPage() {
               <div className="relative rounded-2xl overflow-hidden border border-[var(--outline-variant)] bg-black/30">
                 <img src={imagePreview} alt="Receipt" className="w-full max-h-[60vh] object-contain" />
                 <button onClick={() => { setImageFile(null); setImagePreview(null); }}
-                  className="absolute top-3 right-3 bg-white/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
+                  className="absolute top-3 right-3 bg-[var(--navy)]/10 backdrop-blur rounded-full w-8 h-8 flex items-center justify-center shadow text-sm">✕</button>
               </div>
               <button onClick={handleScan} className="w-full py-3.5 btn-primary text-sm">
                 🔍 Scan & Baca Nota
               </button>
             </div>
           )}
-          {scanError && <div className="mt-4 bg-ruby-light text-ruby rounded-card p-3 text-sm animate-shake">{scanError}</div>}
+          {scanError && <div className="mt-4 bg-[rgba(255,92,92,0.15)] text-[var(--red)] rounded-xl p-3 text-sm animate-shake">{scanError}</div>}
           <div className="mt-4 flex items-center gap-3">
             <div className="flex-1 h-px bg-warm-border" /><span className="text-xs text-[var(--outline)]">atau</span><div className="flex-1 h-px bg-warm-border" />
           </div>
@@ -287,12 +287,12 @@ export default function NewBillPage() {
         <div className="animate-fade-in flex flex-col items-center justify-center py-16">
           <div className="w-16 h-16 border-4 border-blush border-t-primary rounded-full animate-spin mb-6" />
           <p className="text-lg font-semibold text-[var(--on-surface)] mb-2">Membaca Nota...</p>
-          <p className="text-sm pb-1 font-medium text-primary">
+          <p className="text-sm pb-1 font-medium text-[var(--lime)]">
             {scanSource === 'gemini' ? '✨ AI Gemini' : 'Tesseract.js OCR'}
           </p>
           <p className="text-xs text-[var(--outline)] mb-2">Sedang membaca nota... biasanya 5–15 detik</p>
-          <div className="w-48 h-2 bg-blush rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
+          <div className="w-48 h-2 bg-[var(--surface-container)] rounded-full overflow-hidden">
+            <div className="h-full bg-[var(--primary-container)] rounded-full transition-all duration-300" style={{ width: `${scanProgress}%` }} />
           </div>
           <p className="text-xs text-[var(--outline)] mt-2">{Math.round(scanProgress)}%</p>
         </div>
@@ -332,19 +332,19 @@ export default function NewBillPage() {
             </div>
             <div className="space-y-2">
               {items.map((item, idx) => (
-                <div key={idx} className="bg-blush/40 rounded-xl border border-[var(--outline-variant)] p-3 animate-fade-in">
+                <div key={idx} className="bg-[var(--surface-container)] rounded-xl border border-[var(--outline-variant)] p-3 animate-fade-in">
                   <div className="flex gap-2 items-start">
                     <div className="flex-1 space-y-2">
                       <input type="text" value={item.name} onChange={e => updateItem(idx, 'name', e.target.value)} placeholder="Nama item"
-                        className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       <div className="flex gap-2">
                         <div className="flex-1">
                           <input type="number" value={item.price || ''} onChange={e => updateItem(idx, 'price', e.target.value)} placeholder="Harga"
-                            className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm tabular-nums focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                         <div className="w-16">
                           <input type="number" value={item.quantity} onChange={e => updateItem(idx, 'quantity', e.target.value)} min="1"
-                            className="w-full px-3 py-2 rounded-lg bg-blush/40 text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] text-sm text-center focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         </div>
                       </div>
                     </div>
@@ -414,7 +414,7 @@ export default function NewBillPage() {
                 className={`w-full flex items-center gap-3 p-4 rounded-2xl border transition-all text-left ${
                   selectedPayer === friend.id
                     ? 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/30'
-                    : 'border-[var(--outline-variant)] bg-blush/40 hover:border-amber-500/30'
+                    : 'border-[var(--outline-variant)] bg-[var(--surface-container)] hover:border-amber-500/30'
                 }`}
               >
                 <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
@@ -440,7 +440,7 @@ export default function NewBillPage() {
             <p className="text-xs text-[var(--outline)] mt-1">{items.length} item</p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-[var(--outline-variant)] bg-blush/40 font-semibold text-sm">← Kembali</button>
+            <button onClick={() => setStep('edit')} className="flex-1 py-3.5 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] font-semibold text-sm">← Kembali</button>
             <button onClick={handleSave} disabled={!selectedPayer || saving}
               className="flex-1 py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20">
               {saving ? 'Menyimpan...' : 'Simpan & Bagi →'}

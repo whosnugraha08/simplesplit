@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
@@ -101,7 +101,7 @@ export default function DebtsPage() {
       for (const pair of nettingPairs) {
         await processNetting(pair);
       }
-      showToast('Semua hutang berhasil di-netting! ðŸŽ‰', 'success');
+      showToast('Semua hutang berhasil di-netting! 🎉', 'success');
       await loadDebts();
     } catch (err) {
       showToast('Gagal memproses netting', 'error');
@@ -246,7 +246,7 @@ export default function DebtsPage() {
     loadDebts();
   }
 
-  // Group unpaid debts for "pay all" summary â€” now includes bill details
+  // Group unpaid debts for "pay all" summary — now includes bill details
   const netSummary = (() => {
     if (tab !== 'my-debts') return [];
     const unpaid = debts.filter(d => d.status === 'unpaid');
@@ -283,14 +283,14 @@ export default function DebtsPage() {
         Belum ada hutang? Buat split bill pertama dengan tap <strong>(+)</strong> di pojok kanan bawah.
       </HintCard>
 
-      <div className="flex gap-1 bg-[var(--navy)] rounded-card p-1 border border-[var(--outline-variant)] mb-4 ">
+      <div className="flex gap-1 bg-[var(--navy)] rounded-xl p-1 border border-[var(--outline-variant)] mb-4 ">
         <button
           onClick={() => setTab('my-debts')}
           className={`flex-1 py-2.5 rounded-xl text-xs font-semibold transition-all ${
             tab === 'my-debts' ? 'bg-[var(--primary-container)] text-white ' : 'text-[var(--outline)] hover:text-[var(--on-surface)]'
           }`}
         >
-          ðŸ’¸ Aku Hutang
+          💸 Aku Hutang
         </button>
         <button
           onClick={() => setTab('owed-to-me')}
@@ -298,7 +298,7 @@ export default function DebtsPage() {
             tab === 'owed-to-me' ? 'bg-[var(--primary-container)] text-white ' : 'text-[var(--outline)] hover:text-[var(--on-surface)]'
           }`}
         >
-          ðŸ’° Piutangku
+          💰 Piutangku
         </button>
       </div>
 
@@ -313,12 +313,12 @@ export default function DebtsPage() {
         </div>
       )}
 
-      {/* ðŸ”„ NETTING SECTION â€” Clear explanation */}
+      {/* 🔄 NETTING SECTION — Clear explanation */}
       {nettingPairs.length > 0 && statusFilter === 'unpaid' && (
         <div className="mb-4 animate-fade-in">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-base">ðŸ”„</span>
+              <span className="text-base">🔄</span>
               <p className="text-xs font-bold text-amber-400">Ada Hutang yang Bisa Di-offset!</p>
             </div>
             {nettingPairs.length > 1 && (
@@ -327,7 +327,7 @@ export default function DebtsPage() {
                 disabled={processingNetting}
                 className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold disabled:opacity-50 active:scale-[0.98] transition"
               >
-                {processingNetting ? 'â³ Proses...' : 'ðŸ”„ Offset Semua'}
+                {processingNetting ? '⏳ Proses...' : '🔄 Offset Semua'}
               </button>
             )}
           </div>
@@ -335,8 +335,8 @@ export default function DebtsPage() {
           {/* Explanation banner */}
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-3">
             <p className="text-[11px] text-blue-900 leading-relaxed">
-              ðŸ’¡ <strong>Apa itu offset?</strong> Kalau kamu hutang ke seseorang, tapi dia juga hutang ke kamu, 
-              maka hutang kalian bisa saling dikurangi. Jadi yang perlu transfer cuma <strong>selisihnya</strong> aja â€” 
+              💡 <strong>Apa itu offset?</strong> Kalau kamu hutang ke seseorang, tapi dia juga hutang ke kamu, 
+              maka hutang kalian bisa saling dikurangi. Jadi yang perlu transfer cuma <strong>selisihnya</strong> aja — 
               gak perlu saling kirim uang bolak-balik!
             </p>
           </div>
@@ -367,40 +367,40 @@ export default function DebtsPage() {
                         style={{ backgroundColor: getAvatarColor(me.name) }}>
                         {getInitials(me.name)}
                       </div>
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px]">ðŸ”„</div>
+                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-[8px]">🔄</div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[var(--outline)] text-lg">â‡„</span>
+                      <span className="text-[var(--outline)] text-lg">⇄</span>
                     </div>
                     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
                       style={{ backgroundColor: getAvatarColor(other.name) }}>
                       {getInitials(other.name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold">Kamu â†” {other.name}</p>
+                      <p className="text-sm font-bold">Kamu ↔ {other.name}</p>
                       <p className="text-[10px] text-[var(--outline)]">Saling punya hutang</p>
                     </div>
                   </div>
 
                   {/* Breakdown */}
-                  <div className="bg-[var(--surface-container)]/40 rounded-xl p-3 mb-3 space-y-2">
+                  <div className="bg-[var(--surface-container)] rounded-xl p-3 mb-3 space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-red-400">ðŸ”´ Kamu hutang ke {other.name}</span>
+                      <span className="text-xs text-red-400">🔴 Kamu hutang ke {other.name}</span>
                       <span className="money text-xs text-red-400 font-bold">{formatRupiah(iOwe)}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-xs text-emerald-400">ðŸŸ¢ {other.name} hutang ke kamu</span>
+                      <span className="text-xs text-emerald-400">🟢 {other.name} hutang ke kamu</span>
                       <span className="money text-xs text-emerald-400 font-bold">{formatRupiah(theyOwe)}</span>
                     </div>
                     <div className="border-t border-[var(--outline-variant)] pt-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs text-[var(--outline)]">ðŸ”„ Di-offset (saling dikurangi)</span>
+                        <span className="text-xs text-[var(--outline)]">🔄 Di-offset (saling dikurangi)</span>
                         <span className="money text-xs text-amber-400 font-bold">-{formatRupiah(pair.offsetAmount)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Net Result â€” VERY CLEAR */}
+                  {/* Net Result — VERY CLEAR */}
                   <div className={`rounded-xl p-3 mb-3 text-center ${
                     isSettled 
                       ? 'bg-emerald-500/15 border border-emerald-500/25' 
@@ -410,7 +410,7 @@ export default function DebtsPage() {
                   }`}>
                     {isSettled ? (
                       <>
-                        <p className="text-emerald-400 text-sm font-bold">âœ… Impas! Gak ada yang perlu transfer</p>
+                        <p className="text-emerald-400 text-sm font-bold">✅ Impas! Gak ada yang perlu transfer</p>
                         <p className="text-emerald-400/60 text-[10px] mt-1">Hutang kalian saling menghapus karena jumlahnya sama</p>
                       </>
                     ) : netIPay > 0 ? (
@@ -431,15 +431,15 @@ export default function DebtsPage() {
                   {/* Detail toggle */}
                   <button onClick={() => setExpandedNetting(isExpanded ? null : pairKey)}
                     className="w-full text-[11px] text-amber-400 font-medium mb-2">
-                    {isExpanded ? 'â–² Sembunyikan detail asal hutang' : 'â–¼ Lihat detail asal hutang'}
+                    {isExpanded ? '▲ Sembunyikan detail asal hutang' : '▼ Lihat detail asal hutang'}
                   </button>
 
                   {isExpanded && (
-                    <div className="bg-[var(--surface-container)]/40 rounded-xl p-3 space-y-2 animate-fade-in mb-3">
+                    <div className="bg-[var(--surface-container)] rounded-xl p-3 space-y-2 animate-fade-in mb-3">
                       <p className="text-[10px] font-bold text-[var(--outline)] uppercase tracking-wider">Hutang kamu ke {other.name}:</p>
                       {iOweDebts.map((d, i) => (
                         <div key={i} className="flex justify-between text-[11px]">
-                          <span className="text-red-400/70">ðŸ“‹ {d.billTitle}</span>
+                          <span className="text-red-400/70">📋 {d.billTitle}</span>
                           <span className="money text-red-400 font-semibold">{formatRupiah(d.amount)}</span>
                         </div>
                       ))}
@@ -448,7 +448,7 @@ export default function DebtsPage() {
                       </div>
                       {theyOweDebts.map((d, i) => (
                         <div key={i} className="flex justify-between text-[11px]">
-                          <span className="text-emerald-400/70">ðŸ“‹ {d.billTitle}</span>
+                          <span className="text-emerald-400/70">📋 {d.billTitle}</span>
                           <span className="money text-emerald-400 font-semibold">{formatRupiah(d.amount)}</span>
                         </div>
                       ))}
@@ -461,7 +461,7 @@ export default function DebtsPage() {
                     disabled={processingNetting}
                     className="w-full py-2.5 rounded-xl bg-amber-500 text-white text-xs font-bold disabled:opacity-50 active:scale-[0.98] transition shadow-lg shadow-amber-500/20"
                   >
-                    {processingNetting ? 'â³ Memproses...' : 'ðŸ”„ Proses Offset Sekarang'}
+                    {processingNetting ? '⏳ Memproses...' : '🔄 Proses Offset Sekarang'}
                   </button>
                   <p className="text-[9px] text-[var(--outline)] text-center mt-1.5">
                     Hutang yang saling berlawanan akan otomatis ditandai lunas, sisanya tetap perlu dibayar
@@ -473,7 +473,7 @@ export default function DebtsPage() {
         </div>
       )}
 
-      {/* Net summary â€” Pay All buttons (only for my-debts tab) */}
+      {/* Net summary — Pay All buttons (only for my-debts tab) */}
       {tab === 'my-debts' && statusFilter === 'unpaid' && netSummary.length > 0 && (
         <div className="mb-4">
           <p className="text-xs font-semibold text-[var(--outline)] mb-2">Ringkasan per orang</p>
@@ -489,7 +489,7 @@ export default function DebtsPage() {
                       <p className="text-xs font-semibold truncate">ke {s.creditor}</p>
                       {/* Show bill title(s) */}
                       {s.count === 1 ? (
-                        <p className="text-[10px] text-[var(--outline)] truncate">ðŸ“‹ {s.bills[0].title}</p>
+                        <p className="text-[10px] text-[var(--outline)] truncate">📋 {s.bills[0].title}</p>
                       ) : (
                         <p className="text-[10px] text-[var(--outline)]">{s.count} tagihan</p>
                       )}
@@ -500,10 +500,10 @@ export default function DebtsPage() {
 
                 {/* Bill breakdown for multiple bills */}
                 {s.count > 1 && (
-                  <div className="mt-2 bg-[var(--surface-container)]/40 rounded-lg p-2.5 space-y-1.5">
+                  <div className="mt-2 bg-[var(--surface-container)] rounded-lg p-2.5 space-y-1.5">
                     {s.bills.map((b, i) => (
                       <div key={i} className="flex items-center justify-between text-[11px]">
-                        <span className="text-[var(--outline)] truncate mr-2">ðŸ“‹ {b.title}</span>
+                        <span className="text-[var(--outline)] truncate mr-2">📋 {b.title}</span>
                         <span className="money text-[var(--on-surface)] font-semibold shrink-0">{formatRupiah(b.amount)}</span>
                       </div>
                     ))}
@@ -514,7 +514,7 @@ export default function DebtsPage() {
                   onClick={() => openPayAll(s.creditorId, s.creditor)}
                   className="mt-2 w-full py-2 rounded-lg bg-emerald-600 text-white text-xs font-semibold active:scale-[0.98] transition"
                 >
-                  âœ“ Bayar Semua ({formatRupiah(s.total)})
+                  ✓ Bayar Semua ({formatRupiah(s.total)})
                 </button>
               </div>
             ))}
@@ -542,10 +542,10 @@ export default function DebtsPage() {
         <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="skeleton h-24 w-full" />)}</div>
       ) : debts.length === 0 ? (
         <div className="glass-card p-10 text-center">
-          <p className="text-4xl mb-3">{statusFilter === 'unpaid' ? 'ðŸŽ‰' : 'ðŸ“­'}</p>
+          <p className="text-4xl mb-3">{statusFilter === 'unpaid' ? '🎉' : '📭'}</p>
           <p className="text-[var(--outline)] text-sm">
             {statusFilter === 'unpaid'
-              ? (tab === 'my-debts' ? 'Kamu tidak punya hutang! Bebas! ðŸŽ‰' : 'Tidak ada yang hutang ke kamu saat ini.')
+              ? (tab === 'my-debts' ? 'Kamu tidak punya hutang! Bebas! 🎉' : 'Tidak ada yang hutang ke kamu saat ini.')
               : 'Belum ada data.'}
           </p>
         </div>
@@ -581,7 +581,7 @@ export default function DebtsPage() {
                         )}
                       </p>
                       <p className="text-xs text-[var(--outline)] mt-0.5">
-                        ðŸ“‹ {debt.bill?.title || 'Bill'} â€¢ {formatDate(debt.bill?.bill_date || debt.created_at)}
+                        📋 {debt.bill?.title || 'Bill'} • {formatDate(debt.bill?.bill_date || debt.created_at)}
                       </p>
                     </div>
                     <div className="text-right shrink-0">
@@ -589,8 +589,8 @@ export default function DebtsPage() {
                         {isMyDebt ? '-' : '+'}{formatRupiah(Number(debt.amount))}
                       </p>
                       {debt.status === 'paid' && (
-                        <span className="bg-[rgba(200,241,53,0.15)] text-[var(--lime)] border border-forest/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
-                          âœ“ LUNAS {debt.paid_at ? formatDate(debt.paid_at) : ''}
+                        <span className="bg-[rgba(200,241,53,0.15)] text-[var(--lime)] border border-[var(--lime)] text-[10px] font-bold px-2 py-0.5 rounded-full">
+                          ✓ LUNAS {debt.paid_at ? formatDate(debt.paid_at) : ''}
                         </span>
                       )}
                     </div>
@@ -600,7 +600,7 @@ export default function DebtsPage() {
                   {noteItems.length > 0 && (
                     <div className="mt-3">
                       {/* Show first 2 items preview always */}
-                      <div className="bg-[var(--surface-container)]/30 rounded-xl p-3 space-y-1 border border-[var(--outline-variant)]/50">
+                      <div className="bg-[var(--surface-container)] rounded-xl p-3 space-y-1 border border-[var(--outline-variant)]/50">
                         <p className="text-[10px] font-bold text-[var(--on-surface)]/70 uppercase tracking-wider mb-1">Detail Item:</p>
                         {noteItems.slice(0, isExpanded ? undefined : 2).map((item, i) => (
                           <div key={i} className="flex justify-between text-xs">
@@ -613,7 +613,7 @@ export default function DebtsPage() {
                             onClick={() => setExpandedDebt(debt.id)}
                             className="text-[11px] text-amber-400 font-medium mt-1 w-full text-left"
                           >
-                            ... dan {noteItems.length - 2} item lainnya â–¼
+                            ... dan {noteItems.length - 2} item lainnya ▼
                           </button>
                         )}
                         {isExpanded && noteItems.length > 2 && (
@@ -621,17 +621,17 @@ export default function DebtsPage() {
                             onClick={() => setExpandedDebt(null)}
                             className="text-[11px] text-amber-400 font-medium mt-1 w-full text-left"
                           >
-                            Sembunyikan â–²
+                            Sembunyikan ▲
                           </button>
                         )}
                       </div>
                     </div>
                   )}
 
-                  {/* No notes â€” show bill link */}
+                  {/* No notes — show bill link */}
                   {noteItems.length === 0 && (
                     <Link href={`/bills/${debt.bill_id}`} className="mt-2 inline-block text-xs text-amber-400 font-medium">
-                      ðŸ“‹ Lihat detail bill â†’
+                      📋 Lihat detail bill →
                     </Link>
                   )}
 
@@ -644,7 +644,7 @@ export default function DebtsPage() {
                             href={`/pay/${debt.id}`}
                             className="flex-1 py-2.5 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 text-xs font-semibold text-center"
                           >
-                            ðŸ’³ Bayar
+                            💳 Bayar
                           </Link>
                         )}
                         <button
@@ -652,7 +652,7 @@ export default function DebtsPage() {
                           disabled={markingPaid === debt.id}
                           className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-semibold disabled:opacity-50 active:scale-[0.98] transition"
                         >
-                          {markingPaid === debt.id ? '...' : 'ðŸ“¸ Tandai Lunas'}
+                          {markingPaid === debt.id ? '...' : '📸 Tandai Lunas'}
                         </button>
                       </>
                     ) : (
@@ -661,7 +661,7 @@ export default function DebtsPage() {
                         disabled={markingPaid === debt.id}
                         className="flex-1 py-2.5 rounded-xl border border-[var(--outline-variant)] text-[var(--outline)] text-xs font-semibold disabled:opacity-50"
                       >
-                        {markingPaid === debt.id ? '...' : 'â†© Batalkan Lunas'}
+                        {markingPaid === debt.id ? '...' : '↩ Batalkan Lunas'}
                       </button>
                     )}
                   </div>
@@ -678,7 +678,7 @@ export default function DebtsPage() {
           <div className="bg-[var(--navy)] border border-[var(--outline-variant)] -lg w-full max-w-lg rounded-3xl p-6 animate-slide-up max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-bold text-[var(--on-surface)]">Bayar Semua</h3>
-              <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-[var(--outline)] text-xl p-1 hover:text-[var(--on-surface)]">âœ•</button>
+              <button onClick={() => !payingAll && setPayAllConfirm(null)} className="text-[var(--outline)] text-xl p-1 hover:text-[var(--on-surface)]">✕</button>
             </div>
 
             <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 mb-4 text-white text-center">
@@ -703,14 +703,14 @@ export default function DebtsPage() {
                   </div>
                 )}
                 {selectedPM && (
-                  <div className="bg-[var(--surface-container)]/40 rounded-xl p-4 space-y-3">
+                  <div className="bg-[var(--surface-container)] rounded-xl p-4 space-y-3">
                     {selectedPM.account_number && (
-                      <div className="bg-[var(--surface-container)]/40 rounded-lg p-3">
+                      <div className="bg-[var(--surface-container)] rounded-lg p-3">
                         <p className="text-[10px] text-[var(--outline)] mb-0.5">{selectedPM.bank_name}</p>
                         <div className="flex items-center justify-between">
                           <p className="money text-base">{selectedPM.account_number}</p>
                           <button onClick={() => { navigator.clipboard.writeText(selectedPM.account_number || ''); showToast('Nomor rekening disalin!', 'success'); }}
-                            className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">ðŸ“‹ Salin</button>
+                            className="px-2 py-1 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[10px] font-semibold">📋 Salin</button>
                         </div>
                       </div>
                     )}
@@ -718,7 +718,7 @@ export default function DebtsPage() {
                       <div className="space-y-2">
                         {generatingQris ? (
                           <div className="py-4 text-center">
-                            <div className="inline-block w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-1" />
+                            <div className="inline-block w-6 h-6 border-2 border-[var(--lime)] border-t-transparent rounded-full animate-spin mb-1" />
                             <p className="text-[10px] text-[var(--outline)]">Generating QRIS...</p>
                           </div>
                         ) : (
@@ -734,27 +734,27 @@ export default function DebtsPage() {
                 )}
               </div>
             ) : (
-              <div className="bg-[var(--surface-container)]/40 rounded-xl p-4 mb-4 text-center">
+              <div className="bg-[var(--surface-container)] rounded-xl p-4 mb-4 text-center">
                 <p className="text-xs text-[var(--outline)]">Belum ada metode pembayaran untuk {payAllConfirm.creditor}</p>
               </div>
             )}
 
             {/* Proof Upload for Pay All */}
             <div className="glass-card p-4 mb-4">
-              <h3 className="text-sm font-semibold text-[var(--outline)] mb-1">ðŸ“¸ Bukti Pembayaran</h3>
+              <h3 className="text-sm font-semibold text-[var(--outline)] mb-1">📸 Bukti Pembayaran</h3>
               <p className="text-[10px] text-[var(--outline)] mb-3">Upload screenshot bukti transfer. Akan dikirim otomatis ke penagih via WhatsApp.</p>
               <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setPayAllProofFile(f); setPayAllProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-payall-upload" />
               {payAllProofPreview ? (
                 <div className="relative">
-                  <img src={payAllProofPreview} alt="Bukti" className="w-full max-h-40 object-contain rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)]/40" />
+                  <img src={payAllProofPreview} alt="Bukti" className="w-full max-h-40 object-contain rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)]" />
                   <button onClick={() => { setPayAllProofFile(null); setPayAllProofPreview(null); }}
-                    className="absolute top-2 right-2 bg-[var(--navy)]/10 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">âœ•</button>
-                  <p className="text-[10px] text-emerald-400 font-medium mt-1 text-center">âœ“ Bukti siap dikirim</p>
+                    className="absolute top-2 right-2 bg-[var(--navy)]/10 rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+                  <p className="text-[10px] text-emerald-400 font-medium mt-1 text-center">✓ Bukti siap dikirim</p>
                 </div>
               ) : (
                 <label htmlFor="proof-payall-upload"
                   className="block w-full py-6 rounded-xl border-2 border-dashed border-amber-500/20 hover:border-amber-500/30 bg-blue-500/10/50 transition-colors cursor-pointer text-center">
-                  <span className="text-2xl block mb-1">ðŸ“·</span>
+                  <span className="text-2xl block mb-1">📷</span>
                   <span className="text-xs text-amber-400 font-semibold">Upload Bukti Transfer</span>
                 </label>
               )}
@@ -765,7 +765,7 @@ export default function DebtsPage() {
                 className="flex-1 py-3 rounded-xl border border-[var(--outline-variant)] font-semibold text-sm disabled:opacity-50">Batal</button>
               <button onClick={doPayAll} disabled={payingAll || !payAllProofFile}
                 className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${payAllProofFile ? 'bg-emerald-600 text-white' : 'bg-[var(--navy)]/10 text-[var(--outline)]'}`}>
-                {payingAll ? 'Memproses...' : payAllProofFile ? 'âœ“ Lunas Semua' : 'ðŸ“· Upload bukti dulu'}
+                {payingAll ? 'Memproses...' : payAllProofFile ? '✓ Lunas Semua' : '📷 Upload bukti dulu'}
               </button>
             </div>
           </div>
@@ -776,9 +776,9 @@ export default function DebtsPage() {
       {showQris && selectedPM?.qris_image_url && (
         <div className="fixed inset-0 bg-black z-[60] flex flex-col items-center justify-center" onClick={() => setShowQris(false)}>
           <button className="absolute top-4 right-4 text-white bg-[var(--navy)]/20 rounded-full w-10 h-10 flex items-center justify-center text-lg z-10"
-            onClick={() => setShowQris(false)}>âœ•</button>
+            onClick={() => setShowQris(false)}>✕</button>
           <img src={qrisMode === 'dynamic' && dynamicQris ? dynamicQris : selectedPM.qris_image_url} alt="QRIS"
-            className="max-w-[95vw] max-h-[80vh] object-contain bg-[var(--surface-container)]/40 rounded-2xl p-4" />
+            className="max-w-[95vw] max-h-[80vh] object-contain bg-[var(--surface-container)] rounded-2xl p-4" />
         </div>
       )}
       {/* Proof Upload Modal */}
@@ -786,27 +786,27 @@ export default function DebtsPage() {
         <div className="fixed inset-0 overlay z-50 flex items-center justify-center p-4" onClick={() => !submittingProof && setProofModal(null)}>
           <div className="bg-[var(--navy)] -lg border border-[var(--outline-variant)] w-full max-w-lg rounded-3xl p-6 animate-slide-up" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-[var(--on-surface)]">ðŸ“¸ Bukti Pembayaran</h3>
-              <button onClick={() => !submittingProof && setProofModal(null)} className="text-[var(--outline)] hover:text-[var(--on-surface)] text-xl p-1">âœ•</button>
+              <h3 className="text-lg font-bold text-[var(--on-surface)]">📸 Bukti Pembayaran</h3>
+              <button onClick={() => !submittingProof && setProofModal(null)} className="text-[var(--outline)] hover:text-[var(--on-surface)] text-xl p-1">✕</button>
             </div>
 
             <div className="bg-amber-50 rounded-xl border border-amber-200 p-3 mb-4">
-              <p className="text-xs text-amber-700">âš ï¸ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
+              <p className="text-xs text-amber-700">⚠️ <strong>Wajib upload bukti transfer</strong> sebelum menandai lunas. Screenshot akan dikirim otomatis ke penagih via WhatsApp.</p>
             </div>
 
             <input type="file" accept="image/*" onChange={e => { const f = e.target.files?.[0]; if (f) { setProofFile(f); setProofPreview(URL.createObjectURL(f)); } }} className="hidden" id="proof-debt-upload" />
             
             {proofPreview ? (
               <div className="relative mb-4">
-                <img src={proofPreview} alt="Bukti" className="w-full max-h-52 object-contain rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)]/40" />
+                <img src={proofPreview} alt="Bukti" className="w-full max-h-52 object-contain rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)]" />
                 <button onClick={() => { setProofFile(null); setProofPreview(null); }}
-                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">âœ•</button>
-                <p className="text-[10px] text-emerald-600 font-medium mt-1.5 text-center">âœ“ Bukti pembayaran siap dikirim</p>
+                  className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white rounded-full w-7 h-7 flex items-center justify-center shadow text-sm">✕</button>
+                <p className="text-[10px] text-emerald-600 font-medium mt-1.5 text-center">✓ Bukti pembayaran siap dikirim</p>
               </div>
             ) : (
               <label htmlFor="proof-debt-upload"
                 className="block w-full py-8 rounded-xl border-2 border-dashed border-[var(--outline-variant)] hover:border-orange-500 bg-orange-50/50 transition-colors cursor-pointer text-center mb-4">
-                <span className="text-3xl block mb-2">ðŸ“·</span>
+                <span className="text-3xl block mb-2">📷</span>
                 <span className="text-sm text-orange-600 font-semibold">Upload Bukti Transfer</span>
                 <span className="block text-[11px] text-[var(--outline)] mt-1">Tap untuk foto atau pilih dari galeri</span>
               </label>
@@ -817,7 +817,7 @@ export default function DebtsPage() {
                 className="flex-1 py-3 rounded-xl border border-[var(--outline-variant)] text-[var(--on-surface)] hover:bg-warm-50 font-semibold text-sm disabled:opacity-50">Batal</button>
               <button onClick={submitProofAndMarkPaid} disabled={submittingProof || !proofFile}
                 className={`flex-1 py-3 rounded-xl font-semibold text-sm disabled:opacity-50 active:scale-[0.98] transition ${proofFile ? 'bg-emerald-600 text-white shadow-emerald' : 'bg-warm-100 text-[var(--outline)]'}`}>
-                {submittingProof ? 'Mengunggah...' : proofFile ? 'âœ“ Kirim & Tandai Lunas' : 'ðŸ“· Upload dulu'}
+                {submittingProof ? 'Mengunggah...' : proofFile ? '✓ Kirim & Tandai Lunas' : '📷 Upload dulu'}
               </button>
             </div>
           </div>
@@ -828,12 +828,11 @@ export default function DebtsPage() {
       {showProofView && (
         <div className="fixed inset-0 bg-black z-[60] flex flex-col items-center justify-center" onClick={() => setShowProofView(null)}>
           <button className="absolute top-4 right-4 text-white bg-[var(--navy)]/20 rounded-full w-10 h-10 flex items-center justify-center text-lg z-10"
-            onClick={() => setShowProofView(null)}>âœ•</button>
-          <p className="text-white/70 text-xs mb-3">ðŸ“¸ Bukti Pembayaran</p>
-          <img src={showProofView} alt="Bukti" className="max-w-[95vw] max-h-[80vh] object-contain bg-[var(--surface-container)]/40 rounded-2xl p-2" />
+            onClick={() => setShowProofView(null)}>✕</button>
+          <p className="text-white/70 text-xs mb-3">📸 Bukti Pembayaran</p>
+          <img src={showProofView} alt="Bukti" className="max-w-[95vw] max-h-[80vh] object-contain bg-[var(--surface-container)] rounded-2xl p-2" />
         </div>
       )}
     </div>
   );
 }
-

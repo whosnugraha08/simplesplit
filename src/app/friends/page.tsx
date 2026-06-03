@@ -102,7 +102,7 @@ export default function FriendsPage() {
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => { setEditingFriend(friend); setShowForm(true); }}
-                          className="p-2 rounded-lg hover:bg-blush/40 transition-colors text-[var(--outline)]" title="Edit">✏️</button>
+                          className="p-2 rounded-lg hover:bg-[var(--surface-container)] transition-colors text-[var(--outline)]" title="Edit">✏️</button>
                         {!isMe && (
                           <button onClick={() => setDeleteConfirm(friend.id)}
                             className="p-2 rounded-lg hover:bg-red-600/10 transition-colors text-[var(--outline)]" title="Hapus">🗑️</button>
@@ -112,7 +112,7 @@ export default function FriendsPage() {
                     {pmCount > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1.5">
                         {friend.payment_methods!.map(pm => (
-                          <span key={pm.id} className="bg-blush/40 text-[var(--outline)] text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
+                          <span key={pm.id} className="bg-[var(--surface-container)] text-[var(--outline)] text-[10px] font-medium px-2 py-1 rounded-lg">{pm.label}</span>
                         ))}
                       </div>
                     )}
@@ -288,12 +288,12 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
           <div>
             <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">Nama *</label>
             <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Contoh: Faiz"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" required />
+              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" required />
           </div>
           <div>
             <label className="block text-sm font-medium text-[var(--outline)] mb-1.5">No. WhatsApp</label>
             <input type="tel" value={whatsappNumber} onChange={e => setWhatsappNumber(e.target.value)} placeholder="081234567890"
-              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-blush/40 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" />
+              className="w-full px-4 py-3 rounded-xl border border-[var(--outline-variant)] bg-[var(--surface-container)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500/30 transition" />
           </div>
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={isAdmin} onChange={e => setIsAdmin(e.target.checked)} />
@@ -316,23 +316,23 @@ function FriendFormModal({ friend, onClose, onSaved }: { friend: FriendWithPMs |
                 {paymentMethods.map((pm, idx) => {
                   if (pm._deleted) return null;
                   return (
-                    <div key={idx} className="bg-blush/40 rounded-xl p-3 space-y-2 relative animate-fade-in">
+                    <div key={idx} className="bg-[var(--surface-container)] rounded-xl p-3 space-y-2 relative animate-fade-in">
                       <button type="button" onClick={() => removePM(idx)} className="absolute top-2 right-2 text-[var(--outline)] hover:text-danger text-sm p-1">✕</button>
                       <input type="text" value={pm.label} onChange={e => updatePM(idx, 'label', e.target.value)} placeholder="Label (cth: BCA Utama)"
-                        className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                        className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       <div className="grid grid-cols-2 gap-2">
                         <input type="text" value={pm.bank_name} onChange={e => updatePM(idx, 'bank_name', e.target.value)} placeholder="Bank *"
-                          className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                         <input type="text" value={pm.account_number} onChange={e => updatePM(idx, 'account_number', e.target.value)} placeholder="No. Rekening"
-                          className="w-full px-3 py-2 rounded-lg bg-blush/40 border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                          className="w-full px-3 py-2 rounded-lg bg-[var(--surface-container)] border border-[var(--outline-variant)] text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
                       </div>
                       <div>
                         <input type="file" accept="image/*" onChange={e => { const file = e.target.files?.[0]; if (file) handleQrisFile(idx, file); }} className="hidden" id={`qris-${idx}`} />
                         {pm.qris_image_url ? (
                           <div className="relative">
-                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-[var(--outline-variant)] bg-white" />
+                            <img src={pm.qris_image_url} alt="QRIS" className="w-full max-h-32 object-contain rounded-lg border border-[var(--outline-variant)] bg-[var(--navy)]" />
                             <button type="button" onClick={() => { const updated = [...paymentMethods]; updated[idx].qris_image_url = null; updated[idx].qris_file = null; setPaymentMethods(updated); }}
-                              className="absolute top-1 right-1 bg-blush/40 rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
+                              className="absolute top-1 right-1 bg-[var(--surface-container)] rounded-full w-6 h-6 flex items-center justify-center shadow text-xs">✕</button>
                           </div>
                         ) : (
                           <label htmlFor={`qris-${idx}`}

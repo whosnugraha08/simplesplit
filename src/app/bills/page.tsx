@@ -60,9 +60,9 @@ export default function BillsPage() {
   }
 
   const statusLabel: Record<string, { text: string; className: string }> = {
-    draft: { text: 'Draft', className: 'bg-blush text-[var(--on-surface)]/70' },
-    assigned: { text: 'Dibagi', className: 'bg-primary/15 text-primary' },
-    settled: { text: 'Selesai', className: 'bg-forest-light text-forest' },
+    draft: { text: 'Draft', className: 'bg-[var(--surface-container)] text-[var(--on-surface)]/70' },
+    assigned: { text: 'Dibagi', className: 'bg-[rgba(108,63,212,0.15)] text-[var(--lime)]' },
+    settled: { text: 'Selesai', className: 'bg-[rgba(200,241,53,0.15)] text-[var(--lime)]' },
   };
 
   return (

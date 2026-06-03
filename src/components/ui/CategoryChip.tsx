@@ -22,8 +22,8 @@ export function CategoryChips({ value, onChange }: CategoryChipProps) {
           onClick={() => onChange(cat.id)}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all btn-press ${
             value === cat.id
-              ? 'bg-primary text-white '
-              : 'bg-blush/60 text-[var(--on-surface)] hover:bg-blush'
+              ? 'bg-[var(--primary-container)] text-white '
+              : 'bg-[var(--surface-container)] text-[var(--on-surface)] hover:bg-[var(--surface-container)]'
           }`}
         >
           <span>{cat.emoji}</span>

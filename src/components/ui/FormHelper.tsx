@@ -16,7 +16,7 @@ export function FieldTooltip({ label, hint }: { label: string; hint: string }) {
         type="button"
         onClick={() => setOpen(!open)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        className="w-4 h-4 rounded-full bg-blush text-[var(--on-surface)]/60 text-[10px] font-bold hover:bg-primary-light"
+        className="w-4 h-4 rounded-full bg-[var(--surface-container)] text-[var(--on-surface)]/60 text-[10px] font-bold hover:bg-primary-light"
         aria-label="Info"
       >
         ?
