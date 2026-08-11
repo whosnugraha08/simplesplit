@@ -1,1 +1,52 @@
+name: Supabase Keep-Alive
 
+on:
+  schedule:
+    # Run every 6 hours (0:00, 6:00, 12:00, 18:00 UTC)
+    - cron: '0 */6 * * *'
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase Keep-Alive Endpoint
+        run: |
+          echo "🏓 Pinging SimpleSplit keep-alive at $(date -u)"
+          
+          RESPONSE=$(curl -sf -w "\n%{http_code}" \
+            --max-time 30 \
+            --retry 3 \
+            --retry-delay 10 \
+            "${{ secrets.APP_URL }}/api/keep-alive" 2>&1) || true
+          
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | head -n -1)
+          
+          echo "HTTP Status: $HTTP_CODE"
+          echo "Response: $BODY"
+          
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ Keep-alive ping successful!"
+          else
+            echo "⚠️ Keep-alive ping returned non-200 status: $HTTP_CODE"
+            echo "Attempting direct Supabase ping as fallback..."
+            
+            # Fallback: Direct Supabase REST API ping
+            if [ -n "${{ secrets.SUPABASE_URL }}" ] && [ -n "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+              FALLBACK=$(curl -sf \
+                --max-time 15 \
+                -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+                -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+                "${{ secrets.SUPABASE_URL }}/rest/v1/friends?select=id&limit=1" 2>&1) || true
+              echo "Fallback response: $FALLBACK"
+            fi
+          fi
+
+      - name: Ping Summary
+        if: always()
+        run: |
+          echo "================================================"
+          echo "🕐 Completed at: $(date -u)"
+          echo "📊 Next run in ~6 hours"
+          echo "================================================"
