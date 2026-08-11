@@ -1,8 +1,13 @@
 {
-  "crons": [
+  "headers": [
     {
-      "path": "/api/keep-alive",
-      "schedule": "0 6 * * *"
+      "source": "/api/keep-alive",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
+      ]
     }
   ]
 }

@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { ToastProvider } from '@/components/Toast';
 import { markUserInteracted } from '@/lib/sounds';
+import { scheduleKeepAlive } from '@/lib/keep-alive';
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,6 +40,13 @@ function LayoutInner({ children }: { children: React.ReactNode }) {
       router.push('/login');
     }
   }, [loading, user, isLoginPage, router]);
+
+  // Keep Supabase alive when user is logged in
+  useEffect(() => {
+    if (user) {
+      scheduleKeepAlive();
+    }
+  }, [user]);
 
   if (isLoginPage) {
     return <>{children}</>;
